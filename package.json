@@ -1,7 +1,7 @@
 {
-  "name": "YOURNAME",
+  "name": "inceptum-etl",
   "version": "0.0.1",
-  "description": "YOURDESCRIPTION",
+  "description": "A framework for ETL processes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
