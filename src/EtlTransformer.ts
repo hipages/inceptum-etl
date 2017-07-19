@@ -1,4 +1,5 @@
+import { EtlBatch } from './EtlBatch';
 
-export class EtlTransformer {
-
+export abstract class EtlTransformer {
+  async abstract transform(batch: EtlBatch);
 }

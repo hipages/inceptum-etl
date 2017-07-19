@@ -1,3 +1,4 @@
+import { EtlBatch } from './EtlBatch';
 import { EtlSavepointUpdater } from './EtlSavepointUpdater';
 
 
@@ -9,24 +10,24 @@ import { EtlSavepointUpdater } from './EtlSavepointUpdater';
  * Implementations of EtlSource need not be thread-safe, meaning that there won't be a call to getNextBatch or
  * hasNextBatch but after it has given it's answer to previous calls to those methods.
  */
-export interface EtlSource {
+export abstract class EtlSource {
   /**
    * Method gets called with the last savepoint the source has communicated to the framework
    * @param savepoint {string} The last savepoint that this source had notified the framework
    * @param savepointUpdater {EtlSavepointUpdater} A utility class the source can use to
    * let the framework know that the savepoint should be updated.
    */
-  initSavePoint(savepoint: String, savepointUpdater: EtlSavepointUpdater),
+  abstract initSavePoint(savepoint: String, savepointUpdater: EtlSavepointUpdater);
 
   /**
    * Get's the next batch of objects.
    * <p>
    * It's important to notice
    */
-  getNextBatch(): Array<Object>,
+  async abstract getNextBatch(): Promise<EtlBatch>;
 
   /**
    * Whether there are more batches to be returned by the {@link #getNextBatch} method.
    */
-  hasNextBatch(): boolean,
+  abstract hasNextBatch(): boolean;
 }

@@ -1,4 +1,6 @@
+import { EtlBatch } from './EtlBatch';
 
-export class EtlDestination {
 
+export abstract class EtlDestination {
+  async abstract store(batch: EtlBatch);
 }

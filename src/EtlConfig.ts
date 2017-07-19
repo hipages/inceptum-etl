@@ -12,6 +12,7 @@ export abstract class EtlConfig {
   etlTransformerTimeoutMillis: number;
   etlDestinationTimeoutMillis: number;
   etlDestinationBatchSize: number;
+  minSuccessfulTransformationPercentage = 1;
 
   public getName(): string {
     return this.name;
@@ -39,5 +40,8 @@ export abstract class EtlConfig {
   }
   public getEtlDestinationBatchSize(): number {
     return this.etlDestinationBatchSize;
+  }
+  public getMinSuccessfulTransformationPercentage(): number {
+    return this.minSuccessfulTransformationPercentage;
   }
 }
