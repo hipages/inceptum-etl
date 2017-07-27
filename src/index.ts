@@ -5,3 +5,8 @@ export { EtlSavepointManager } from './EtlSavepointManager';
 export { EtlSource } from './EtlSource';
 export { EtlTransformer } from './EtlTransformer';
 export { EtlDestination } from './EtlDestination';
+export { AdwordsKeywords } from './sources/AdwordsKeywords';
+export { AdwordsClicks } from './sources/AdwordsClicks';
+export { SimpleCopy } from './transformers/SimpleCopy';
+export { SplitAdwordsCampaign } from './transformers/SplitAdwordsCampaign';
+export { CsvFile } from './destinations/CsvFile';

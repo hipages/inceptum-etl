@@ -63,7 +63,7 @@ export abstract class EtlSource implements EtlStateListener {
    * @param newSavepoint
    */
   protected async updateStoredSavePoint(newSavepoint: object): Promise<void> {
-    return await this.etlSavepointManager.updateSavepoint(this.savePointToString(newSavepoint));
+    await this.etlSavepointManager.updateSavepoint(this.savePointToString(newSavepoint));
   }
 
   /**

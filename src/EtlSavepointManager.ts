@@ -32,7 +32,7 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
    * Get the savepoint from the database
    */
   public async getSavePoint(): Promise<string> {
-    return this.mysqlClient.runInTransaction(true, (transaction: MysqlTransaction) => {
+    return await this.mysqlClient.runInTransaction(true, (transaction: MysqlTransaction) => {
       return transaction.query('SELECT val FROM savepoint WHERE etlName=?', this.etlName);
     });
   }
@@ -42,7 +42,7 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
    * @param newSavepoint
    */
   public async updateSavepoint(newSavepoint: string): Promise<void> {
-    this.mysqlClient.runInTransaction(false, (transaction: MysqlTransaction) => {
+    await this.mysqlClient.runInTransaction(false, (transaction: MysqlTransaction) => {
       return transaction.query('UPDATE savepoint SET val=? WHERE etlName=?', newSavepoint, this.etlName);
     });
   }

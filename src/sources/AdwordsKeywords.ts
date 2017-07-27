@@ -122,7 +122,10 @@ export class AdwordsKeywords extends EtlSource {
             skipReportSummary: true,
           },
       });
-      data = csvToObject(csv);
+      // Replace spaces in the header row
+      const header = csv.slice(0, csv.search(/[\n\r]+/i));
+      const newHeader = header.replace(/ /g, '').replace(/\./g, '_');
+      data = csvToObject(csv.replace(header, newHeader));
     }
     const batch =  new EtlBatch(data, this.currentBatch, this.totalBatches);
     return batch;
