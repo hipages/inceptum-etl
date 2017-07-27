@@ -4,8 +4,8 @@ import { MysqlClient, MysqlTransaction } from 'inceptum';
  * Stores and retrives the save point for the ETL
  */
 export abstract class EtlSavepointManager {
-  public async abstract getSavePoint(): Promise<String>;
-  public async abstract updateSavepoint(newSavepoint: String);
+  public async abstract getSavePoint(): Promise<string>;
+  public async abstract updateSavepoint(newSavepoint: string);
 }
 
 /**
@@ -14,15 +14,15 @@ export abstract class EtlSavepointManager {
  */
 export class MySQLEtlSavepointManager extends EtlSavepointManager {
   mysqlClient: MysqlClient;
-  etlName: String;
+  etlName: string;
 
   /**
    * Constructor gets the MysqlClient and the etl name
    * @param mysqlClient
    * @param etlName
    */
-  // constructor(mysqlClient: MysqlClient, etlName: String) {
-  constructor(mysqlClient: MysqlClient, etlName: String) {
+  // constructor(mysqlClient: MysqlClient, etlName: string) {
+  constructor(mysqlClient: MysqlClient, etlName: string) {
     super();
     this.mysqlClient = mysqlClient;
     this.etlName = etlName;
@@ -31,7 +31,7 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
   /**
    * Get the savepoint from the database
    */
-  public async getSavePoint(): Promise<String> {
+  public async getSavePoint(): Promise<string> {
     return this.mysqlClient.runInTransaction(true, (transaction: MysqlTransaction) => {
       return transaction.query('SELECT val FROM savepoint WHERE etlName=?', this.etlName);
     });
@@ -41,7 +41,7 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
    * Save the savepoint in the database
    * @param newSavepoint
    */
-  public async updateSavepoint(newSavepoint: String) {
+  public async updateSavepoint(newSavepoint: string): Promise<void> {
     this.mysqlClient.runInTransaction(false, (transaction: MysqlTransaction) => {
       return transaction.query('UPDATE savepoint SET val=? WHERE etlName=?', newSavepoint, this.etlName);
     });

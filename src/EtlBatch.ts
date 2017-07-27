@@ -20,11 +20,11 @@ export class EtlBatchRecord {
   /**
    * The data of the record as a JSON object
    */
-  private data: Object;
+  private data: object;
   /**
    * The data after it's been transformed
    */
-  private transformedData: Object;
+  private transformedData: object;
   /**
    * In case there's been an error, we should capture the exception in this field
    */
@@ -34,7 +34,7 @@ export class EtlBatchRecord {
    * Constructor stores the data in this object
    * @param data JSON object
    */
-  constructor(data: Object) {
+  constructor(data: object) {
     this.data = data;
   }
 
@@ -56,21 +56,21 @@ export class EtlBatchRecord {
   /**
    * Get the data
    */
-  public getData(): Object {
+  public getData(): object {
     return this.data;
   }
 
   /**
    * Get the transformedData
    */
-  public getTransformedData(): Object {
+  public getTransformedData(): object {
     return this.transformedData;
   }
 
   /**
    * Get the transformedData
    */
-  public setTransformedData(data: Object) {
+  public setTransformedData(data: object) {
     this.transformedData = data;
     this.setState(EtlState.TRANSFORMED);
   }
@@ -94,7 +94,7 @@ export class EtlBatch {
 
   private state = EtlState.CREATED;
   private stateTimeInMs = Date.now();
-  private etlName: String;
+  private etlName: string;
   private records: Array<EtlBatchRecord>;
   private listeners: Array<EtlStateListener>;
   private batchNumber: number;
@@ -104,7 +104,7 @@ export class EtlBatch {
    * Constructor: stores the sourceObjects into the batch with the default state
    * @param sourceObjects Array of JSON objects
    */
-  constructor(sourceObjects: Array<Object>, batchNumber= 1, totalBatches= 1) {
+  constructor(sourceObjects: Array<object>, batchNumber= 1, totalBatches= 1) {
     this.records = [];
     this.listeners = [];
     this.batchNumber = batchNumber;
@@ -116,7 +116,7 @@ export class EtlBatch {
    * Add the source objcets as EtlBatchRecord in the batch
    * @param sourceObjects
    */
-  public addSourceRecords(sourceObjects: Array<Object>) {
+  public addSourceRecords(sourceObjects: Array<object>) {
     sourceObjects.forEach((sourceObject) => this.addSourceRecord(sourceObject));
   }
 
@@ -124,7 +124,7 @@ export class EtlBatch {
    * Add a single source record into the batch array
    * @param sourceObject
    */
-  public addSourceRecord(sourceObject: Object) {
+  public addSourceRecord(sourceObject: object) {
     this.records.push(new EtlBatchRecord(sourceObject));
   }
 
@@ -132,7 +132,7 @@ export class EtlBatch {
    * Set the etl name
    * @param etlName string
    */
-  public setEtlName(etlName: String) {
+  public setEtlName(etlName: string) {
     this.etlName = etlName;
   }
 
@@ -140,7 +140,7 @@ export class EtlBatch {
    * Gel the etl name
    * @param etlName string
    */
-  public getEtlName(): String {
+  public getEtlName(): string {
     return this.etlName;
   }
 
@@ -215,7 +215,7 @@ export class EtlBatch {
   /**
    * Gell all the records whit state EtlState.TRANSFORMED
    */
-  public getTransformedRecords(): Array<object> {
+  public getTransformedRecords(): Array<EtlBatchRecord> {
     return this.records.filter((r) => (r.getState() === EtlState.TRANSFORMED));
   }
 }

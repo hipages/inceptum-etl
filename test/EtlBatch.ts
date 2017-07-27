@@ -16,8 +16,8 @@ suite('EtlBatch', () => {
       const record = new EtlBatchRecord({id: 1, name: 'part 1'});
       record.getState().must.be.equal(EtlState.CREATED);
       const data = record.getData();
-      data.hasOwnProperty('id').must.true;
-      data.hasOwnProperty('name').must.true;
+      data.hasOwnProperty('id').must.true();
+      data.hasOwnProperty('name').must.true();
       data['id'].must.be.equal(1);
       data['name'].must.be.equal('part 1');
     });
@@ -30,8 +30,8 @@ suite('EtlBatch', () => {
       const record = new EtlBatchRecord({id: 1, name: 'part 1'});
       record.setTransformedData({id: 2, name: 'part 2'});
       const data = record.getTransformedData();
-      data.hasOwnProperty('id').must.true;
-      data.hasOwnProperty('name').must.true;
+      data.hasOwnProperty('id').must.true();
+      data.hasOwnProperty('name').must.true();
       data['id'].must.be.equal(2);
       data['name'].must.be.equal('part 2');
       record.getState().must.be.equal(EtlState.TRANSFORMED);
@@ -65,13 +65,13 @@ suite('EtlBatch', () => {
       batch.registerStateListener(testListener);
       batch.setState(EtlState.SAVE_ENDED);
       batch.getState().must.be.equal(EtlState.SAVE_ENDED);
-      testListener.value.must.be.true;
+      testListener.value.must.be.true();
     });
     test('Test records with state', async () => {
       const batch = new EtlBatch([{id: 1, name: 'part 1'}, {id: 2, name: 'part 2'}]);
-      batch.getRecords().map( record => {
+      batch.getRecords().map( (record) => {
           const data = record.getData();
-          if (data['id'] == 1) {
+          if (data['id'] === 1) {
             record.setState(EtlState.ERROR);
           }
       });
@@ -81,9 +81,9 @@ suite('EtlBatch', () => {
     });
     test('Test transformed records', async () => {
       const batch = new EtlBatch([{id: 1, name: 'part 1'}, {id: 2, name: 'part 2'}]);
-      batch.getRecords().map( record => {
+      batch.getRecords().map( (record) => {
           const data = record.getData();
-          if (data['id'] == 1) {
+          if (data['id'] === 1) {
             record.setTransformedData({id: 3, name: 'part 3'});
           }
       });

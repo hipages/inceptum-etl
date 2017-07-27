@@ -1,3 +1,5 @@
+// import { Context } from 'inceptum';
+import * as config from 'config';
 import { EtlDestination } from './EtlDestination';
 import { EtlSource } from './EtlSource';
 import { EtlTransformer } from './EtlTransformer';
@@ -13,6 +15,37 @@ export class EtlConfig {
   private etlDestinationTimeoutMillis: number;
   private etlDestinationBatchSize: number;
   private minSuccessfulTransformationPercentage = 1;
+
+  // ************************************
+  // Config functions
+  // ************************************
+  /**
+   * Get an element from the configuration.
+   * Can be both a leaf of the configuration, or an intermediate path. In the latter case it will return
+   * an object with all the configs under that path.
+   * It will throw an exception if the key doesn't exist.
+   *
+   * @param {string} key The key of the config we want
+   * @param {*} defaultValue A default value to use if the key doesn't exist
+   * @return {*} The requested configuration
+   * @throws {Error} If the given key doesn't exist and a default value is not provided
+   * @see {@link EtlConfig.hasConfig}
+   */
+  static getConfig(key: string, defaultValue?: any): any {
+    if (!config.has(key) && defaultValue !== undefined) {
+      return defaultValue;
+    }
+    return config.get(key);
+  }
+
+  // tslint:disable-next-line:prefer-function-over-method
+  public getConfig(key: string, defaultValue?: any): any {
+    if (this.hasOwnProperty(key)) {
+      const upKey = key.charAt(0).toUpperCase() + key.slice(1);
+      return this[`get${upKey}`]();
+    }
+    return EtlConfig.getConfig(key, defaultValue);
+  }
 
   public getName(): string {
     return this.name;

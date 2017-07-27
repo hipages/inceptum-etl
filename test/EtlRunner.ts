@@ -11,17 +11,19 @@ import { EtlDestination } from '../src/EtlDestination';
 
 class DummySource extends EtlSource {
   batches = 1;
-  constructor(batches=1){
+  constructor(batches= 1) {
     super();
     this.batches = batches;
   }
-  protected savePointToString(savePoint: Object) {
+  // tslint:disable-next-line:prefer-function-over-method
+  protected savePointToString(savePoint: object) {
     return savePoint['value'];
   }
-  protected stringTosavePoint(savePoint: String) {
+  // tslint:disable-next-line:prefer-function-over-method
+  protected stringToSavePoint(savePoint: string) {
     return {
       value: savePoint,
-    }
+    };
   }
   public async getNextBatch(): Promise<EtlBatch> {
     const batch =  new EtlBatch([{id: 1, name: 'part 1'}]);
@@ -34,7 +36,7 @@ class DummySource extends EtlSource {
     return hasBatch;
   }
   public stateChanged(newState: EtlState) {
-    if(newState == EtlState.SAVE_ENDED) {
+    if (newState === EtlState.SAVE_ENDED) {
       this.updateStoredSavePoint({value: 'New stored point'});
     }
   }
@@ -42,13 +44,13 @@ class DummySource extends EtlSource {
 
 class DummyTransformer extends EtlTransformer {
   setErrors = false;
-  constructor (setErrors = false) {
+  constructor(setErrors = false) {
     super();
     this.setErrors = setErrors;
   }
-  public async transform(batch: EtlBatch) {
-    batch.getRecords().map( record => {
-      if(this.setErrors) {
+  public async transform(batch: EtlBatch): Promise<void> {
+    batch.getRecords().map( (record) => {
+      if (this.setErrors) {
         record.setState(EtlState.ERROR);
       } else {
         record.setTransformedData(record.getData);
@@ -60,13 +62,13 @@ class DummyTransformer extends EtlTransformer {
 
 class DummyDestination extends EtlDestination {
   setErrors = false;
-  constructor (setErrors = false) {
+  constructor(setErrors = false) {
     super();
     this.setErrors = setErrors;
   }
-  public async store(batch: EtlBatch) {
+  public async store(batch: EtlBatch): Promise<void> {
     batch.setState(EtlState.SAVE_STARTED);
-    if(this.setErrors) {
+    if (this.setErrors) {
       batch.setState(EtlState.ERROR);
     } else {
       batch.setState(EtlState.SAVE_ENDED);
@@ -76,15 +78,15 @@ class DummyDestination extends EtlDestination {
 }
 
 class DummySavepointManager extends EtlSavepointManager {
-  savepoint: String;
-  constructor(savepoint: String) {
+  savepoint: string;
+  constructor(savepoint: string) {
     super();
     this.savepoint = savepoint;
   }
-  async getSavePoint(): Promise<String> {
+  async getSavePoint(): Promise<string> {
     return Promise.resolve(this.savepoint);
   }
-  async updateSavepoint(newSavepoint: String) {
+  async updateSavepoint(newSavepoint: string) {
     this.savepoint = newSavepoint;
     return Promise.resolve();
   }
@@ -108,9 +110,9 @@ suite('EtlRunner', () => {
       const savePointManager = new DummySavepointManager('savepoint1');
       await source.initSavePoint(savePointManager);
       source.getInitialSavepoint().must.be.equal('savepoint1');
-      //first time true
+      // first time true
       source.hasNextBatch().must.be.equal(true);
-      //second time false
+      // second time false
       source.hasNextBatch().must.be.equal(false);
       const batch = await source.getNextBatch();
       batch.getNumRecords().must.be.equal(1);
@@ -140,7 +142,7 @@ suite('EtlRunner', () => {
     });
   });
   suite('Etl runner test', () => {
-    //Set the config file for testing
+    // Set the config file for testing
     const config = new EtlConfig();
     config.setName('test etl');
     config.setMaxEtlSourceRetries(5);
@@ -149,7 +151,7 @@ suite('EtlRunner', () => {
     config.setEtlDestinationTimeoutMillis(10);
     config.setEtlDestinationBatchSize(1);
     config.setMinSuccessfulTransformationPercentage(1);
-    
+
     test('Source gets savepoint no batches', async () => {
       config.setEtlSource(new DummySource(0));
       config.setEtlTransformer(new DummyTransformer());

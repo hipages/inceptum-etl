@@ -35,7 +35,12 @@
     "test": "test"
   },
   "dependencies": {
-    "inceptum": "^0.4.2"
+    "bluebird": "^3.5.0",
+    "config": "1.25.1",
+    "csvjson": "^4.3.3",
+    "inceptum": "^0.4.2",
+    "moment": "^2.18.1",
+    "node-adwords": "201705.1.0"
   },
   "devDependencies": {
     "@types/node": "7.0.23",

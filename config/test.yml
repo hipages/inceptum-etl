@@ -1,0 +1,70 @@
+app:
+  name: Inceptum Etl
+  context:
+    name: TestEtlContext
+
+logging:
+  streams:
+    console:
+      type: console
+    myredis:
+      type: redis
+    mainLogFile:
+      type: file
+      path: main.log
+  loggers:
+    - name: ROOT
+      streams:
+        console: debug
+    - name: ioc/
+      streams:
+        console: debug
+    - name: mysql/
+      streams:
+        console: debug
+
+sources:
+  adwords:
+    account: THE_ACCOUNT_NAME
+    token: DEVELOPER_TOKEN
+    userAgent: YOUR_PROJECT_NAME
+    clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
+    clientId: ADWORDS_API_CLIENT_ID
+    clientSecret: ADWORDS_API_CLIENT_SECRET
+    refreshToken: ADWORDS_API_REFRESHTOKEN
+    version: v201705
+    accountsList:
+      - name: First_account
+        id: dirst_id
+      - name: second_account
+        id: second_id	
+
+destinations:
+  file:
+    directory: /Users/techdev3/src/inceptum-etl
+    fileName: test_keywords
+
+MySQL:
+  MysqlClient: # this is the name of the object that will be exposed in the context
+    master:
+      host: localhost
+      port: 3306
+      user: root
+      password:
+      database: testDb
+      charset: utf8
+      connectionLimit: 10
+    slave:
+      host: localhost
+      port: 3306
+      user: root
+      password:
+      database: testDb
+      charset: utf8
+      connectionLimit: 10
+
+Context:
+  ActiveProfiles: development
+
+Application:
+  Parameter1: Value 1

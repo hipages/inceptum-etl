@@ -23,7 +23,7 @@ export class EtlRunner {
   /**
    * Executes the etl
    */
-  public async executeEtl() {
+  public async executeEtl(): Promise<void> {
     const source = this.config.getEtlSource();
     await source.initSavePoint(this.etlSavepointManager);
     while (source.hasNextBatch()) {
@@ -44,7 +44,7 @@ export class EtlRunner {
    * EtlState.TRANSFORM_ENDED
    * @param batch
    */
-  protected async transformBatch(batch: EtlBatch) {
+  protected async transformBatch(batch: EtlBatch): Promise<void> {
     batch.setState(EtlState.TRANSFORM_STARTED);
     const transformer = this.config.getEtlTransformer();
     await transformer.transform(batch);
@@ -66,7 +66,7 @@ export class EtlRunner {
    * to EtlState.ERROR if fails or EtlState.SAVE_ENDED on success
    * @param batch
    */
-  protected async storeBatch(batch: EtlBatch) {
+  protected async storeBatch(batch: EtlBatch): Promise<void> {
     batch.setState(EtlState.SAVE_STARTED);
     const destination = this.config.getEtlDestination();
     await destination.store(batch);

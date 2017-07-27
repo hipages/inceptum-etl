@@ -5,19 +5,23 @@ import { EtlBatch, EtlState } from '../src/EtlBatch';
 import { EtlSavepointManager } from '../src/EtlSavepointManager';
 import { EtlSource } from '../src/EtlSource';
 
-class testSource extends EtlSource {
-  protected savePointToString(savePoint: Object) {
+class TestSource extends EtlSource {
+  // tslint:disable-next-line:prefer-function-over-method
+  protected savePointToString(savePoint: object) {
     return savePoint['value'];
   }
-  protected stringTosavePoint(savePoint: String) {
+  // tslint:disable-next-line:prefer-function-over-method
+  protected stringToSavePoint(savePoint: string) {
     return {
       value: savePoint,
-    }
+    };
   }
+  // tslint:disable-next-line:prefer-function-over-method
   public async getNextBatch(): Promise<EtlBatch> {
     const batch =  new EtlBatch([{id: 1, name: 'part 1'}]);
     return Promise.resolve(batch);
   }
+  // tslint:disable-next-line:prefer-function-over-method
   public hasNextBatch(): boolean {
     return false;
   }
@@ -27,21 +31,21 @@ class testSource extends EtlSource {
 }
 
 class DummySavepointManager extends EtlSavepointManager {
-  savepoint: String;
-  constructor(savepoint: String) {
+  savepoint: string;
+  constructor(savepoint: string) {
     super();
     this.savepoint = savepoint;
   }
-  public async getSavePoint(): Promise<String> {
+  public async getSavePoint(): Promise<string> {
     return Promise.resolve(this.savepoint);
   }
-  public async updateSavepoint(newSavepoint: String) {
+  public async updateSavepoint(newSavepoint: string): Promise<void> {
     this.savepoint = newSavepoint;
     return Promise.resolve();
   }
 }
 
-suite('EtlSourse', () => {
+suite('EtlSource', () => {
   suite('Test dummy classes', () => {
     test('DummySavepointManager', async () => {
       const savePointManager = new DummySavepointManager('savepoint1');
@@ -55,21 +59,30 @@ suite('EtlSourse', () => {
 
   suite('Etl source test', () => {
     test('Test initial savepoint manager', async () => {
-      const source = new testSource();
+      const source = new TestSource();
       const savePointManager = new DummySavepointManager('savepoint1');
       await source.initSavePoint(savePointManager);
       const manager = source.getSavepointManager();
       manager.must.be.equal(savePointManager);
     });
     test('Test get initial savepoint', async () => {
-      const source = new testSource();
+      const source = new TestSource();
       const savePointManager = new DummySavepointManager('savepoint1');
       await source.initSavePoint(savePointManager);
       source.getInitialSavepoint().must.be.equal('savepoint1');
       source.getCurrentSavepoint().must.be.equal('savepoint1');
     });
+    test('Test get savepoint object', async () => {
+      const source = new TestSource();
+      const savePointManager = new DummySavepointManager('savepoint1');
+      await source.initSavePoint(savePointManager);
+      const value1 = source.getInitialSavepointObject();
+      value1.must.be.eql({value: 'savepoint1'});
+      const value2 = source.getCurrentSavepointObject();
+      value2.must.be.eql({value: 'savepoint1'});
+    });
     test('Test update savepoint', async () => {
-      const source = new testSource();
+      const source = new TestSource();
       const savePointManager = new DummySavepointManager('savepoint1');
       await source.initSavePoint(savePointManager);
       source.stateChanged(EtlState.SAVE_ENDED);

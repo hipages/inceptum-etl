@@ -15,60 +15,83 @@ import { EtlSavepointManager } from './EtlSavepointManager';
  * previous calls to those methods.
  */
 export abstract class EtlSource implements EtlStateListener {
-  protected initialSavePoint: Object;
-  protected currentSavePoint: Object;
+  protected currentBatch = 0;
+  protected totalBatches = 0;
+  protected initialSavePoint: object;
+  protected currentSavePoint: object;
   protected etlSavepointManager: EtlSavepointManager;
 
   /**
    * Convert the savePoint object to string
    * @param savePoint Convers a save point object to string to be stored
    */
-  protected abstract savePointToString(savePoint: Object): String;
+  protected abstract savePointToString(savePoint: object): string;
 
   /**
    * Convert a given string with save point format to a savePoint object format
    * @param savePoint Convers a sting to a save point object
    */
-  protected abstract stringTosavePoint(savePoint: String): Object;
+  protected abstract stringToSavePoint(savePoint: string): object;
+
+  /**
+   * This method can be overload to set the required to fetch the next batch
+   */
+  protected initCurrentSavePoint() {
+    this.currentSavePoint = {...this.initialSavePoint};
+  }
 
   /**
    * Get the stored save point using the etlSavepointManager
    * @param savepointManager
    */
-  public async initSavePoint(etlSavepointManager: EtlSavepointManager) {
+  public async initSavePoint(etlSavepointManager: EtlSavepointManager): Promise<void> {
     this.etlSavepointManager = etlSavepointManager;
     this.initialSavePoint = await this.getStoredSavePoint();
-    this.currentSavePoint = this.initialSavePoint;
+    this.initCurrentSavePoint();
   }
 
   /**
    * Get the stored save point using the etlSavepointManager
    */
-  protected async getStoredSavePoint(): Promise<Object> {
+  protected async getStoredSavePoint(): Promise<object> {
     const savepoint = await this.etlSavepointManager.getSavePoint();
-    return this.stringTosavePoint(savepoint);
+    return this.stringToSavePoint(savepoint);
   }
 
   /**
    * Update the save point in the database using the etlSavepointManager
    * @param newSavepoint
    */
-  protected async updateStoredSavePoint(newSavepoint: Object) {
+  protected async updateStoredSavePoint(newSavepoint: object): Promise<void> {
     return await this.etlSavepointManager.updateSavepoint(this.savePointToString(newSavepoint));
   }
 
   /**
    * Gets the initialSavepoint variable and returnts it converted to string
    */
-  public getInitialSavepoint(): String {
+  public getInitialSavepoint(): string {
     return this.savePointToString(this.initialSavePoint);
   }
 
   /**
    * Gets the currentSavePoint variable and returnts it converted to string
    */
-  public getCurrentSavepoint(): String {
+  public getCurrentSavepoint(): string {
     return this.savePointToString(this.currentSavePoint);
+  }
+
+  /**
+   * Gets the initialSavepoint variable
+   */
+  public getInitialSavepointObject(): object {
+    return this.initialSavePoint;
+  }
+
+  /**
+   * Gets the currentSavePoint variable
+   */
+  public getCurrentSavepointObject(): object {
+    return this.currentSavePoint;
   }
 
   /**
