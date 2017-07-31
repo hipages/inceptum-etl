@@ -15,7 +15,6 @@ import { EtlSavepointManager } from './EtlSavepointManager';
  * previous calls to those methods.
  */
 export abstract class EtlSource implements EtlStateListener {
-  protected currentBatch = 0;
   protected totalBatches = 0;
   protected initialSavePoint: object;
   protected currentSavePoint: object;
@@ -119,5 +118,5 @@ export abstract class EtlSource implements EtlStateListener {
    * and update it in the database with {@link #updateStoredSavePoint}
    * @param newState
    */
-  abstract stateChanged(newState: EtlState);
+  abstract stateChanged(newState: EtlState): Promise<void>;
 }

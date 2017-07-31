@@ -1,4 +1,7 @@
 import { MysqlClient, MysqlTransaction } from 'inceptum';
+import { LogManager } from 'inceptum';
+
+const log = LogManager.getLogger();
 
 /**
  * Stores and retrives the save point for the ETL
@@ -33,7 +36,13 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
    */
   public async getSavePoint(): Promise<string> {
     return await this.mysqlClient.runInTransaction(true, (transaction: MysqlTransaction) => {
-      return transaction.query('SELECT val FROM savepoint WHERE etlName=?', this.etlName);
+      return transaction.query('SELECT savepoint FROM etls_savepoint WHERE etl_name=?', this.etlName)
+      .then((rows) => {
+        if (rows === null || rows.length === 0 || !rows[0].hasOwnProperty('savepoint')) {
+          return '';
+        }
+        return rows[0]['savepoint'];
+      });
     });
   }
 
@@ -43,7 +52,11 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
    */
   public async updateSavepoint(newSavepoint: string): Promise<void> {
     await this.mysqlClient.runInTransaction(false, (transaction: MysqlTransaction) => {
-      return transaction.query('UPDATE savepoint SET val=? WHERE etlName=?', newSavepoint, this.etlName);
+      return transaction.query('UPDATE etls_savepoint SET savepoint=? WHERE etl_name=?', newSavepoint, this.etlName)
+      .then((result) => {
+        log.debug(`Storing savepoint: ${newSavepoint}`);
+        return result;
+      });
     });
   }
 }

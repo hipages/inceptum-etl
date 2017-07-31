@@ -38,7 +38,7 @@ sources:
         id: ADWORDS_ACOUNT_ID	
 
 destinations:
-  file:
+  csvfile:
     directory: /path/to/file
     fileName: test_keywords
 

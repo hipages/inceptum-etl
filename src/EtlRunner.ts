@@ -1,6 +1,9 @@
+import { LogManager } from 'inceptum';
 import { EtlBatch, EtlState } from './EtlBatch';
 import { EtlConfig } from './EtlConfig';
 import { EtlSavepointManager } from './EtlSavepointManager';
+
+const log = LogManager.getLogger();
 
 /**
  * The class that runs the etl
@@ -32,6 +35,9 @@ export class EtlRunner {
       await this.transformBatch(batch);
       if (batch.getState() !== EtlState.ERROR) {
         await this.storeBatch(batch);
+      } else {
+        // Log the error
+        log.error(`Error storing the batch:${batch.getBatchFullIdentifcation()}`);
       }
     }
   }
@@ -45,7 +51,7 @@ export class EtlRunner {
    * @param batch
    */
   protected async transformBatch(batch: EtlBatch): Promise<void> {
-    batch.setState(EtlState.TRANSFORM_STARTED);
+    await batch.setState(EtlState.TRANSFORM_STARTED);
     const transformer = this.config.getEtlTransformer();
     await transformer.transform(batch);
     if (batch.getState() === EtlState.ERROR) {
@@ -55,9 +61,9 @@ export class EtlRunner {
     const numRecords = batch.getNumRecords();
     const successPercentage = (numRecords - numErrorRecords) / numRecords;
     if (successPercentage < this.config.getMinSuccessfulTransformationPercentage()) {
-      batch.setState(EtlState.ERROR);
+      await batch.setState(EtlState.ERROR);
     } else {
-      batch.setState(EtlState.TRANSFORM_ENDED);
+      await batch.setState(EtlState.TRANSFORM_ENDED);
     }
   }
 
@@ -67,11 +73,14 @@ export class EtlRunner {
    * @param batch
    */
   protected async storeBatch(batch: EtlBatch): Promise<void> {
-    batch.setState(EtlState.SAVE_STARTED);
+    await batch.setState(EtlState.SAVE_STARTED);
     const destination = this.config.getEtlDestination();
     await destination.store(batch);
     if (batch.getState() !== EtlState.ERROR) {
-      batch.setState(EtlState.SAVE_ENDED);
+      await batch.setState(EtlState.SAVE_ENDED);
+    } else {
+      // Log the error
+      log.error(`Error saving batch:${batch.getBatchFullIdentifcation()}`);
     }
   }
 }

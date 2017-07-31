@@ -35,10 +35,11 @@ class DummySource extends EtlSource {
     this.batches--;
     return hasBatch;
   }
-  public stateChanged(newState: EtlState) {
+  public async stateChanged(newState: EtlState): Promise<void> {
     if (newState === EtlState.SAVE_ENDED) {
       this.updateStoredSavePoint({value: 'New stored point'});
     }
+    return Promise.resolve();
   }
 }
 

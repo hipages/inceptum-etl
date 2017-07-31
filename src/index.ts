@@ -1,7 +1,7 @@
 export { EtlBatch, EtlState } from './EtlBatch';
 export { EtlConfig } from './EtlConfig';
 export { EtlRunner } from './EtlRunner';
-export { EtlSavepointManager } from './EtlSavepointManager';
+export { EtlSavepointManager, MySQLEtlSavepointManager } from './EtlSavepointManager';
 export { EtlSource } from './EtlSource';
 export { EtlTransformer } from './EtlTransformer';
 export { EtlDestination } from './EtlDestination';
@@ -10,3 +10,5 @@ export { AdwordsClicks } from './sources/AdwordsClicks';
 export { SimpleCopy } from './transformers/SimpleCopy';
 export { SplitAdwordsCampaign } from './transformers/SplitAdwordsCampaign';
 export { CsvFile } from './destinations/CsvFile';
+export { JsonFile } from './destinations/JsonFile';
+export { S3Bucket } from './destinations/S3Bucket';

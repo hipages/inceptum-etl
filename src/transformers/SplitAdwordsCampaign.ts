@@ -10,8 +10,8 @@ export class SplitAdwordsCampaign extends EtlTransformer {
   public async transform(batch: EtlBatch): Promise<void> {
     batch.getRecords().map( (record) => {
         const newRecord = {...record.getData()};
-        if (newRecord.hasOwnProperty('Adgroup')) {
-            const adgroupParts = newRecord['Adgroup'].split('|');
+        if (newRecord.hasOwnProperty('ad_group')) {
+            const adgroupParts = newRecord['ad_group'].split('|');
             // Get category
             const firstParts = adgroupParts[0].trim().split(':');
             const category = firstParts[0].trim();

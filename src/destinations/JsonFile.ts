@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import { join as joinPath } from 'path';
 import { dirname } from 'path';
-import { toCSV as objectToCSV } from 'csvjson';
 import { LogManager } from 'inceptum';
 import { EtlBatch, EtlState } from '../EtlBatch';
 import { EtlConfig } from '../EtlConfig';
@@ -9,7 +8,7 @@ import { EtlDestinationFile } from '../EtlDestinationFile';
 
 const log = LogManager.getLogger();
 
-export class CsvFile extends EtlDestinationFile {
+export class JsonFile extends EtlDestinationFile {
   protected baseFileName: string;
   protected canStore = true;
 
@@ -18,7 +17,7 @@ export class CsvFile extends EtlDestinationFile {
    * set the directory name in the {@link:thisfileName} variable
    */
   constructor(baseFileName = '') {
-    super('destinations.csvfile', baseFileName);
+    super('destinations.jsonfile', baseFileName);
   }
 
   /**
@@ -31,21 +30,14 @@ export class CsvFile extends EtlDestinationFile {
         batch.getTransformedRecords().map((record) => {
             list.push(record.getTransformedData());
         });
-        const fileFullName = `${this.baseFileName}${batch.getBatchNumber()}_${batch.getBatchIdentifier()}.csv`;
-        fs.writeFileSync(fileFullName, objectToCSV(list));
+        const fileFullName = `${this.baseFileName}${batch.getBatchNumber()}_${batch.getBatchIdentifier()}.json`;
+        fs.writeFileSync(fileFullName, JSON.stringify(list, null, '\t'));
         return fileFullName;
     } else {
         await batch.setState(EtlState.ERROR);
         // log error
-        log.error(`Error saving batch as csv: Batch:${batch.getBatchFullIdentifcation()}`);
-        return '';
+        log.error(`Error saving batch as json: Batch:${batch.getBatchFullIdentifcation()}`);
+      return '';
     }
-  }
-
-  /**
-   * Get the baseFileName variable
-   */
-  public getBaseFileName(): string {
-      return this.baseFileName;
   }
 }

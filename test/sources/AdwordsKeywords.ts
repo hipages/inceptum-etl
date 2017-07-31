@@ -21,8 +21,20 @@ class DummySavepointManager extends EtlSavepointManager {
 }
 
 class HelperAdwordsKeywords extends AdwordsKeywords {
-  public exposeSettNextSavePoint() {
-    this.settNextSavePoint();
+  // Overrite getNextBatch to test changing savepoint
+  public async getNextBatch(): Promise<EtlBatch> {
+    if (this.hasNextBatch()) {
+      this.currentSavePoint = this.getNextSavePoint();
+    }
+    const batch =  new EtlBatch([], this.currentSavePoint['currentBatch'], this.totalBatches, this.currentSavePoint['startDate']);
+    batch.registerStateListener(this);
+    return batch;
+  }
+  public exposeGetNextSavePoint() {
+    return this.getNextSavePoint();
+  }
+  public exposeStringToSavePoint(savePoint: string) {
+    return this.stringToSavePoint(savePoint);
   }
 }
 
@@ -55,12 +67,11 @@ suite('Adwordskeywords', () => {
 
   suite('Adwordskeywords test private methods', () => {
     const savePointManager = new DummySavepointManager('{"startDate":"20170701","endDate":"20170702","totalBatches":2,"currentDate":"2017-07-26T10:40:16.097Z"}');
-    test('Test settNextSavePoint', async () => {
+    test('Test getNextSavePoint', async () => {
       const source = new HelperAdwordsKeywords();
       await source.initSavePoint(savePointManager);
       source.getInitialSavepoint().must.be.equal('{"startDate":"20170701","endDate":"20170702","totalBatches":2,"currentDate":"2017-07-26T10:40:16.097Z"}');
-      source.exposeSettNextSavePoint();
-      const savePoint = source.getCurrentSavepointObject();
+      const savePoint = source.exposeGetNextSavePoint();
       savePoint['startDate'].must.be.equal('20170702');
       savePoint['endDate'].must.be.equal('20170703');
     });
@@ -68,12 +79,15 @@ suite('Adwordskeywords', () => {
       const source = new HelperAdwordsKeywords();
       await source.initSavePoint(savePointManager);
       // Emulates 2 batches call
-      source.exposeSettNextSavePoint();
-      source.exposeSettNextSavePoint();
-      source.stateChanged(EtlState.SAVE_ENDED);
+      source.getNextBatch();
+      source.getNextBatch();
+      await source.stateChanged(EtlState.SAVE_ENDED);
       const current = source.getCurrentSavepoint();
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal(current);
+      const sourceSave = source.exposeStringToSavePoint(current);
+      sourceSave['startDate'].must.be.equal('20170702');
+      sourceSave['endDate'].must.be.equal('20170703');
     });
   });
 });

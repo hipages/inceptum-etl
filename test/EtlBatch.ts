@@ -5,8 +5,9 @@ import { EtlBatch, EtlBatchRecord, EtlState, EtlStateListener } from '../src/Etl
 
 class TestListener implements EtlStateListener {
     public value = false;
-    public stateChanged(newState: EtlState) {
+    public async stateChanged(newState: EtlState): Promise<void> {
         this.value = true;
+        return Promise.resolve();
     }
 }
 

@@ -4,6 +4,7 @@ export enum EtlState {
   TRANSFORM_STARTED,
   TRANSFORM_ENDED,
   SAVE_STARTED,
+  SAVE_SAVED,
   SAVE_ENDED,
   ERROR,
   TRANSFORMED,
@@ -99,16 +100,18 @@ export class EtlBatch {
   private listeners: Array<EtlStateListener>;
   private batchNumber: number;
   private totalBatches: number;
+  private batchIdentifier: string;
 
   /**
    * Constructor: stores the sourceObjects into the batch with the default state
    * @param sourceObjects Array of JSON objects
    */
-  constructor(sourceObjects: Array<object>, batchNumber= 1, totalBatches= 1) {
+  constructor(sourceObjects: Array<object>, batchNumber= 1, totalBatches= 1, batchIdentifier= Math.random().toString(36).substr(2, 10)) {
     this.records = [];
     this.listeners = [];
     this.batchNumber = batchNumber;
     this.totalBatches = totalBatches;
+    this.batchIdentifier = batchIdentifier.trim();
     this.addSourceRecords(sourceObjects);
   }
 
@@ -148,10 +151,13 @@ export class EtlBatch {
    * Set the state of the batch and Call the listeners' stateChanged method
    * @param state
    */
-  public setState(state: EtlState) {
+  public setState(state: EtlState): Promise<void> {
     this.state = state;
     this.stateTimeInMs = Date.now();
-    this.listeners.forEach((listener) => listener.stateChanged(state));
+    this.listeners.forEach((listener) => {
+      listener.stateChanged(state).then((result) => true);
+    });
+    return Promise.resolve();
   }
 
   /**
@@ -180,6 +186,20 @@ export class EtlBatch {
    */
   public getTotalBatches(): number {
     return this.totalBatches;
+  }
+
+  /**
+   * Get the Batches identifier
+   */
+  public getBatchIdentifier(): string {
+    return this.batchIdentifier;
+  }
+
+  /**
+   * Get the Batches full identification string
+   */
+  public getBatchFullIdentifcation(): string {
+    return `${this.batchIdentifier} batch:${this.batchNumber.toString()} of ${this.totalBatches.toString()}`;
   }
 
   /**
