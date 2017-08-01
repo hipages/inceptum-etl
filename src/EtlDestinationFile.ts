@@ -12,8 +12,11 @@ export abstract class EtlDestinationFile extends EtlDestination {
   protected canStore = true;
 
   /**
-   * Check that the directory value in the config exist and
-   * set the directory name in the {@link:thisfileName} variable
+   * Check that the destinations.csvfile.directory value in the config exist.
+   * The destinations.csvfile.directory is use as base directory
+   * The destinations.csvfile.fileName is use as default for the parameter {@link:baseFileName}
+   * @param configVar the configuration name to load
+   * @param baseFileName the base file name to use to create the file name.
    */
   constructor(configVar: string, baseFileName = '') {
     super();
@@ -27,7 +30,7 @@ export abstract class EtlDestinationFile extends EtlDestination {
     if (!fs.existsSync(baseDirectory)) {
         fs.mkdirSync(baseDirectory);
         log.error(`Error saving batch directory does not exist:${baseDirectory}`);
-   }
+    }
     this.canStore = fs.existsSync(baseDirectory);
   }
 

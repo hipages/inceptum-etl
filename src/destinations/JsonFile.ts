@@ -11,13 +11,18 @@ const log = LogManager.getLogger();
 export class JsonFile extends EtlDestinationFile {
   protected baseFileName: string;
   protected canStore = true;
+  protected singleObjects: boolean;
 
   /**
-   * Check that the directory value in the config exist and
-   * set the directory name in the {@link:thisfileName} variable
+   * Check that the destinations.csvfile.directory value in the config exist.
+   * The destinations.csvfile.directory is use as base directory
+   * The destinations.csvfile.fileName is use as default for the parameter {@link:baseFileName}
+   * @param baseFileName the base file name to use to create the file name.
+   * @param singleObjects save each record in the batch as JSON objects
    */
-  constructor(baseFileName = '') {
+  constructor(baseFileName = '', singleObjects = false) {
     super('destinations.jsonfile', baseFileName);
+    this.singleObjects = singleObjects;
   }
 
   /**
@@ -26,12 +31,20 @@ export class JsonFile extends EtlDestinationFile {
    */
   public async store(batch: EtlBatch): Promise<string> {
     if (this.canStore) {
-        const list = [];
-        batch.getTransformedRecords().map((record) => {
-            list.push(record.getTransformedData());
-        });
+        let data = '';
+        if (this.singleObjects) {
+          batch.getTransformedRecords().map((record) => {
+              data += JSON.stringify(record.getTransformedData(), null, '\t');
+          });
+        } else {
+          const list = [];
+          batch.getTransformedRecords().map((record) => {
+              list.push(record.getTransformedData());
+          });
+          data = JSON.stringify(list, null, '\t');
+        }
         const fileFullName = `${this.baseFileName}${batch.getBatchNumber()}_${batch.getBatchIdentifier()}.json`;
-        fs.writeFileSync(fileFullName, JSON.stringify(list, null, '\t'));
+        fs.writeFileSync(fileFullName, data);
         return fileFullName;
     } else {
         await batch.setState(EtlState.ERROR);
