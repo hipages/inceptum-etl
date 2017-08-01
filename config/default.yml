@@ -1,7 +1,8 @@
 app:
   name: Inceptum Etl
   context:
-    name: BaseEtlContext
+    - adwordsKeywords
+    - adwordsClicks
 
 logging:
   streams:
@@ -25,25 +26,65 @@ logging:
 
 sources:
   adwords:
-    account: THE_ACCOUNT_NAME
-    token: DEVELOPER_TOKEN
-    userAgent: YOUR_PROJECT_NAME
-    clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
-    clientId: ADWORDS_API_CLIENT_ID
-    clientSecret: ADWORDS_API_CLIENT_SECRET
-    refreshToken: ADWORDS_API_REFRESHTOKEN
-    version: v201705
-    accountsList:
-      - name: ADWORDS_ACOUNT_NAME
-        id: ADWORDS_ACOUNT_ID	
+    adwordsClicks:
+      account: THE_ACCOUNT_NAME
+      token: DEVELOPER_TOKEN
+      userAgent: YOUR_PROJECT_NAME
+      clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
+      clientId: ADWORDS_API_CLIENT_ID
+      clientSecret: ADWORDS_API_CLIENT_SECRET
+      refreshToken: ADWORDS_API_REFRESHTOKEN
+      version: v201705
+      accountsList:
+        - name: ADWORDS_ACOUNT_NAME
+          id: ADWORDS_ACOUNT_ID	
+
+transformers:
+  splitadwords:
+    adwordsKeywords:
+      available: true
+    adwordsClicks:
+      available: true
+  simplecopy:
+    adwordsKeywords:
+      available: true
+    adwordsClicks:
+      available: true
 
 destinations:
   csvfile:
-    directory: /path/to/file
-    fileName: test_keywords
+    adwordsKeywords:
+      directory: /Users/techdev3/src/hip-etls/files
+      fileName: akp
+    adwordsClicks:
+      directory: /Users/techdev3/src/hip-etls/files
+      fileName: acp
+  jsonfile:
+    adwordsKeywords:
+      directory: /Users/techdev3/src/hip-etls/files
+      fileName: akp
+    adwordsClicks:
+      directory: /Users/techdev3/src/hip-etls/files
+      fileName: acp
 
-MySQL:
-  MysqlClient: # this is the name of the object that will be exposed in the context
+  redshift:
+    adwordsKeywords: 
+      bucket: s3://path
+      tableCopyName: copy.fact_keywords_performance
+      tableName: public.fact_keywords_performance
+      bulkDeleteMatchFields: 
+        - account 
+        - report_date
+    adwordsClicks: 
+      bucket: s3://path
+      tableCopyName: copy.fact_keywords_performance
+      tableName: public.fact_keywords_performance
+      bulkDeleteMatchFields: 
+        - account 
+        - report_date
+
+mysql:
+  default: # this is the name of the object that will be exposed in the context
     master:
       host: localhost
       port: 3306
@@ -60,6 +101,37 @@ MySQL:
       database: testDb
       charset: utf8
       connectionLimit: 10
+
+postgres:
+  default:
+    master:
+      user: postgres
+      database: hipages
+      password: password
+      port: 5432
+      host: localhost
+      max: 5
+      min: 1
+      refreshIdle: true
+      idleTimeoutMillis: 20000
+      # reapIntervalMillis: number;
+      # returnToHead?: boolean;
+      application_name: test
+      # Promise?: PromiseConstructorLik
+    slave:
+      user: postgres
+      database: hipages
+      password: password
+      port: 5432
+      host: localhost
+      max: 5
+      min: 1
+      refreshIdle: true
+      idleTimeoutMillis: 20000
+      # reapIntervalMillis: number;
+      # returnToHead?: boolean;
+      application_name: test
+      # Promise?: PromiseConstructorLik
 
 Context:
   ActiveProfiles: development

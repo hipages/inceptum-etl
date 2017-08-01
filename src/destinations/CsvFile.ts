@@ -14,14 +14,6 @@ export class CsvFile extends EtlDestinationFile {
   protected canStore = true;
 
   /**
-   * Check that the directory value in the config exist and
-   * set the directory name in the {@link:thisfileName} variable
-   */
-  constructor(baseFileName = '') {
-    super('destinations.csvfile', baseFileName);
-  }
-
-  /**
    * Stores the batch records in a file
    * @param batch
    */
@@ -40,12 +32,5 @@ export class CsvFile extends EtlDestinationFile {
         log.error(`Error saving batch as csv: Batch:${batch.getBatchFullIdentifcation()}`);
         return '';
     }
-  }
-
-  /**
-   * Get the baseFileName variable
-   */
-  public getBaseFileName(): string {
-      return this.baseFileName;
   }
 }

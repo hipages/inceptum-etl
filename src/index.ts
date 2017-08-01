@@ -12,3 +12,4 @@ export { SplitAdwordsCampaign } from './transformers/SplitAdwordsCampaign';
 export { CsvFile } from './destinations/CsvFile';
 export { JsonFile } from './destinations/JsonFile';
 export { S3Bucket } from './destinations/S3Bucket';
+export { Redshift } from './destinations/Redshift';

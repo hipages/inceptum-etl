@@ -15,17 +15,12 @@ export abstract class EtlDestinationFile extends EtlDestination {
    * Check that the destinations.csvfile.directory value in the config exist.
    * The destinations.csvfile.directory is use as base directory
    * The destinations.csvfile.fileName is use as default for the parameter {@link:baseFileName}
-   * @param configVar the configuration name to load
+   * @param directory the directory to save the files
    * @param baseFileName the base file name to use to create the file name.
    */
-  constructor(configVar: string, baseFileName = '') {
+  constructor(directory: string, baseFileName: string) {
     super();
-    const configFile = EtlConfig.getConfig(configVar);
-    if (configFile.directory.lenght === 0) {
-        configFile.directory = joinPath(__dirname, 'files');
-    }
-    baseFileName = baseFileName.trim().length > 0 ? baseFileName.trim() : configFile.fileName;
-    this.baseFileName = joinPath(configFile.directory, baseFileName);
+    this.baseFileName = joinPath(directory.trim(), baseFileName.trim());
     const baseDirectory = dirname(this.baseFileName);
     if (!fs.existsSync(baseDirectory)) {
         fs.mkdirSync(baseDirectory);

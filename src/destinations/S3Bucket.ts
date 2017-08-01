@@ -29,10 +29,15 @@ export class S3Bucket extends EtlDestination {
   /**
    * Check that the directory value in the config exist and
    * set the directory name in the {@link:thisfileName} variable
+   * @param fileType string csv|jsom
+   * @param bucket the bucket in S3
+   * @param directory the directory to save the files
+   * @param baseFileName the base file name to use to create the file name.
+   * @param singleObjects save each record in the batch as JSON objects
    */
-  constructor(sourceObj: JsonFile|CsvFile, bucket: string) {
+  constructor(fileType: string, bucket: string, directory: string, baseFileName: string, singleObjects= false) {
     super();
-    this.sourceObj = sourceObj;
+    this.sourceObj = (fileType === 'json') ? new JsonFile(directory, baseFileName, singleObjects) : new CsvFile(directory, baseFileName);
     this.bucket = bucket.trim();
     const options = {
         maxAsyncS3: 20,     // this is the default
@@ -50,26 +55,28 @@ export class S3Bucket extends EtlDestination {
     };
     this.s3Client = S3.createClient(options);
   }
+
   /**
    * Stores the batch records in a file
    * @param batch
    */
-  public async store(batch: EtlBatch): Promise<void> {
-    const fileToUpload = await this.sourceObj.store(batch);
+  public async store(batch: EtlBatch): Promise<string> {
+    const localFile = await this.sourceObj.store(batch);
+    const key = basename(localFile);
     if (batch.getState() !== EtlState.ERROR) {
         const loadParams = {
-            localFile: fileToUpload,
+            localFile,
             s3Params: {
                 Bucket: this.bucket,
-                Key: basename(fileToUpload),
+                Key: key,
             },
         };
         const loader = await uploadToS3(this.s3Client, loadParams);
-        log.debug(`finish uploading: ${basename(fileToUpload)}`);
+        log.debug(`finish uploading: ${key}`);
     } else {
         // log error
         log.error(`Error saving batch in file. No aploaded:${batch.getBatchFullIdentifcation()}`);
     }
-    return Promise.resolve();
+    return key;
   }
 }

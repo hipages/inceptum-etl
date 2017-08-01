@@ -38,10 +38,11 @@
     "bluebird": "^3.5.0",
     "config": "1.25.1",
     "csvjson": "^4.3.3",
-    "inceptum": "^0.4.3",
+    "inceptum": "^0.4.5",
     "moment": "^2.18.1",
     "node-adwords": "201705.1.0",
-    "s3": "^4.4.0"
+    "s3": "^4.4.0",
+    "temp": "^0.8.3"
   },
   "devDependencies": {
     "@types/node": "7.0.23",

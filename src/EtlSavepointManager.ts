@@ -1,4 +1,4 @@
-import { MysqlClient, MysqlTransaction } from 'inceptum';
+import { DBClient, DBTransaction } from 'inceptum';
 import { LogManager } from 'inceptum';
 
 const log = LogManager.getLogger();
@@ -16,26 +16,22 @@ export abstract class EtlSavepointManager {
  * Stores and retrives the save point for the ETL in MySQL database
  */
 export class MySQLEtlSavepointManager extends EtlSavepointManager {
-  mysqlClient: MysqlClient;
-  etlName: string;
+  public static autowired = {
+    mysqlClient: 'EtlSavePoint',
+  };
+  protected mysqlClient: DBClient;
+  protected etlName;
 
-  /**
-   * Constructor gets the MysqlClient and the etl name
-   * @param mysqlClient
-   * @param etlName
-   */
-  // constructor(mysqlClient: MysqlClient, etlName: string) {
-  constructor(mysqlClient: MysqlClient, etlName: string) {
+  constructor(etlName: string) {
     super();
-    this.mysqlClient = mysqlClient;
-    this.etlName = etlName;
+    this.etlName = etlName.trim();
   }
 
   /**
    * Get the savepoint from the database
    */
   public async getSavePoint(): Promise<string> {
-    return await this.mysqlClient.runInTransaction(true, (transaction: MysqlTransaction) => {
+    return await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => {
       return transaction.query('SELECT savepoint FROM etls_savepoint WHERE etl_name=?', this.etlName)
       .then((rows) => {
         if (rows === null || rows.length === 0 || !rows[0].hasOwnProperty('savepoint')) {
@@ -51,7 +47,7 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
    * @param newSavepoint
    */
   public async updateSavepoint(newSavepoint: string): Promise<void> {
-    await this.mysqlClient.runInTransaction(false, (transaction: MysqlTransaction) => {
+    await this.mysqlClient.runInTransaction(false, (transaction: DBTransaction) => {
       return transaction.query('UPDATE etls_savepoint SET savepoint=? WHERE etl_name=?', newSavepoint, this.etlName)
       .then((result) => {
         log.debug(`Storing savepoint: ${newSavepoint}`);
