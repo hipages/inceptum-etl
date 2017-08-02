@@ -18,7 +18,7 @@ export abstract class EtlDestinationFile extends EtlDestination {
    * @param directory the directory to save the files
    * @param baseFileName the base file name to use to create the file name.
    */
-  constructor(directory: string, baseFileName: string) {
+  constructor(directory: string, baseFileName: string, cleanUpDirectory = false) {
     super();
     this.baseFileName = joinPath(directory.trim(), baseFileName.trim());
     const baseDirectory = dirname(this.baseFileName);
@@ -27,6 +27,9 @@ export abstract class EtlDestinationFile extends EtlDestination {
         log.error(`Error saving batch directory does not exist:${baseDirectory}`);
     }
     this.canStore = fs.existsSync(baseDirectory);
+    if (this.canStore && cleanUpDirectory) {
+      this.cleanUpDirectory();
+    }
   }
 
   /**

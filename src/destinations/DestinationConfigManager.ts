@@ -17,10 +17,10 @@ export class DestinationConfigManager {
     etlConfig.setEtlDestinationBatchSize(confs['batchSize']);
     switch (destinationType) {
         case 'csvfile' :
-            etlConfig.setEtlDestination(new CsvFile(confs['directory'], confs['fileName']));
+            etlConfig.setEtlDestination(new CsvFile(confs['directory'], confs['fileName'], confs['cleanUpDirectory']));
             break;
         case 'jsonfile':
-            etlConfig.setEtlDestination(new JsonFile(confs['directory'], confs['fileName']));
+            etlConfig.setEtlDestination(new JsonFile(confs['directory'], confs['fileName'], confs['cleanUpDirectory']));
             break;
         case 's3bucket' :
             etlConfig.setEtlDestination(new S3Bucket(confs['fileType'], confs['bucket'], confs['tempDirectory'], confs['fileName']));

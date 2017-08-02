@@ -21,8 +21,8 @@ export class JsonFile extends EtlDestinationFile {
    * @param baseFileName the base file name to use to create the file name.
    * @param singleObjects save each record in the batch as JSON objects
    */
-  constructor(directory: string, baseFileName: string, singleObjects = false) {
-    super(directory, baseFileName);
+  constructor(directory: string, baseFileName: string, cleanUpDirectory = false, singleObjects = false) {
+    super(directory, baseFileName, cleanUpDirectory);
     this.singleObjects = singleObjects;
   }
 
