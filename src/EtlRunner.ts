@@ -10,17 +10,14 @@ const log = LogManager.getLogger();
  */
 export class EtlRunner {
   private config: EtlConfig;
-  private etlSavepointManager: EtlSavepointManager;
 
   /**
    * Constructor: gets the configuration in EtlConfig and the save point manager
    * EtlSavepointManager.
    * @param config
-   * @param etlSavepointManager
    */
-  constructor(config: EtlConfig, etlSavepointManager: EtlSavepointManager) {
+  constructor(config: EtlConfig) {
     this.config = config;
-    this.etlSavepointManager = etlSavepointManager;
   }
 
   /**
@@ -28,7 +25,8 @@ export class EtlRunner {
    */
   public async executeEtl(): Promise<void> {
     const source = this.config.getEtlSource();
-    await source.initSavePoint(this.etlSavepointManager);
+    const etlSavepointManager = this.config.getEtlSavepointManager();
+    await source.initSavePoint(etlSavepointManager);
     while (source.hasNextBatch()) {
       const batch: EtlBatch = await source.getNextBatch();
       batch.setEtlName(this.config.getName());
@@ -37,7 +35,7 @@ export class EtlRunner {
         await this.storeBatch(batch);
       } else {
         // Log the error
-        log.error(`Error storing the batch:${batch.getBatchFullIdentifcation()}`);
+        log.error(`Error transforming the batch:${batch.getBatchFullIdentifcation()}`);
       }
     }
   }

@@ -1,8 +1,7 @@
 app:
   name: Inceptum Etl
   context:
-    - adwordsKeywords
-    - adwordsClicks
+    - test
 
 logging:
   streams:
@@ -26,7 +25,9 @@ logging:
 
 sources:
   adwords:
-    adwordsClicks:
+    test:
+      maxRetries: 5000
+      timeoutMillis: 1
       account: THE_ACCOUNT_NAME
       token: DEVELOPER_TOKEN
       userAgent: YOUR_PROJECT_NAME
@@ -39,46 +40,45 @@ sources:
         - name: ADWORDS_ACOUNT_NAME_1
           id: ADWORDS_ACOUNT_ID_1
         - name: ADWORDS_ACOUNT_NAME_2
-          id: ADWORDS_ACOUNT_ID_2	
+          id: ADWORDS_ACOUNT_ID_2
 
 transformers:
   splitadwords:
-    adwordsKeywords:
-      available: true
-    adwordsClicks:
-      available: true
+    test:
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
   simplecopy:
-    adwordsKeywords:
-      available: true
-    adwordsClicks:
-      available: true
+    test:
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
 
 destinations:
   csvfile:
-    adwordsKeywords:
+    test:
+      timeoutMillis: 5000
+      batchSize: 1
       directory: /Users/techdev3/src/hip-etls/files
       fileName: akp
-    adwordsClicks:
-      directory: /Users/techdev3/src/hip-etls/files
-      fileName: acp
   jsonfile:
-    adwordsKeywords:
+    test:
+      timeoutMillis: 5000
+      batchSize: 1
       directory: /Users/techdev3/src/hip-etls/files
       fileName: akp
-    adwordsClicks:
-      directory: /Users/techdev3/src/hip-etls/files
+  s3bucket:
+    test: 
+      timeoutMillis: 5000
+      batchSize: 1
+      fileType: csv
+      bucket: test/fact_click_performance
+      tempDirectory: /Users/techdev3/src/hip-etls/files
       fileName: acp
-
   redshift:
-    adwordsKeywords: 
+    test: 
+      timeoutMillis: 5000
+      batchSize: 1
       bucket: s3://path
-      tableCopyName: copy.fact_keywords_performance
-      tableName: public.fact_keywords_performance
-      bulkDeleteMatchFields: 
-        - account 
-        - report_date
-    adwordsClicks: 
-      bucket: s3://path
+      tempDirectory:  /Users/techdev3/src/hip-etls/files
       tableCopyName: copy.fact_keywords_performance
       tableName: public.fact_keywords_performance
       bulkDeleteMatchFields: 
@@ -86,7 +86,7 @@ destinations:
         - report_date
 
 mysql:
-  default: # this is the name of the object that will be exposed in the context
+  savePoint: # this is the name of the object that will be exposed in the context
     master:
       host: localhost
       port: 3306
@@ -105,7 +105,7 @@ mysql:
       connectionLimit: 10
       
 postgres:
-  default:
+  redshift:
     master:
       user: postgres
       database: hipages
@@ -137,6 +137,3 @@ postgres:
 
 Context:
   ActiveProfiles: development
-
-Application:
-  Parameter1: Value 1

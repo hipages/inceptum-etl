@@ -1,4 +1,4 @@
-import { DBClient, DBTransaction } from 'inceptum';
+import { MysqlClient, MysqlTransaction } from 'inceptum';
 import { LogManager } from 'inceptum';
 
 const log = LogManager.getLogger();
@@ -19,7 +19,7 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
   public static autowired = {
     mysqlClient: 'EtlSavePoint',
   };
-  protected mysqlClient: DBClient;
+  protected mysqlClient: MysqlClient;
   protected etlName;
 
   constructor(etlName: string) {
@@ -31,7 +31,7 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
    * Get the savepoint from the database
    */
   public async getSavePoint(): Promise<string> {
-    return await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => {
+    return await this.mysqlClient.runInTransaction(true, (transaction: MysqlTransaction) => {
       return transaction.query('SELECT savepoint FROM etls_savepoint WHERE etl_name=?', this.etlName)
       .then((rows) => {
         if (rows === null || rows.length === 0 || !rows[0].hasOwnProperty('savepoint')) {
@@ -47,7 +47,7 @@ export class MySQLEtlSavepointManager extends EtlSavepointManager {
    * @param newSavepoint
    */
   public async updateSavepoint(newSavepoint: string): Promise<void> {
-    await this.mysqlClient.runInTransaction(false, (transaction: DBTransaction) => {
+    await this.mysqlClient.runInTransaction(false, (transaction: MysqlTransaction) => {
       return transaction.query('UPDATE etls_savepoint SET savepoint=? WHERE etl_name=?', newSavepoint, this.etlName)
       .then((result) => {
         log.debug(`Storing savepoint: ${newSavepoint}`);

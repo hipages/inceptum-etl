@@ -5,6 +5,8 @@ import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { EtlSavepointManager } from '../../src/EtlSavepointManager';
 import { AdwordsKeywords } from '../../src/sources/AdwordsKeywords';
 
+const adwordsConfig = EtlConfig.getConfig('sources.adwords.test');
+
 class DummySavepointManager extends EtlSavepointManager {
   savepoint: string;
   constructor(savepoint: string) {
@@ -51,7 +53,7 @@ suite('Adwordskeywords', () => {
   });
 
   suite('Adwordskeywords test', () => {
-    const source = new AdwordsKeywords();
+    const source = new AdwordsKeywords(adwordsConfig);
     const savePointManager = new DummySavepointManager('{"startDate":"20170701","endDate":"20170702","currentDate":"2017-07-26T10:40:16.097Z"}');
     test('Test initial savepoint manager', async () => {
       await source.initSavePoint(savePointManager);
@@ -68,7 +70,7 @@ suite('Adwordskeywords', () => {
   suite('Adwordskeywords test private methods', () => {
     const savePointManager = new DummySavepointManager('{"startDate":"20170701","endDate":"20170702","totalBatches":2,"currentDate":"2017-07-26T10:40:16.097Z"}');
     test('Test getNextSavePoint', async () => {
-      const source = new HelperAdwordsKeywords();
+      const source = new HelperAdwordsKeywords(adwordsConfig);
       await source.initSavePoint(savePointManager);
       source.getInitialSavepoint().must.be.equal('{"startDate":"20170701","endDate":"20170702","totalBatches":2,"currentDate":"2017-07-26T10:40:16.097Z"}');
       const savePoint = source.exposeGetNextSavePoint();
@@ -76,7 +78,7 @@ suite('Adwordskeywords', () => {
       savePoint['endDate'].must.be.equal('20170703');
     });
     test('Test update savepoint', async () => {
-      const source = new HelperAdwordsKeywords();
+      const source = new HelperAdwordsKeywords(adwordsConfig);
       await source.initSavePoint(savePointManager);
       // Emulates 2 batches call
       source.getNextBatch();

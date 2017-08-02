@@ -158,7 +158,8 @@ suite('EtlRunner', () => {
       config.setEtlTransformer(new DummyTransformer());
       config.setEtlDestination(new DummyDestination());
       const savePointManager = new DummySavepointManager('savepoint1');
-      const etlRunner = new EtlRunner(config, savePointManager);
+      config.setEtlSavepointManager(savePointManager);
+      const etlRunner = new EtlRunner(config);
       await etlRunner.executeEtl();
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal('savepoint1');
@@ -168,7 +169,8 @@ suite('EtlRunner', () => {
       config.setEtlTransformer(new DummyTransformer());
       config.setEtlDestination(new DummyDestination());
       const savePointManager = new DummySavepointManager('savepoint1');
-      const etlRunner = new EtlRunner(config, savePointManager);
+      config.setEtlSavepointManager(savePointManager);
+      const etlRunner = new EtlRunner(config);
       await etlRunner.executeEtl();
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal('New stored point');
@@ -178,7 +180,8 @@ suite('EtlRunner', () => {
       config.setEtlTransformer(new DummyTransformer(true));
       config.setEtlDestination(new DummyDestination());
       const savePointManager = new DummySavepointManager('savepoint1');
-      const etlRunner = new EtlRunner(config, savePointManager);
+      config.setEtlSavepointManager(savePointManager);
+      const etlRunner = new EtlRunner(config);
       await etlRunner.executeEtl();
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal('savepoint1');
@@ -188,7 +191,8 @@ suite('EtlRunner', () => {
       config.setEtlTransformer(new DummyTransformer());
       config.setEtlDestination(new DummyDestination(true));
       const savePointManager = new DummySavepointManager('savepoint1');
-      const etlRunner = new EtlRunner(config, savePointManager);
+      config.setEtlSavepointManager(savePointManager);
+      const etlRunner = new EtlRunner(config);
       await etlRunner.executeEtl();
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal('savepoint1');

@@ -24,20 +24,19 @@ export class AdwordsKeywords extends EtlSource {
   protected lastDay = moment().format('YYYYMMDD');
   protected errorFound = false;
 
-  constructor() {
+  constructor(configAdwords: object) {
     super();
-    const configAdwords = EtlConfig.getConfig('sources.adwords');
-    this.account = configAdwords.account;
-    this.accountList = configAdwords.accountsList;
+    this.account = configAdwords['account'];
+    this.accountList = configAdwords['accountsList'];
     this.totalBatches = this.accountList.length;
     this.configAdwords = {
-        developerToken: configAdwords.token,
-        userAgent: configAdwords.userAgent,
-        clientCustomerId: configAdwords.clientCustomerId,
-        client_id: configAdwords.clientId,
-        client_secret: configAdwords.clientSecret,
-        refresh_token: configAdwords.refreshToken,
-        version: configAdwords.version,
+        developerToken: configAdwords['token'],
+        userAgent: configAdwords['userAgent'],
+        clientCustomerId: configAdwords['clientCustomerId'],
+        client_id: configAdwords['clientId'],
+        client_secret: configAdwords['clientSecret'],
+        refresh_token: configAdwords['refreshToken'],
+        version: configAdwords['version'],
     };
   }
 

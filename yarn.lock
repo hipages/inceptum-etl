@@ -35,8 +35,8 @@
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-2.0.29.tgz#5002e14f75e2d71e564281df0431c8c1b4a2a36a"
 
 "@types/node@*":
-  version "8.0.17"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.17.tgz#677bc8c118cfb76013febb62ede1f31d2c7222a1"
+  version "8.0.19"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.19.tgz#e46e2b0243de7d03f15b26b45c59ebb84f657a4e"
 
 "@types/node@7.0.23":
   version "7.0.23"
@@ -766,7 +766,7 @@ doubleagent@^1.1.0:
   dependencies:
     superagent "^2.0.0"
 
-dtrace-provider@^0.8.1, dtrace-provider@~0.8:
+dtrace-provider@^0.8.1, dtrace-provider@^0.8.3, dtrace-provider@~0.8:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/dtrace-provider/-/dtrace-provider-0.8.3.tgz#ba1bfc6493285ccfcfc6ab69cd5c61d74c2a43bf"
   dependencies:
@@ -2210,8 +2210,8 @@ mv@~2:
     rimraf "~2.4.0"
 
 mysql@^2.11.1:
-  version "2.14.0"
-  resolved "https://registry.yarnpkg.com/mysql/-/mysql-2.14.0.tgz#325cc1156e8246e572118774bbf406eaa9189ffd"
+  version "2.14.1"
+  resolved "https://registry.yarnpkg.com/mysql/-/mysql-2.14.1.tgz#e9324015e810a50abda94855cab41edfad56284a"
   dependencies:
     bignumber.js "4.0.2"
     readable-stream "2.3.3"

@@ -27,6 +27,8 @@ logging:
 sources:
   adwords:
     adwordsClicks:
+      maxRetries: 5000
+      timeoutMillis: 1
       account: THE_ACCOUNT_NAME
       token: DEVELOPER_TOKEN
       userAgent: YOUR_PROJECT_NAME
@@ -42,40 +44,71 @@ sources:
 transformers:
   splitadwords:
     adwordsKeywords:
-      available: true
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
     adwordsClicks:
-      available: true
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
   simplecopy:
     adwordsKeywords:
-      available: true
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
     adwordsClicks:
-      available: true
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
 
 destinations:
   csvfile:
     adwordsKeywords:
+      timeoutMillis: 5000
+      batchSize: 1
       directory: /Users/techdev3/src/hip-etls/files
       fileName: akp
     adwordsClicks:
+      timeoutMillis: 5000
+      batchSize: 1
       directory: /Users/techdev3/src/hip-etls/files
       fileName: acp
   jsonfile:
     adwordsKeywords:
+      timeoutMillis: 5000
+      batchSize: 1
       directory: /Users/techdev3/src/hip-etls/files
       fileName: akp
     adwordsClicks:
+      timeoutMillis: 5000
+      batchSize: 1
       directory: /Users/techdev3/src/hip-etls/files
       fileName: acp
-
+  s3bucket:
+    adwordsKeywords: 
+      timeoutMillis: 5000
+      batchSize: 1
+      fileType: csv
+      bucket: test/fact_keywords_performance
+      directory: /Users/techdev3/src/hip-etls/files
+      fileName: acp
+    adwordsClicks: 
+      timeoutMillis: 5000
+      batchSize: 1
+      fileType: csv
+      bucket: test/fact_click_performance
+      directory: /Users/techdev3/src/hip-etls/files
+      fileName: acp
   redshift:
     adwordsKeywords: 
+      timeoutMillis: 5000
+      batchSize: 1
       bucket: s3://path
+      tempDirectory:  /Users/techdev3/src/hip-etls/files
       tableCopyName: copy.fact_keywords_performance
       tableName: public.fact_keywords_performance
       bulkDeleteMatchFields: 
         - account 
         - report_date
     adwordsClicks: 
+      timeoutMillis: 5000
+      batchSize: 1
       bucket: s3://path
       tableCopyName: copy.fact_keywords_performance
       tableName: public.fact_keywords_performance
@@ -84,7 +117,7 @@ destinations:
         - report_date
 
 mysql:
-  default: # this is the name of the object that will be exposed in the context
+  savePoint: # this is the name of the object that will be exposed in the context
     master:
       host: localhost
       port: 3306
@@ -103,7 +136,7 @@ mysql:
       connectionLimit: 10
 
 postgres:
-  default:
+  redshift:
     master:
       user: postgres
       database: hipages
@@ -135,6 +168,3 @@ postgres:
 
 Context:
   ActiveProfiles: development
-
-Application:
-  Parameter1: Value 1

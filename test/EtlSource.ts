@@ -25,7 +25,7 @@ class TestSource extends EtlSource {
   public hasNextBatch(): boolean {
     return false;
   }
-  public stateChanged(newState: EtlState) {
+  public async stateChanged(newState: EtlState): Promise<void> {
     this.updateStoredSavePoint({value: 'New stored point'});
   }
 }
@@ -85,7 +85,7 @@ suite('EtlSource', () => {
       const source = new TestSource();
       const savePointManager = new DummySavepointManager('savepoint1');
       await source.initSavePoint(savePointManager);
-      source.stateChanged(EtlState.SAVE_ENDED);
+      await source.stateChanged(EtlState.SAVE_ENDED);
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal('New stored point');
     });

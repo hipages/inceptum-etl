@@ -3,18 +3,20 @@ import * as config from 'config';
 import { EtlDestination } from './EtlDestination';
 import { EtlSource } from './EtlSource';
 import { EtlTransformer } from './EtlTransformer';
+import { EtlSavepointManager } from './EtlSavepointManager';
 
 export class EtlConfig {
-  private name: string;
-  private etlSource: EtlSource;
-  private etlTransformer: EtlTransformer;
-  private etlDestination: EtlDestination;
-  private maxEtlSourceRetries: number;
-  private etlSourceTimeoutMillis: number;
-  private etlTransformerTimeoutMillis: number;
-  private etlDestinationTimeoutMillis: number;
-  private etlDestinationBatchSize: number;
-  private minSuccessfulTransformationPercentage = 1;
+  protected name: string;
+  protected etlSource: EtlSource;
+  protected etlTransformer: EtlTransformer;
+  protected etlDestination: EtlDestination;
+  protected etlSavepointManager: EtlSavepointManager;
+  protected maxEtlSourceRetries: number;
+  protected etlSourceTimeoutMillis: number;
+  protected etlTransformerTimeoutMillis: number;
+  protected etlDestinationTimeoutMillis: number;
+  protected etlDestinationBatchSize: number;
+  protected minSuccessfulTransformationPercentage = 1;
 
   // ************************************
   // Config functions
@@ -47,6 +49,16 @@ export class EtlConfig {
     return EtlConfig.getConfig(key, defaultValue);
   }
 
+  /**
+   * Indicates whether a given key exists in the configuration
+   * @param key
+   * @return {*}
+   */
+  // tslint:disable-next-line:prefer-function-over-method
+  public hasConfig(key: string): boolean {
+    return config.has(key);
+  }
+
   public getName(): string {
     return this.name;
   }
@@ -77,6 +89,9 @@ export class EtlConfig {
   public getMinSuccessfulTransformationPercentage(): number {
     return this.minSuccessfulTransformationPercentage;
   }
+  public getEtlSavepointManager(): EtlSavepointManager {
+    return this.etlSavepointManager;
+  }
   public setName(value: string) {
     this.name = value;
   }
@@ -106,5 +121,8 @@ export class EtlConfig {
   }
   public setMinSuccessfulTransformationPercentage(minSuccessfulTransformationPercentage: number) {
     this.minSuccessfulTransformationPercentage = minSuccessfulTransformationPercentage;
+  }
+  public setEtlSavepointManager(etlSavepointManager: EtlSavepointManager) {
+    this.etlSavepointManager = etlSavepointManager;
   }
 }
