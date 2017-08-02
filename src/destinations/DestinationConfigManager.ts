@@ -1,33 +1,67 @@
-import { Context, InceptumApp } from 'inceptum';
-import { EtlConfig } from '../EtlConfig';
+import { Context, BaseSingletonDefinition } from 'inceptum';
 import { CsvFile } from './CsvFile';
 import { JsonFile } from './JsonFile';
 import { Redshift } from './Redshift';
 import { S3Bucket } from './S3Bucket';
 
 export class DestinationConfigManager {
-  static registerSingletons(etlConfig: EtlConfig, destinationType: string) {
-    if (!etlConfig.hasConfig(`destinations.${destinationType}.default`) &&
-        !etlConfig.hasConfig(`destinations.${destinationType}.${etlConfig.getName()}`)) {
-      // No destination configured. Skipping
-      return;
+  static registerSingletons(etlName: string, context: Context) {
+    if (!context.hasConfig(`destinations`)) {
+        return;
     }
-    const confs = etlConfig.getConfig(`destinations.${destinationType}.${etlConfig.getName()}`, etlConfig.getConfig(`destinations.${destinationType}.default`));
-    etlConfig.setEtlDestinationTimeoutMillis(confs['timeoutMillis']);
-    etlConfig.setEtlDestinationBatchSize(confs['batchSize']);
-    switch (destinationType) {
+    const destinations = context.getConfig('destinations');
+    Object.keys(destinations).forEach((destinationType) => {
+        if (context.hasConfig(`destinations.${destinationType}.${etlName}`)) {
+            DestinationConfigManager.registerDestinationSingleton(etlName, destinationType, destinations[destinationType][etlName], context);
+        }
+    });
+  }
+
+  static registerDestinationSingleton(etlName: string, destinationType: string, destinationConfig: object, context: Context) {
+      switch (destinationType) {
         case 'csvfile' :
-            etlConfig.setEtlDestination(new CsvFile(confs['directory'], confs['fileName'], confs['cleanUpDirectory']));
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(CsvFile, 'EtlDestination');
+            singletonDefinition.constructorParamByValue(destinationConfig['directory']);
+            singletonDefinition.constructorParamByValue(destinationConfig['fileName']);
+            singletonDefinition.constructorParamByValue(destinationConfig['cleanUpDirectory']);
+            context.registerSingletons(singletonDefinition);
+        }
             break;
         case 'jsonfile':
-            etlConfig.setEtlDestination(new JsonFile(confs['directory'], confs['fileName'], confs['cleanUpDirectory']));
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(JsonFile, 'EtlDestination');
+            singletonDefinition.constructorParamByValue(destinationConfig['directory']);
+            singletonDefinition.constructorParamByValue(destinationConfig['fileName']);
+            singletonDefinition.constructorParamByValue(destinationConfig['cleanUpDirectory']);
+            context.registerSingletons(singletonDefinition);
+        }
             break;
         case 's3bucket' :
-            etlConfig.setEtlDestination(new S3Bucket(confs['fileType'], confs['bucket'], confs['tempDirectory'], confs['fileName']));
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(S3Bucket, 'EtlDestination');
+            singletonDefinition.constructorParamByValue(destinationConfig['fileType']);
+            singletonDefinition.constructorParamByValue(destinationConfig['bucket']);
+            singletonDefinition.constructorParamByValue(destinationConfig['tempDirectory']);
+            singletonDefinition.constructorParamByValue(destinationConfig['fileName']);
+            context.registerSingletons(singletonDefinition);
+        }
             break;
         case 'redshift' :
-        //     etlConfig.setEtlDestination(new Redshift(myClient, etlConfig.getName(), confs['bucket'], confs['tempDirectory'],
-        // confs['tableCopyName'], confs['tableName'], confs['bulkDeleteMatchFields']));
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(Redshift, 'EtlDestination');
+            singletonDefinition.constructorParamByRef(destinationConfig['dbClient']);
+            singletonDefinition.constructorParamByValue(etlName);
+            singletonDefinition.constructorParamByValue(destinationConfig['bucket']);
+            singletonDefinition.constructorParamByValue(destinationConfig['tempDirectory']);
+            singletonDefinition.constructorParamByValue(destinationConfig['tableCopyName']);
+            singletonDefinition.constructorParamByValue(destinationConfig['tableName']);
+            singletonDefinition.constructorParamByValue(destinationConfig['bulkDeleteMatchFields']);
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
+        default:
+            throw new Error(`Unknown destination type: ${destinationType}`);
     }
   }
 }

@@ -17,3 +17,5 @@ export { JsonFile } from './destinations/JsonFile';
 export { S3Bucket } from './destinations/S3Bucket';
 export { Redshift } from './destinations/Redshift';
 export { DestinationConfigManager } from './destinations/DestinationConfigManager';
+import { ConfigConfigManager } from './ConfigConfigManager';
+import { RunnerConfigManager } from './RunnerConfigManager';

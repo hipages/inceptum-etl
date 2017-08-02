@@ -36,9 +36,10 @@
   },
   "dependencies": {
     "bluebird": "^3.5.0",
+    "commander": "^2.11.0",
     "config": "1.25.1",
     "csvjson": "^4.3.3",
-    "inceptum": "^0.4.5",
+    "inceptum": "^0.4.7",
     "moment": "^2.18.1",
     "node-adwords": "201705.1.0",
     "s3": "^4.4.0",

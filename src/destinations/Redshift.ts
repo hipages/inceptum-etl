@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { join as joinPath } from 'path';
 import { LogManager } from 'inceptum';
-import { MysqlClient, MysqlTransaction } from 'inceptum';
+import { DBClient, DBTransaction } from 'inceptum';
 import { EtlBatch, EtlState } from '../EtlBatch';
 import { EtlConfig } from '../EtlConfig';
 import { EtlDestination } from '../EtlDestination';
@@ -10,25 +10,21 @@ import { S3Bucket } from './S3Bucket';
 const log = LogManager.getLogger();
 
 export class Redshift extends EtlDestination {
-    public static autowire = {
-        pgClient: 'PostgresClient',
-    };
-
-    protected pgClient: MysqlClient;
+    protected pgClient: DBClient;
     protected etlName: string;
     protected iamRole: string;
     protected s3Bucket: S3Bucket;
     protected bucket: string;
     protected tableCopyName: string;
     protected tableName: string;
-    protected bulkDeleteMatchFields: object;
+    protected bulkDeleteMatchFields: Array<string>;
     protected fileType = 'json';
 
     /**
      * Upload a S3 bucket directory into a Redshift table via copy
      */
-    constructor(pgClient: MysqlClient, etlName: string, bucket: string, tempDirectory: string,
-        tableCopyName: string, tableName: string, bulkDeleteMatchFields: object) {
+    constructor(pgClient: DBClient, etlName: string, bucket: string, tempDirectory: string,
+        tableCopyName: string, tableName: string, bulkDeleteMatchFields: Array<string>) {
         super();
         this.iamRole = 'arn:aws:iam::0123456789012:role/MyRedshiftRole';
         this.pgClient = pgClient;
@@ -53,18 +49,34 @@ export class Redshift extends EtlDestination {
         const key = await this.s3Bucket.store(batch);
         const filePathInS3 = joinPath(`s3://${this.bucket}`, key);
         if (batch.getState() !== EtlState.ERROR) {
-            await this.processRecord(filePathInS3);
+            const stored = await this.processRecord(filePathInS3);
+            if (!stored) {
+                batch.setState(EtlState.ERROR);
+            }
             log.debug(`finish uploading: ${filePathInS3}`);
         }
     }
 
     public async processRecord(filePathInS3: string): Promise<boolean> {
         // Run the copy
-        let result = true;
         const sql = `copy ${this.tableCopyName}
             from 's3://${filePathInS3}}'
             iam_role '${this.iamRole}'
             ${this.fileType};`;
+
+        const stored = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
+            return transaction.query(sql)
+            .then((resp) => {
+                log.debug(`Copy file to temp table : ${filePathInS3}`);
+                return true;
+            }).catch((error) => {
+                log.fatal(error);
+                return false;
+            });
+        });
+        if (!stored) {
+            return false;
+        }
 
         // Verifying That the Data Was Loaded Correctly
         // After the load operation is complete, query the STL_LOAD_COMMITS system table to verify that the expected files were loaded. You should execute the COPY command and load verification within the same transaction so that if there is problem with the load you can roll back the entire transaction.
@@ -122,7 +134,7 @@ export class Redshift extends EtlDestination {
         //   7531 | venue_pipe.txt            | 23390
         //   7583 | listings_pipe.txt         | 23445
         // (25 rows)
-        const sqlVeriry = `SELECT count(*) AS total_record,
+        const sqlVerify = `SELECT count(*) AS total_record,
             sum(case WHEN rtrim("text") IS NULL THEN 0
                     WHEN 'COMMIT' = 1
                     ELSE 0
@@ -131,32 +143,79 @@ export class Redshift extends EtlDestination {
             INNER JOIN stl_query q ON l.query = q.query
             LEFT JOIN stl_utilitytext t ON t.xid = q.xid and rtrim("text")='COMMIT'
             where l.filename like '${filePathInS3}%' order by query;`;
+        const verified = await this.pgClient.runInTransaction(true, (transaction: DBTransaction) => {
+            return transaction.query(sqlVerify)
+            .then((rows) => {
+                if (rows === null || rows.length === 0 || !rows[0].hasOwnProperty('total_record')
+                    || !rows[0].hasOwnProperty('total_commits')) {
+                    return false;
+                }
+                // if total_record !== total_commits  it is an error
+                return rows[0]['total_record'] === rows[0]['total_commits'];
+            }).catch((error) => {
+                log.fatal(error);
+                return false;
+            });
+        });
 
-        // if total_record !== total_commits  it is an error
-        const totalRecord = 1;
-        const totalCommits = 1;
-        if (totalRecord === totalCommits) {
+        let result = verified;
+        if (verified) {
             // Performing a Merge Operation by Replacing Existing Rows
 
             // Use an inner join with the staging table to delete the rows from the target table that are being updated.
             // Put the delete and insert operations in a single transaction block so that if there is a problem, everything will be rolled back.
 
             // begin transaction;
+            const where = this.bulkDeleteMatchFields.reduce((sentence, field) => {
+                if (sentence.length !== 0) {
+                    sentence = `${sentence} and`;
+                }
+                return `${sentence} ${this.tableName}.${field} = C.${field} `;
+            }, '');
+
             const delSQL = `DELETE from ${this.tableName}
-            USING (SELECT DISTINCT account, report_date from ${this.tableCopyName} ) as C
-            where ${this.tableName}.account = C.account
-            and ${this.tableName}.report_date = C.report_date;`;
+            USING (SELECT DISTINCT ${this.bulkDeleteMatchFields.join(', ')} from ${this.tableCopyName} ) as C
+            where ${where};`;
 
             // Insert all of the rows from the staging table.
             const insertSQL = `insert into ${this.tableName}
                 select * from ${this.tableCopyName};`;
+
+            result = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
+                const inserted = transaction.query(delSQL)
+                .then((resp) => {
+                    log.debug(`Delete from origin : ${filePathInS3}`);
+                    return transaction.query(delSQL)
+                    .then((respIn) => {
+                        log.debug(`Inserted in origin : ${filePathInS3}`);
+                        return true;
+                    }).catch((error) => {
+                        log.fatal(` Query: ${delSQL}`);
+                        log.fatal(error);
+                        return false;
+                    });
+                }).catch((error) => {
+                    log.fatal(error);
+                    return false;
+                });
+                return inserted;
+            });
             // end transaction;
-            result = true;
         } else { // Delete the temp database
             result = false;
         }
         // Drop the staging table.
         const deleteSQL = `truncate table ${this.tableCopyName}`;
+        result = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
+            return transaction.query(deleteSQL)
+            .then((resp) => {
+                log.debug(`Truncete temp table : ${filePathInS3}`);
+                return true;
+            }).catch((error) => {
+                log.fatal(error);
+                return false;
+            });
+        });
 
         return result;
     }

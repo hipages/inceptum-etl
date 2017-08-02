@@ -1,23 +1,36 @@
-import { EtlConfig } from '../EtlConfig';
+import { Context, BaseSingletonDefinition } from 'inceptum';
 import { SimpleCopy } from './SimpleCopy';
 import { SplitAdwordsCampaign } from './SplitAdwordsCampaign';
 
 export class TransformerConfigManager {
-  static registerSingletons(etlConfig: EtlConfig, sourceType: string) {
-    if (!etlConfig.hasConfig(`transformers.${sourceType}.default`) &&
-        !etlConfig.hasConfig(`transformers.${sourceType}.${etlConfig.getName()}`)) {
-      // No source configured. Skipping
-      return;
+  static registerSingletons(etlName: string, context: Context) {
+    if (!context.hasConfig(`transformers`)) {
+        return;
     }
-    const confs = etlConfig.getConfig(`transformers.${sourceType}.${etlConfig.getName()}`, etlConfig.getConfig(`transformers.${sourceType}.default`));
-    etlConfig.setEtlTransformerTimeoutMillis(confs['timeoutMillis']);
-    etlConfig.setMinSuccessfulTransformationPercentage(confs['minSuccessPercentage']);
-    switch (sourceType) {
-        case 'simpleCopy' :
-            etlConfig.setEtlTransformer(new SimpleCopy());
+    const transformers = context.getConfig('transformers');
+    Object.keys(transformers).forEach((transformersType) => {
+        if (context.hasConfig(`transformers.${transformersType}.${etlName}`)) {
+            TransformerConfigManager.registerTransformerSingleton(etlName, transformersType, transformers[transformersType][etlName], context);
+        }
+    });
+  }
+
+  static registerTransformerSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context) {
+      switch (transformersType) {
+        case 'simplecopy' :
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(SimpleCopy, 'EtlTransformer');
+            context.registerSingletons(singletonDefinition);
+        }
             break;
-        case 'splitAdwordsCampaign':
-            etlConfig.setEtlTransformer(new SplitAdwordsCampaign());
+        case 'splitadwordscampaign':
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(SplitAdwordsCampaign, 'EtlTransformer');
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
+        default:
+            throw new Error(`Unknown trasformation type: ${transformersType}`);
     }
   }
 }

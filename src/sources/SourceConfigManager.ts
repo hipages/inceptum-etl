@@ -1,23 +1,38 @@
-import { EtlConfig } from '../EtlConfig';
+import { Context, BaseSingletonDefinition } from 'inceptum';
 import { AdwordsClicks } from './AdwordsClicks';
 import { AdwordsKeywords } from './AdwordsKeywords';
 
 export class SourceConfigManager {
-  static registerSingletons(etlConfig: EtlConfig, sourceType: string) {
-    if (!etlConfig.hasConfig(`sources.${sourceType}.default`) &&
-        !etlConfig.hasConfig(`sources.${sourceType}.${etlConfig.getName()}`)) {
-      // No source configured. Skipping
-      return;
+  static registerSingletons(etlName: string, context: Context) {
+    if (!context.hasConfig(`sources`)) {
+        return;
     }
-    const confs = etlConfig.getConfig(`sources.${sourceType}.${etlConfig.getName()}`, etlConfig.getConfig(`sources.${sourceType}.default`));
-    etlConfig.setMaxEtlSourceRetries(confs['maxRetries']);
-    etlConfig.setEtlSourceTimeoutMillis(confs['timeoutMillis']);
-    switch (sourceType) {
-        case 'adwordsClicks' :
-            etlConfig.setEtlSource(new AdwordsClicks(confs));
+    const sources = context.getConfig('sources');
+    Object.keys(sources).forEach((sourceType) => {
+        if (context.hasConfig(`sources.${sourceType}.${etlName}`)) {
+            SourceConfigManager.registerSourceSingleton(etlName, sourceType, sources[sourceType][etlName], context);
+        }
+    });
+  }
+
+  static registerSourceSingleton(etlName: string, sourceType: string, sourceConfig: object, context: Context) {
+      switch (sourceType) {
+        case 'adwordsclicks' :
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsClicks, 'EtlSource');
+            singletonDefinition.constructorParamByValue(sourceConfig);
+            context.registerSingletons(singletonDefinition);
+        }
             break;
-        case 'adwordsKeywords':
-            etlConfig.setEtlSource(new AdwordsKeywords(confs));
+        case 'adwordskeywords':
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsKeywords, 'EtlSource');
+            singletonDefinition.constructorParamByValue(sourceConfig);
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
+        default:
+            throw new Error(`Unknown source type: ${sourceType}`);
     }
   }
 }

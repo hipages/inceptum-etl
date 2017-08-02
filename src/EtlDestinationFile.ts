@@ -37,10 +37,14 @@ export abstract class EtlDestinationFile extends EtlDestination {
    */
   public cleanUpDirectory() {
     const directory = dirname(this.baseFileName);
-    const fileList = fs.readdirSync(directory);
-    fileList.map( (file) => {
-        fs.unlinkSync(joinPath(directory, file));
-    });
+    if (fs.existsSync(directory)) {
+      const fileList = fs.readdirSync(directory);
+      fileList.map( (file) => {
+        if (fs.statSync(joinPath(directory, file)).isFile()) {
+          fs.unlinkSync(joinPath(directory, file));
+        }
+      });
+    }
   }
 
   /**

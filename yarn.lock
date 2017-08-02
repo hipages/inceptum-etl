@@ -564,7 +564,7 @@ commander@2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.3.0.tgz#fd430e889832ec353b9acd1de217c11cb3eef873"
 
-commander@^2.7.1, commander@^2.8.1, commander@^2.9.0, commander@^2.x:
+commander@^2.11.0, commander@^2.7.1, commander@^2.8.1, commander@^2.9.0, commander@^2.x:
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.11.0.tgz#157152fd1e7a6c8d98a5b715cf376df928004563"
 
@@ -766,7 +766,7 @@ doubleagent@^1.1.0:
   dependencies:
     superagent "^2.0.0"
 
-dtrace-provider@^0.8.1, dtrace-provider@^0.8.3, dtrace-provider@~0.8:
+dtrace-provider@^0.8.1, dtrace-provider@~0.8:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/dtrace-provider/-/dtrace-provider-0.8.3.tgz#ba1bfc6493285ccfcfc6ab69cd5c61d74c2a43bf"
   dependencies:
@@ -1298,9 +1298,9 @@ imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
 
-inceptum@^0.4.5:
-  version "0.4.5"
-  resolved "https://registry.yarnpkg.com/inceptum/-/inceptum-0.4.5.tgz#91369e66e570997bd05fc6150c574ce2ae8adc6f"
+inceptum@^0.4.7:
+  version "0.4.7"
+  resolved "https://registry.yarnpkg.com/inceptum/-/inceptum-0.4.7.tgz#db65906f2f3085cf639fa047bf4cb68df6fbb326"
   dependencies:
     "@types/bunyan" "0.0.36"
     "@types/pg" "^6.1.43"

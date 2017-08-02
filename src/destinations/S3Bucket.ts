@@ -27,18 +27,20 @@ export class S3Bucket extends EtlDestination {
   protected s3Client: S3;
 
   /**
-   * Check that the directory value in the config exist and
-   * set the directory name in the {@link:thisfileName} variable
+   * Set all settings to connect to S3
    * @param fileType string csv|jsom
    * @param bucket the bucket in S3
-   * @param directory the directory to save the files
+   * @param tempDirectory the directory to save the files
    * @param baseFileName the base file name to use to create the file name.
    * @param singleObjects save each record in the batch as JSON objects
    */
-  constructor(fileType: string, bucket: string, directory: string, baseFileName: string, singleObjects= false) {
+  constructor(fileType: string, bucket: string, tempDirectory: string, baseFileName: string, singleObjects= false) {
     super();
-    this.sourceObj = (fileType === 'json') ? new JsonFile(directory, baseFileName, singleObjects) : new CsvFile(directory, baseFileName);
+    this.sourceObj = (fileType === 'json') ?
+                    new JsonFile(tempDirectory, baseFileName, true, singleObjects) :
+                    new CsvFile(tempDirectory, baseFileName, true);
     this.bucket = bucket.trim();
+
     const options = {
         maxAsyncS3: 20,     // this is the default
         s3RetryCount: 3,    // this is the default
