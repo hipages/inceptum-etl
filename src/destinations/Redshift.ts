@@ -142,13 +142,13 @@ export class Redshift extends EtlDestination {
         // (25 rows)
         const sqlVerify = `SELECT count(*) AS total_record,
             sum(case WHEN rtrim("text") IS NULL THEN 0
-                    WHEN 'COMMIT' = 1
-                    ELSE 0
-                END) AS total_commits
-            FROM stl_load_commits l,
+                        WHEN 'COMMIT' THEN 1
+                        ELSE 0
+                    END) AS total_commits
+            FROM stl_load_commits l
             INNER JOIN stl_query q ON l.query = q.query
-            LEFT JOIN stl_utilitytext t ON t.xid = q.xid and rtrim("text")='COMMIT'
-            where l.filename like '${filePathInS3}%' order by query;`;
+            LEFT JOIN stl_utilitytext t ON t.xid = q.xid
+            where l.filename like '${filePathInS3}%';`;
         const verified = await this.pgClient.runInTransaction(true, (transaction: DBTransaction) => {
             return transaction.query(sqlVerify)
             .then((rows) => {
@@ -163,7 +163,6 @@ export class Redshift extends EtlDestination {
                 return false;
             });
         });
-
         let result = verified;
         if (verified) {
             // Performing a Merge Operation by Replacing Existing Rows
@@ -179,24 +178,22 @@ export class Redshift extends EtlDestination {
                 return `${sentence} ${this.tableName}.${field} = C.${field} `;
             }, '');
 
-            const delSQL = `DELETE from ${this.tableName}
+            const deleteSQL = `DELETE from ${this.tableName}
             USING (SELECT DISTINCT ${this.bulkDeleteMatchFields.join(', ')} from ${this.tableCopyName} ) as C
             where ${where};`;
 
             // Insert all of the rows from the staging table.
             const insertSQL = `insert into ${this.tableName}
                 select * from ${this.tableCopyName};`;
+            log.debug(insertSQL);
 
             result = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
-                const inserted = transaction.query(delSQL)
+                const inserted = transaction.query(deleteSQL)
                 .then((resp) => {
-                    log.debug(`Delete from origin : ${filePathInS3}`);
-                    return transaction.query(delSQL)
+                    return transaction.query(insertSQL)
                     .then((respIn) => {
-                        log.debug(`Inserted in origin : ${filePathInS3}`);
                         return true;
                     }).catch((error) => {
-                        log.fatal(` Query: ${delSQL}`);
                         log.fatal(error);
                         return false;
                     });
@@ -211,11 +208,10 @@ export class Redshift extends EtlDestination {
             result = false;
         }
         // Drop the staging table.
-        const deleteSQL = `truncate table ${this.tableCopyName}`;
+        const truncateSQL = `truncate table ${this.tableCopyName}`;
         result = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
-            return transaction.query(deleteSQL)
+            return transaction.query(truncateSQL)
             .then((resp) => {
-                log.debug(`Truncete temp table : ${filePathInS3}`);
                 return true;
             }).catch((error) => {
                 log.fatal(error);
