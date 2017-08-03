@@ -8,8 +8,8 @@ export class SplitAdwordsCampaign extends EtlTransformer {
    */
   // tslint:disable-next-line:prefer-function-over-method
   public async transform(batch: EtlBatch): Promise<void> {
-    batch.getRecords().map( (record) => {
-        const newRecord = {...record.getData()};
+    batch.getRecords().map( (record, index) => {
+        const newRecord = {...{ line_number: index }, ...record.getData()};
         if (newRecord.hasOwnProperty('ad_group')) {
             const adgroupParts = newRecord['ad_group'].split('|');
             // Get category
