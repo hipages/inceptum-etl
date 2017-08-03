@@ -1,5 +1,6 @@
 import { Context, BaseSingletonDefinition } from 'inceptum';
-import { MySQLEtlSavepointManager } from './EtlSavepointManager';
+import { MySQLSavepointManager } from './MySQLSavepointManager';
+import { StaticSavepointManager } from './StaticSavepointManager';
 
 export class SavepointConfigManager {
   static registerSingletons(etlName: string, context: Context) {
@@ -18,9 +19,16 @@ export class SavepointConfigManager {
       switch (savepointType) {
         case 'mysql' :
         {
-            const singletonDefinition = new BaseSingletonDefinition<any>(MySQLEtlSavepointManager, 'EtlSavepointManager');
+            const singletonDefinition = new BaseSingletonDefinition<any>(MySQLSavepointManager, 'EtlSavepointManager');
             singletonDefinition.constructorParamByRef(savepointConfig['dbClient']);
             singletonDefinition.constructorParamByValue(etlName);
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
+        case 'static' :
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(StaticSavepointManager, 'EtlSavepointManager');
+            singletonDefinition.constructorParamByValue(savepointConfig['savepoint']);
             context.registerSingletons(singletonDefinition);
         }
             break;

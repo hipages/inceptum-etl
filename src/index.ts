@@ -2,7 +2,7 @@ export { EtlBatch, EtlState } from './EtlBatch';
 export { EtlConfig } from './EtlConfig';
 export { EtlRunner } from './EtlRunner';
 export { EtlSavepointManager } from './EtlSavepointManager';
-export { SavepointConfigManager } from './SavepointConfigManager';
+export { SavepointConfigManager } from './savepoints/SavepointConfigManager';
 export { EtlSource } from './EtlSource';
 export { EtlTransformer } from './EtlTransformer';
 export { EtlDestination } from './EtlDestination';
