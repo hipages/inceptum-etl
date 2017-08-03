@@ -139,7 +139,7 @@ export class AdwordsKeywords extends EtlSource {
       const header = csv.slice(0, csv.search(/[\n\r]+/i));
       const newHeader = header.toLowerCase().replace(/ /g, '_').replace(/[\.|\/|\(|\)|-]+/g, '')
       .replace(/day/i, 'report_date').replace(/cost/i, 'report_cost');
-      data = csvToObject(csv.replace(header, newHeader));
+      data = csvToObject(csv.replace(header, newHeader).replace(/--/g, '').replace(/%/g, ''), { delimiter : ',', quote: '"' });
       log.debug(`read adwords report for: ${startDate}`);
     }
     const batch =  new EtlBatch(data, this.currentSavePoint['currentBatch'], this.totalBatches, this.currentSavePoint['startDate']);

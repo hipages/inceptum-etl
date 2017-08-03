@@ -33,11 +33,11 @@ export class JsonFile extends EtlDestinationFile {
   public async store(batch: EtlBatch): Promise<string> {
     if (this.canStore) {
         const fileFullName = `${this.baseFileName}${batch.getBatchNumber()}_${batch.getBatchIdentifier()}.json`;
-        let data = '';
         if (this.singleObjects) {
+          // Initialize the file
+          fs.writeFileSync(fileFullName, '');
           batch.getTransformedRecords().map((record) => {
-              data += JSON.stringify(record.getTransformedData(), null, '\t');
-              // fs.writeFileSync(fileFullName, data);
+              fs.writeFileSync(fileFullName, JSON.stringify(record.getTransformedData(), null, '\t'), {flag: 'a'});
           });
         } else {
           const list = [];

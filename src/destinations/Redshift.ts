@@ -18,15 +18,19 @@ export class Redshift extends EtlDestination {
     protected tableCopyName: string;
     protected tableName: string;
     protected bulkDeleteMatchFields: Array<string>;
-    protected fileType = 'json';
+    protected fileType = 'csv';
+    protected fileTypeOptions = {
+        csv : `HEADER QUOTE '"' CSV`,
+        json : `JSON`,
+    };
 
     /**
      * Upload a S3 bucket directory into a Redshift table via copy
      */
     constructor(pgClient: DBClient, etlName: string, bucket: string, tempDirectory: string,
-        tableCopyName: string, tableName: string, bulkDeleteMatchFields: Array<string>) {
+        tableCopyName: string, tableName: string, bulkDeleteMatchFields: Array<string>, iamRole: '') {
         super();
-        this.iamRole = 'arn:aws:iam::0123456789012:role/MyRedshiftRole';
+        this.iamRole = iamRole; // If Redshift is not auth in S3 'arn:aws:iam::0123456789012:role/MyRedshiftRole';
         this.pgClient = pgClient;
         this.bucket = bucket;
         this.tableCopyName = tableCopyName;
@@ -59,10 +63,12 @@ export class Redshift extends EtlDestination {
 
     public async processRecord(filePathInS3: string): Promise<boolean> {
         // Run the copy
+        const iamRole = (this.iamRole && this.iamRole.length > 0) ? `iam_role '${this.iamRole}` : '';
         const sql = `copy ${this.tableCopyName}
-            from 's3://${filePathInS3}}'
-            iam_role '${this.iamRole}'
-            ${this.fileType};`;
+            from '${filePathInS3}'
+            ${iamRole}
+            ${this.fileTypeOptions[this.fileType]};`;
+        log.debug(`copy the file: ${sql}`);
 
         const stored = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
             return transaction.query(sql)

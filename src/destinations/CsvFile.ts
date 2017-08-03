@@ -24,7 +24,14 @@ export class CsvFile extends EtlDestinationFile {
             list.push(record.getTransformedData());
         });
         const fileFullName = `${this.baseFileName}${batch.getBatchNumber()}_${batch.getBatchIdentifier()}.csv`;
-        fs.writeFileSync(fileFullName, objectToCSV(list));
+        // Replace spaces in the header row
+        const csv = objectToCSV(list, { encoding : 'utf8', headers: 'key', wrap: '"' });
+        // delimiter = <String> optional default value is ","
+        // wrap  = <String|Boolean> optional default value is false
+        // headers = <String> optional supported values are "full", "none", "relative", "key"
+        // objectDenote = <String> optional default value is "."
+        // arrayDenote = <String> optional default value is "[]"
+        fs.writeFileSync(fileFullName, csv);
         return fileFullName;
     } else {
         await batch.setState(EtlState.ERROR);

@@ -57,6 +57,7 @@ export class DestinationConfigManager {
             singletonDefinition.constructorParamByValue(destinationConfig['tableCopyName']);
             singletonDefinition.constructorParamByValue(destinationConfig['tableName']);
             singletonDefinition.constructorParamByValue(destinationConfig['bulkDeleteMatchFields']);
+            singletonDefinition.constructorParamByValue(destinationConfig['iamRole']);
             context.registerSingletons(singletonDefinition);
         }
             break;
