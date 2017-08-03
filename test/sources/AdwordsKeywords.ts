@@ -1,11 +1,12 @@
 import { must } from 'must';
+import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import { EtlConfig } from '../../src/EtlConfig';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { EtlSavepointManager } from '../../src/EtlSavepointManager';
 import { AdwordsKeywords } from '../../src/sources/AdwordsKeywords';
 
-const adwordsConfig = EtlConfig.getConfig('sources.adwords.test');
+const adwordsConfig = utilConfig.get('sources.adwords.test');
 
 class DummySavepointManager extends EtlSavepointManager {
   savepoint: string;

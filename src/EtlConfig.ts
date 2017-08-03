@@ -1,5 +1,3 @@
-// import { Context } from 'inceptum';
-import * as config from 'config';
 import { EtlDestination } from './EtlDestination';
 import { EtlSource } from './EtlSource';
 import { EtlTransformer } from './EtlTransformer';

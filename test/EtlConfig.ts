@@ -25,8 +25,7 @@ suite('EtlConfig', () => {
     test('Test getConfig method', async () => {
       const config = new EtlConfig();
       config.setName('test etl');
-      config.getConfig('name').must.be.equal('test etl');
-      config.getConfig('app.name').must.be.equal('Inceptum Etl');
+      config.getName().must.be.equal('test etl');
     });
   });
 });
