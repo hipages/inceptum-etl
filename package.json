@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hipages/inceptum-etl"
+    "url": "git+https://github.com/hipages/inceptum-etl"
   },
   "engine": {
     "node": ">7.0.0"
