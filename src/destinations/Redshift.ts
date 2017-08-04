@@ -55,9 +55,10 @@ export class Redshift extends EtlDestination {
         if (batch.getState() !== EtlState.ERROR) {
             const stored = await this.processRecord(filePathInS3);
             if (!stored) {
-                batch.setState(EtlState.ERROR);
+                await batch.setState(EtlState.ERROR);
             }
             log.debug(`finish uploading: ${filePathInS3}`);
+            await this.s3Bucket.deleteFromS3(key);
         }
     }
 
