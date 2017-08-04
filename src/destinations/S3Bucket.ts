@@ -21,6 +21,13 @@ const uploadToS3 = (client: any, loadParams: object): Promise<any> => new Promis
     });
 });
 
+// tslint:disable-next-line
+const deleteFromS3 = (client: any, deleteParams: object): Promise<any> => new Promise((resolve, reject) => {
+    const remover = client.deleteObjects(deleteParams);
+    remover.on('end', resolve);
+    remover.on('error', reject);
+});
+
 export class S3Bucket extends EtlDestination {
   protected sourceObj: JsonFile|CsvFile;
   protected bucket: string;
@@ -74,11 +81,30 @@ export class S3Bucket extends EtlDestination {
             },
         };
         const loader = await uploadToS3(this.s3Client, loadParams);
+        // Delete the file
+        fs.unlinkSync(localFile);
         log.debug(`finish uploading: ${key}`);
     } else {
         // log error
-        log.error(`Error saving batch in file. No aploaded:${batch.getBatchFullIdentifcation()}`);
+        log.error(`Error saving batch in file. No uploaded: ${batch.getBatchFullIdentifcation()}`);
     }
     return key;
+  }
+
+  /**
+   * Delete a file from a bucket
+   * @param batch
+   */
+  public async deleteFromS3(key: string): Promise<any> {
+    const s3Params = {
+            Bucket: this.bucket,
+            Delete: {
+                Objects: [ { Key: key } ],
+                Quiet: false,
+            },
+        };
+    const deleted = await deleteFromS3(this.s3Client, s3Params);
+    log.debug(`finish deleting: ${key}`);
+    return deleted;
   }
 }

@@ -151,13 +151,14 @@ export class EtlBatch {
    * Set the state of the batch and Call the listeners' stateChanged method
    * @param state
    */
-  public setState(state: EtlState): Promise<void> {
+  public async setState(state: EtlState): Promise<void> {
     this.state = state;
     this.stateTimeInMs = Date.now();
-    this.listeners.forEach((listener) => {
-      listener.stateChanged(state).then((result) => true);
-    });
-    return Promise.resolve();
+    await Promise.all(this.listeners.map((listener) => {
+          return listener.stateChanged(state).then((result) => true);
+      }),
+    ).then((result) => true)
+    .catch((result) => false);
   }
 
   /**
