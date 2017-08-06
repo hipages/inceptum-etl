@@ -6,7 +6,7 @@ import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { EtlSavepointManager } from '../../src/EtlSavepointManager';
 import { AdwordsKeywords } from '../../src/sources/AdwordsKeywords';
 
-const adwordsConfig = utilConfig.get('sources.adwords.test');
+const adwordsConfig = utilConfig.get('sources.adwordsclicks.test_1');
 
 class DummySavepointManager extends EtlSavepointManager {
   savepoint: string;

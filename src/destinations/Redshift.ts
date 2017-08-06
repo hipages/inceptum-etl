@@ -18,10 +18,10 @@ export class Redshift extends EtlDestination {
     protected tableCopyName: string;
     protected tableName: string;
     protected bulkDeleteMatchFields: Array<string>;
-    protected fileType = 'csv';
+    protected fileType = 'json';
     protected fileTypeOptions = {
         csv : `HEADER QUOTE '"' CSV`,
-        json : `JSON`,
+        json : `json 'auto'`,
     };
 
     /**
@@ -51,9 +51,9 @@ export class Redshift extends EtlDestination {
      */
     public async store(batch: EtlBatch): Promise<void> {
         const key = await this.s3Bucket.store(batch);
-        const filePathInS3 = joinPath(`s3://${this.bucket}`, key);
+        const filePathInS3 = joinPath(`${this.bucket}`, key);
         if (batch.getState() !== EtlState.ERROR) {
-            const stored = await this.processRecord(filePathInS3);
+            const stored = await this.processRecord(`s3://${filePathInS3}`);
             if (!stored) {
                 await batch.setState(EtlState.ERROR);
             }

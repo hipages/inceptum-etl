@@ -1,7 +1,152 @@
 app:
   name: Inceptum Etl
   context:
-    - test
+    - test_1
+    - test_2
+    - test_3
+    - test_4
+    - test_5
+
+etlOptions:
+  test_1:
+    source:
+      maxRetries: 3
+      timeoutMillis: 5000
+    transformers:
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
+    destinations:
+      maxRetries: 3
+      timeoutMillis: 5000
+      batchSize: 1
+  test_2:
+    source:
+      maxRetries: 3
+      timeoutMillis: 5000
+    transformers:
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
+    destinations:
+      maxRetries: 3
+      timeoutMillis: 5000
+      batchSize: 1
+
+sources:
+  adwordsclicks:
+    adwords: &adwords
+      maxRetries: 5000
+      timeoutMillis: 1
+      account: THE_ACCOUNT_NAME
+      token: DEVELOPER_TOKEN
+      userAgent: YOUR_PROJECT_NAME
+      clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
+      clientId: ADWORDS_API_CLIENT_ID
+      clientSecret: ADWORDS_API_CLIENT_SECRET
+      refreshToken: ADWORDS_API_REFRESHTOKEN
+      version: v201705
+      accountsList:
+        - name: ADWORDS_ACOUNT_NAME_1
+          id: ADWORDS_ACOUNT_ID_1
+        - name: ADWORDS_ACOUNT_NAME_2
+          id: ADWORDS_ACOUNT_ID_2
+    test_1: 
+      <<: *adwords
+  adwordskeywords:
+    test_2: 
+      <<: *adwords
+
+transformers:
+  splitadwordscampaign:
+    test_1:
+      available: true
+  simplecopy:
+    test_2:
+      available: true
+
+destinations:
+  csvfile:
+    test_1:
+      directory: /temp
+      fileName: akp
+      cleanUpDirectory : false
+  jsonfile:
+    test_3:
+      directory: /temp
+      fileName: akp
+      cleanUpDirectory : false
+  redshift:
+    test_4: 
+      dbClient: dwRedshift
+      bucket: bucket/path
+      tempDirectory: /temp
+      tableCopyName: copy.fact_keywords_performance
+      tableName: dwh.fact_keywords_performance
+      bulkDeleteMatchFields: 
+        - account 
+        - report_date
+      iamRole:
+  s3bucket:
+    test_2: 
+      fileType: json
+      bucket: bucket/path
+      tempDirectory: /temp
+      fileName: akp
+
+savepoints:
+  mysql:
+    test_1: 
+      dbClient: EtlSavePoint
+  static:
+    test_2: 
+      savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+    test_3:
+      savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+    test_4:
+      savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+
+mysql:
+  EtlSavePoint:    
+    master:
+      host: localhost
+      port: 3306
+      user: root
+      password:
+      database: testDb
+      charset: utf8
+      connectionLimit: 10
+    slave:
+      host: localhost
+      port: 3306
+      user: root
+      password:
+      database: testDb
+      charset: utf8
+      connectionLimit: 10
+      
+postgres:
+  dwRedshift:
+    master:
+      user: postgres
+      database: hipages
+      password: password
+      port: 5432
+      host: localhost
+      max: 5
+      min: 1
+      refreshIdle: true
+      idleTimeoutMillis: 20000
+      application_name: test
+    slave:
+      user: postgres
+      database: hipages
+      password: password
+      port: 5432
+      host: localhost
+      max: 5
+      min: 1
+      refreshIdle: true
+      idleTimeoutMillis: 20000
+      application_name: test
 
 logging:
   streams:
@@ -22,118 +167,6 @@ logging:
     - name: mysql/
       streams:
         console: debug
-
-sources:
-  adwords:
-    test:
-      maxRetries: 5000
-      timeoutMillis: 1
-      account: THE_ACCOUNT_NAME
-      token: DEVELOPER_TOKEN
-      userAgent: YOUR_PROJECT_NAME
-      clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
-      clientId: ADWORDS_API_CLIENT_ID
-      clientSecret: ADWORDS_API_CLIENT_SECRET
-      refreshToken: ADWORDS_API_REFRESHTOKEN
-      version: v201705
-      accountsList:
-        - name: ADWORDS_ACOUNT_NAME_1
-          id: ADWORDS_ACOUNT_ID_1
-        - name: ADWORDS_ACOUNT_NAME_2
-          id: ADWORDS_ACOUNT_ID_2
-
-transformers:
-  splitadwords:
-    test:
-      minSuccessPercentage: 1
-      timeoutMillis: 5000
-  simplecopy:
-    test:
-      minSuccessPercentage: 1
-      timeoutMillis: 5000
-
-destinations:
-  csvfile:
-    test:
-      timeoutMillis: 5000
-      batchSize: 1
-      directory: /Users/techdev3/src/hip-etls/files
-      fileName: akp
-  jsonfile:
-    test:
-      timeoutMillis: 5000
-      batchSize: 1
-      directory: /Users/techdev3/src/hip-etls/files
-      fileName: akp
-  s3bucket:
-    test: 
-      timeoutMillis: 5000
-      batchSize: 1
-      fileType: csv
-      bucket: test/fact_click_performance
-      tempDirectory: /Users/techdev3/src/hip-etls/files
-      fileName: acp
-  redshift:
-    test: 
-      timeoutMillis: 5000
-      batchSize: 1
-      bucket: s3://path
-      tempDirectory:  /Users/techdev3/src/hip-etls/files
-      tableCopyName: copy.fact_keywords_performance
-      tableName: public.fact_keywords_performance
-      bulkDeleteMatchFields: 
-        - account 
-        - report_date
-
-mysql:
-  savePoint: # this is the name of the object that will be exposed in the context
-    master:
-      host: localhost
-      port: 3306
-      user: root
-      password:
-      database: testDb
-      charset: utf8
-      connectionLimit: 10
-    slave:
-      host: localhost
-      port: 3306
-      user: root
-      password:
-      database: testDb
-      charset: utf8
-      connectionLimit: 10
-      
-postgres:
-  redshift:
-    master:
-      user: postgres
-      database: hipages
-      password: password
-      port: 5432
-      host: localhost
-      max: 5
-      min: 1
-      refreshIdle: true
-      idleTimeoutMillis: 20000
-      # reapIntervalMillis: number;
-      # returnToHead?: boolean;
-      application_name: test
-      # Promise?: PromiseConstructorLik
-    slave:
-      user: postgres
-      database: hipages
-      password: password
-      port: 5432
-      host: localhost
-      max: 5
-      min: 1
-      refreshIdle: true
-      idleTimeoutMillis: 20000
-      # reapIntervalMillis: number;
-      # returnToHead?: boolean;
-      application_name: test
-      # Promise?: PromiseConstructorLik
 
 Context:
   ActiveProfiles: development
