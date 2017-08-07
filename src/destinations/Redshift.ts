@@ -56,6 +56,7 @@ export class Redshift extends EtlDestination {
             const stored = await this.processRecord(`s3://${filePathInS3}`);
             if (!stored) {
                 await batch.setState(EtlState.ERROR);
+                log.debug(`Error storing file`);
             }
             log.debug(`finish uploading: ${filePathInS3}`);
             await this.s3Bucket.deleteFromS3(key);
@@ -64,7 +65,7 @@ export class Redshift extends EtlDestination {
 
     public async processRecord(filePathInS3: string): Promise<boolean> {
         // Run the copy
-        const iamRole = (this.iamRole && this.iamRole.length > 0) ? `iam_role '${this.iamRole}` : '';
+        const iamRole = (this.iamRole && this.iamRole.length > 0) ? `iam_role '${this.iamRole}'` : '';
         const sql = `copy ${this.tableCopyName}
             from '${filePathInS3}'
             ${iamRole}
@@ -141,29 +142,43 @@ export class Redshift extends EtlDestination {
         //   7531 | venue_pipe.txt            | 23390
         //   7583 | listings_pipe.txt         | 23445
         // (25 rows)
-        const sqlVerify = `SELECT count(*) AS total_record,
-            sum(case WHEN rtrim("text") IS NULL THEN 0
-                        WHEN 'COMMIT' THEN 1
-                        ELSE 0
-                    END) AS total_commits
-            FROM stl_load_commits l
-            INNER JOIN stl_query q ON l.query = q.query
-            LEFT JOIN stl_utilitytext t ON t.xid = q.xid
-            where l.filename like '${filePathInS3}%';`;
+        // const sqlVerify = `SELECT count(*) AS total_record,
+        //     sum(case WHEN t.xid IS NULL THEN 0
+        //              ELSE 1
+        //             END) AS total_commits
+        //     FROM stl_load_commits l
+        //     INNER JOIN stl_query q ON l.query = q.query
+        //     LEFT JOIN stl_utilitytext t ON t.xid = q.xid and rtrim("text") = 'COMMIT'
+        //     where l.filename = '${filePathInS3}';`;
+        // const verified = await this.pgClient.runInTransaction(true, (transaction: DBTransaction) => {
+        //     return transaction.query(sqlVerify)
+        //     .then((rows) => {
+        //         if (rows === null || rows.length === 0 || !rows[0].hasOwnProperty('total_record')
+        //             || !rows[0].hasOwnProperty('total_commits')) {
+        //             return false;
+        //         }
+        //         // if total_record !== total_commits  it is an error
+        //         return rows[0]['total_record'] === rows[0]['total_commits'];
+        //     }).catch((error) => {
+        //         log.fatal(error);
+        //         return false;
+        //     });
+        // });
+        const sqlVerify = `select * from stl_load_errors order by starttime desc;`;
         const verified = await this.pgClient.runInTransaction(true, (transaction: DBTransaction) => {
             return transaction.query(sqlVerify)
             .then((rows) => {
-                if (rows === null || rows.length === 0 || !rows[0].hasOwnProperty('total_record')
-                    || !rows[0].hasOwnProperty('total_commits')) {
-                    return false;
+                if (rows === null || rows.length === 0) {
+                    return true;
                 }
-                // if total_record !== total_commits  it is an error
-                return rows[0]['total_record'] === rows[0]['total_commits'];
+                log.fatal(rows);
+                return false;
             }).catch((error) => {
                 log.fatal(error);
                 return false;
             });
         });
+
         let result = verified;
         if (verified) {
             // Performing a Merge Operation by Replacing Existing Rows
@@ -182,34 +197,36 @@ export class Redshift extends EtlDestination {
             const deleteSQL = `DELETE from ${this.tableName}
             USING (SELECT DISTINCT ${this.bulkDeleteMatchFields.join(', ')} from ${this.tableCopyName} ) as C
             where ${where};`;
+            const deleted = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
+                return transaction.query(deleteSQL)
+                .then((rows) => {
+                    return true;
+                }).catch((error) => {
+                    log.fatal(error);
+                    return false;
+                });
+            });
 
             // Insert all of the rows from the staging table.
             const insertSQL = `insert into ${this.tableName}
                 select * from ${this.tableCopyName};`;
             log.debug(insertSQL);
 
-            result = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
-                const inserted = transaction.query(deleteSQL)
+            const inserted = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
+                return transaction.query(insertSQL)
                 .then((resp) => {
-                    return transaction.query(insertSQL)
-                    .then((respIn) => {
-                        return true;
-                    }).catch((error) => {
-                        log.fatal(error);
-                        return false;
-                    });
+                   return true;
                 }).catch((error) => {
                     log.fatal(error);
                     return false;
                 });
-                return inserted;
             });
-            // end transaction;
+            result = deleted && inserted;
         } else { // Delete the temp database
             result = false;
         }
         // Drop the staging table.
-        const truncateSQL = `truncate table ${this.tableCopyName}`;
+        const truncateSQL = `delete from ${this.tableCopyName}`;
         result = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
             return transaction.query(truncateSQL)
             .then((resp) => {
