@@ -1,11 +1,12 @@
-import { LogManager, InceptumApp, BaseSingletonDefinition } from 'inceptum';
+import { LogManager, InceptumApp, Context } from 'inceptum';
 import * as program from 'commander';
-import { SourceConfigManager } from '../src/sources/SourceConfigManager';
-import { TransformerConfigManager } from '../src/transformers/TransformerConfigManager';
-import { DestinationConfigManager } from '../src/destinations/DestinationConfigManager';
-import { ConfigConfigManager } from '../src/ConfigConfigManager';
-import { RunnerConfigManager } from '../src/RunnerConfigManager';
-import { SavepointConfigManager } from '../src/savepoints/SavepointConfigManager';
+import { SourceConfigManager,
+  TransformerConfigManager,
+  DestinationConfigManager,
+  ConfigConfigManager,
+  RunnerConfigManager,
+  SavepointConfigManager,
+} from 'inceptum-etl';
 
 program.version('0.1.0')
   .usage('[options] <etlName>')
@@ -38,7 +39,6 @@ if (validEtls.indexOf(etlName) < 0) {
 
 logger.info(`Starting execution of ETL: ${etlName}`);
 
-// Load all the objects required: Savepoint, Destination, Transformer, Source, Config and runner
 const context = app.getContext();
 SavepointConfigManager.registerSingletons(etlName, context);
 DestinationConfigManager.registerSingletons(etlName, context);
