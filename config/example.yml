@@ -1,0 +1,161 @@
+app:
+  name: Example Etl
+  validEtls:
+    - etl_1_name
+    - etl_2_name
+
+etlOptions:
+  etl_1_name:
+    source:
+      maxRetries: 3
+      timeoutMillis: 5000
+    transformers:
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
+    destinations:
+      maxRetries: 3
+      timeoutMillis: 5000
+      batchSize: 1
+  etl_2_name:
+    source:
+      maxRetries: 3
+      timeoutMillis: 5000
+    transformers:
+      minSuccessPercentage: 1
+      timeoutMillis: 5000
+    destinations:
+      maxRetries: 3
+      timeoutMillis: 5000
+      batchSize: 1
+
+sources:
+  adwordsclicks:
+    etl_1_name:
+      account: hip
+      token: HIP_ADWORDS_TOKEN
+      userAgent: my_app_adwords
+      clientCustomerId:  HIP_ADWORDS_CUSTOMER_ID
+      clientId: HIP_ADWORDS_CLIENT_ID
+      clientSecret: HIP_ADWORDS_CLIENT_SECRET
+      refreshToken: HIP_ADWORDS_REFRESH_TOKEN
+      version: v201705
+      accountsList:
+        - name: account name
+          id: account_id
+
+transformers:
+  splitadwordscampaign:
+    etl_1_name:
+      available: true
+  simplecopy:
+    etl_2_name:
+      available: true
+
+destinations:
+  csvfile:
+    etl_1_name:
+      directory: path/to/directory
+      fileName: base_file_name
+      cleanUpDirectory : false # clean the directory before writing
+  jsonfile:
+    etl_2_name:
+      directory: path/to/directory
+      fileName: base_file_name
+      cleanUpDirectory : # clean the directory before writing
+  s3bucket:
+    etl_3_name: 
+      fileType: json | csv
+      bucket: bucket/name
+      tempDirectory: ETL_TEMP_DIR
+      fileName: base_file_name
+  redshift:
+    etl_4_name: 
+      dbClient: dwRedshift
+      bucket: bucket/name # use S3 file to upload data to redshift
+      tempDirectory: ETL_TEMP_DIR
+      tableCopyName: temp table to use to copy data
+      tableName: final table
+      bulkDeleteMatchFields: # list of the "unique key" fields 
+        - field_one 
+        - field_one
+      iamRole: # required if redshift doesn't have permission to access S3
+
+savepoints:
+  mysql:
+    etl_1_name: 
+      dbClient: EtlSavePoint
+  static:
+    etl_2_name: 
+      savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+
+postgres:
+  dwRedshift:   # reference name for redshift database
+    master:
+      user: DW_RW_USER
+      database: DW_RW_DB
+      password: DW_RW_PASS
+      port: DW_RW_PORT
+      host: DW_RW_HOST
+      max: DW_RW_MAX
+      min: DW_RW_MIN
+      application_name: DW_RW_APP_NAME
+      ssl: true    
+      refreshIdle: true
+      idleTimeoutMillis: 20000
+    slave:
+      user: DW_RO_USER
+      database: DW_RO_DB
+      password: DW_RO_PASS
+      port: DW_RO_PORT
+      host: DW_RO_HOST
+      max: DW_RO_MAX
+      min: DW_RO_MIN
+      application_name: DW_RO_APP_NAME
+      refreshIdle: true
+      idleTimeoutMillis: 20000
+
+mysql:
+  EtlSavePoint: # reference name for savepoint  database
+    master:
+      host: HIP_RW_HOST
+      port: HIP_RW_PORT
+      user: HIP_RW_USER
+      password: HIP_RW_PASS
+      database: HIP_RW_DB
+      charset: utf8
+      connectionLimit: 10
+    slave:
+      host: HIP_RO_HOST
+      port: HIP_RO_PORT
+      user: HIP_RO_USER
+      password: HIP_RO_PASS
+      database: HIP_RO_DB
+      charset: utf8
+      connectionLimit: 10
+
+logging:
+  streams:
+    console:
+      type: console
+    myredis:
+      type: redis
+    mainLogFile:
+      type: file
+      path: main.log
+  loggers:
+    - name: ROOT
+      streams:
+        console: debug
+#        myredis: info
+#        mainLogFile: debug
+    - name: ioc/
+      streams:
+        console: debug
+#        myredis: info
+    - name: mysql/
+      streams:
+        console: debug
+#        myredis: info
+
+Context:
+  ActiveProfiles: example
