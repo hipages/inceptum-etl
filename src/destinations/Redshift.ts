@@ -39,8 +39,8 @@ export class Redshift extends EtlDestination {
         const baseFileName = etlName.replace(/ /g, '');
         const directory = joinPath(tempDirectory, baseFileName);
         if (!fs.existsSync(directory)) {
+            log.info(`Saving batch directory does not exist:${directory}. Will create`);
             fs.mkdirSync(directory);
-            log.error(`Error saving batch directory does not exist:${directory}`);
         }
         this.s3Bucket = new S3Bucket(this.fileType, bucket, directory, baseFileName, true);
     }

@@ -23,8 +23,8 @@ export abstract class EtlDestinationFile extends EtlDestination {
     this.baseFileName = joinPath(directory.trim(), baseFileName.trim());
     const baseDirectory = dirname(this.baseFileName);
     if (!fs.existsSync(baseDirectory)) {
+        log.info(`Saving batch directory does not exist:${baseDirectory}. Will create`);
         fs.mkdirSync(baseDirectory);
-        log.error(`Error saving batch directory does not exist:${baseDirectory}`);
     }
     this.canStore = fs.existsSync(baseDirectory);
     if (this.canStore && cleanUpDirectory) {
