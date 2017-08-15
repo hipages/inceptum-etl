@@ -7,18 +7,17 @@ import RequestGenerator from './RequestGenerator';
 const log = LogManager.getLogger();
 // fetch promise from google SDK
 promise.promisifyAll(google);
-export class GA  {
+
+export class GoogleAnalytics  {
     // instance returned by google Auth service
-    private jwtClient;
+    protected jwtClient;
     // config to establish connection to GA
-    private configGA;
-    // Instance of request generator for GA
-    private requestGen;
+    protected configGA;
     // View to fetch reporting data from
-    private viewId: string;
+    public viewId: string;
     // Index to fetch data from Start from 1 and increment to max result.
     // E.G. startIndex = 1 and maxResult = 300. so nexPageToken is the startIndex for next batch = 301 (maxResults + startIndex)
-    private nextPageToken: number;
+    protected nextPageToken: number;
     // Accept config to establish connection and Options startIndex
     constructor(configGA: object, startIndex?: number) {
         this.viewId = configGA['viewId'];
@@ -27,7 +26,6 @@ export class GA  {
             private_key: configGA['private_key'],
         };
         this.nextPageToken = startIndex || 1;
-        this.requestGen = new RequestGenerator();
     }
     /**
      * Authorise connection using client Email and private key from service account
@@ -64,27 +62,69 @@ export class GA  {
         try {
             const analytics = await this.authorize();
             const report = promise.promisify(analytics.reports.batchGet);
+            const requestGen = new RequestGenerator();
             const response = await report({
-                resource: this.requestGen
+                resource: requestGen
                     .report()
                     .viewId(this.viewId)
                     .dimension(params.dimensions)
                     .metric(params.metrics)
                     .dateRanges(params.dateRanges.startDate, params.dateRanges.endDate)
                     .filtersExpression(params.filtersExpression)
-                    .pageToken(this.nextPageToken)
+                    .pageToken(params.nextPageToken || this.nextPageToken)
                     .pageSize(params.maxResults)
                     // .orderBys('ga:sessionDuration', 'DESCENDING')
                     .get(),
                 auth: this.jwtClient,
             });
-            this.nextPageToken = response.nextPageToken;
-            return Promise.resolve(JSON.stringify(response, null, 4));
-
+            if (response.reports[0].nextPageToken) {
+                this.nextPageToken = response.reports[0].nextPageToken;
+            }
+            return Promise.resolve(response);
         } catch (e) {
             log.fatal(e);
             return Promise.reject(new Error(`Request Failed with message ${e.message}`));
         }
+    }
+
+    public getNextPageToken(): number {
+      return this.nextPageToken;
+    }
+
+    // tslint:disable-next-line:prefer-function-over-method
+    public getObject(theObject, key): any {
+        let result = false;
+        if (theObject instanceof Array) {
+            theObject.map( (item) => {
+                if (!result) {
+                    result = this.getObject(item, key);
+                }
+            });
+        } else {
+            Object.keys(theObject).map((prop) => {
+                if (!result) {
+                    if (prop === key) {
+                        result = theObject[prop];
+                    } else if (theObject[prop] instanceof Object || theObject[prop] instanceof Array) {
+                        result = this.getObject(theObject[prop], key);
+                    }
+                }
+            });
+        }
+        return result;
+    }
+
+    // tslint:disable-next-line:prefer-function-over-method
+    public mergeHeadersRows(headers, data, injectedFields: any= false) {
+      const mixed = data.map((item) => {
+            let newObject = Object.create(null);
+            if (injectedFields) {
+                injectedFields.map((field) => newObject = {...newObject, ...field});
+            }
+            item.dimensions.map((record, index) => newObject[headers[index].substring(3)] = record);
+            return newObject;
+      });
+      return mixed;
     }
 }
 
