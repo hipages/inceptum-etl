@@ -22,13 +22,13 @@ export class GoogleAnalyticsJobs extends EtlSource {
     super();
     this.injectedFields = [{ source_account: configGA['account'] }];
     this.gaParams = {
-        dimensions: 'ga:medium,ga:source,ga:landingPagePath,ga:deviceCategory,ga:region,ga:campaign,ga:adGroup,ga:landingContentGroup1',
-        metrics: 'ga:sessions,ga:percentNewSessions,ga:organicSearches,ga:goal1Completions,ga:goal15Completions,ga:pageviews',
+        dimensions: 'ga:transactionId,ga:campaign,ga:adGroup,ga:source,ga:medium,ga:keyword,ga:landingPagePath,ga:adMatchedQuery,ga:deviceCategory',
+        metrics: 'ga:transactions',
         dateRanges: {
           startDate: this.lastDay.format('YYYY-MM-DD'),
           endDate: this.lastDay.format('YYYY-MM-DD'),
         },
-        filters: '',
+        filters: 'ga:transactionId=~^JOB*',
         maxResults: this.MAX_RESULTS,
         nextPageToken: 1,
     };

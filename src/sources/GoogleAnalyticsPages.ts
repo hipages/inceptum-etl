@@ -21,13 +21,13 @@ export class GoogleAnalyticsPages extends EtlSource {
     super();
     this.injectedFields = [{ source_account: configGA['account'] }];
     this.gaParams = {
-        dimensions: 'ga:sessions,ga:percentNewSessions,ga:organicSearches,ga:goal15Completions,ga:goal1Completions,ga:pageviews',
-        metrics: 'ga:transactions',
+        dimensions: 'ga:medium,ga:source,ga:landingPagePath,ga:deviceCategory,ga:region,ga:campaign,ga:adGroup,ga:landingContentGroup1',
+        metrics: 'ga:sessions,ga:percentNewSessions,ga:organicSearches,ga:goal1Completions,ga:goal15Completions,ga:pageviews',
         dateRanges: {
           startDate: this.yesterday.format('YYYY-MM-DD'),
           endDate: this.yesterday.format('YYYY-MM-DD'),
         },
-        filters: 'ga:transactionId=~^JOB*',
+        filters: '',
         maxResults: this.MAX_RESULTS,
         nextPageToken: 1,
     };
