@@ -142,8 +142,8 @@ export class GoogleAnalyticsPages extends EtlSource {
           const totalBatches = Math.ceil(Number(this.gaClient.getObject(results, 'rowCount')) / this.MAX_RESULTS);
           this.currentSavePoint['totalBatches'] = totalBatches;
         }
-        this.injectedFields['report_date'] = startDate;
-        data = this.gaClient.mergeHeadersRows(this.gaClient.getObject(results, 'columnHeader')['dimensions'], this.gaClient.getObject(results, 'rows'), this.injectedFields);
+        this.injectedFields[0]['report_date'] = startDate;
+        data = this.gaClient.mergeDimMetricsRows(results, this.injectedFields);
         log.debug(`read GA report from: ${startDate} - ${currentBatch}`);
       }
     }

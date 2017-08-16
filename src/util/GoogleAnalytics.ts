@@ -1,3 +1,4 @@
+import * as lodash from 'lodash';
 import * as promise from 'bluebird';
 import * as google from 'googleapis';
 import { LogManager } from 'inceptum';
@@ -115,16 +116,48 @@ export class GoogleAnalytics  {
     }
 
     // tslint:disable-next-line:prefer-function-over-method
-    public mergeHeadersRows(headers, data, injectedFields: any= false) {
-      const mixed = data.map((item) => {
+    public mergeHeadersRows = (headers: Array<string>, data: Array<object>, injectedFields: any, rowKey: string) => {
+        const mixed = data.map((item) => {
             let newObject = Object.create(null);
             if (injectedFields) {
                 injectedFields.map((field) => newObject = {...newObject, ...field});
             }
-            item.dimensions.map((record, index) => newObject[headers[index].substring(3)] = record);
+            item[rowKey].map((record, index) => {
+                const myTypes = ['string', 'number'];
+                const recordType = typeof record;
+                // tslint:disable-next-line
+                if (myTypes.indexOf(recordType) >= 0) {
+                    newObject[headers[index].substring(3)] = record;
+                } else if (recordType === 'object') {
+                    Object.keys(record).map((thisVal) => {
+                        record[thisVal].map((myVal, i) => {
+                            newObject[headers[i].substring(3)] = myVal;
+                        });
+                    });
+                }
+            });
             return newObject;
-      });
-      return mixed;
+        });
+        return mixed;
+    }
+
+    public mergeDimMetricsRows(results, injectedFields: any= false) {
+        const metricHeader = this.getObject(results, 'metricHeaderEntries').reduce((newArry, item) => {
+            return newArry.concat(item.name);
+        }, []);
+        const columnHeader = this.getObject(results, 'columnHeader')['dimensions'];
+        const rows = this.getObject(results, 'rows');
+        const data = this.mergeHeadersRows(columnHeader, rows, injectedFields, 'dimensions');
+        const data2 = this.mergeHeadersRows(metricHeader, rows, false, 'metrics');
+        return data.reduce((newArray, block, index) => {
+            return newArray.concat([{...block, ...data2[index]}]);
+        }, []);
+    }
+
+    public mergeDimensionsRows(results, results2, injectedFields: any= false) {
+        const data1 = this.mergeHeadersRows(this.getObject(results, 'columnHeader')['dimensions'], this.getObject(results, 'rows'), injectedFields, 'dimensions');
+        const data2 = this.mergeHeadersRows(this.getObject(results2, 'columnHeader')['dimensions'], this.getObject(results2, 'rows'), false, 'dimensions');
+        return lodash.merge(data1, data2);
     }
 }
 

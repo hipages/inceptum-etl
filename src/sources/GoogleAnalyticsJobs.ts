@@ -1,5 +1,4 @@
 import * as moment from 'moment';
-import * as lodash from 'lodash';
 import { LogManager } from 'inceptum';
 import { EtlSource } from '../EtlSource';
 import { EtlBatch, EtlState } from '../EtlBatch';
@@ -146,9 +145,8 @@ export class GoogleAnalyticsJobs extends EtlSource {
           const totalBatches = Math.ceil(Number(this.gaClient.getObject(results, 'rowCount')) / this.MAX_RESULTS);
           this.currentSavePoint['totalBatches'] = totalBatches;
         }
-        const data1 = this.gaClient.mergeHeadersRows(this.gaClient.getObject(results, 'columnHeader')['dimensions'], this.gaClient.getObject(results, 'rows'), this.injectedFields);
-        const data2 = this.gaClient.mergeHeadersRows(this.gaClient.getObject(results2, 'columnHeader')['dimensions'], this.gaClient.getObject(results2, 'rows'));
-        data = lodash.merge(data1, data2);
+
+        data = this.gaClient.mergeDimensionsRows(results, results2, this.injectedFields);
         log.debug(`read GA report from: ${startDate} - ${currentBatch}`);
       }
     }

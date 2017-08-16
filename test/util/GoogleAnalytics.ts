@@ -168,11 +168,11 @@ suite('GoogleAnalytics', () => {
       found.must.be.eql(testObject.reports[0].data.rows);
     });
     test('Test mergeHeadersRows', async () => {
-      const data = gaClient.mergeHeadersRows(gaClient.getObject(testObject, 'columnHeader')['dimensions'], gaClient.getObject(testObject, 'rows'));
+      const data = gaClient.mergeHeadersRows(gaClient.getObject(testObject, 'columnHeader')['dimensions'], gaClient.getObject(testObject, 'rows'), false, 'dimensions');
       data.must.be.eql(dataMix);
     });
     test('Test mergeHeadersRows and injectedFields', async () => {
-      const data = gaClient.mergeHeadersRows(gaClient.getObject(testObject, 'columnHeader')['dimensions'], gaClient.getObject(testObject, 'rows'), injectedFields);
+      const data = gaClient.mergeHeadersRows(gaClient.getObject(testObject, 'columnHeader')['dimensions'], gaClient.getObject(testObject, 'rows'), injectedFields, 'dimensions');
       const [a, b, c] = dataMix;
       const [x, y] = injectedFields;
       data.must.be.eql([{...x, ...y, ...a}, {...x, ...y, ...b}, {...x, ...y, ...c}]);
