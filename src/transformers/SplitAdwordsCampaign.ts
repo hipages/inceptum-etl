@@ -32,15 +32,18 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                 subCategory = subParts[0].trim();
                 subCategoryId = (subParts.length > 1) ? Number(subParts[1]) : '';
             }
+
             if (subCategory === 'NA') {
                 subCategory = '';
                 subCategoryId = '';
             }
 
             let locationType = '';
-            if (state.length >= 1) {
+            if (state.length > 1) {
                 state = state[1].trim();
                 locationType = 'State';
+            } else {
+                state = state[0];
             }
 
             // Get the suburb / location
@@ -91,6 +94,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                         locationType = 'Suburb';
                     }
             }
+
             newRecord['category'] = category;
             newRecord['category_id'] = categoryId;
             newRecord['sub_category'] = subCategory;
