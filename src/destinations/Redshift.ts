@@ -56,7 +56,7 @@ export class Redshift extends EtlDestination {
             const stored = await this.processRecord(`s3://${filePathInS3}`);
             if (!stored) {
                 await batch.setState(EtlState.ERROR);
-                log.debug(`Error storing file`);
+                log.info(`Error storing file`);
             }
             log.debug(`finish uploading: ${filePathInS3}`);
             await this.s3Bucket.deleteFromS3(key);
@@ -187,26 +187,30 @@ export class Redshift extends EtlDestination {
             // Put the delete and insert operations in a single transaction block so that if there is a problem, everything will be rolled back.
 
             // begin transaction;
-            const where = this.bulkDeleteMatchFields.reduce((sentence, field) => {
-                if (sentence.length !== 0) {
-                    sentence = `${sentence} and`;
-                }
-                return `${sentence} ${this.tableName}.${field} = C.${field} `;
-            }, '');
+            let deleted = true;
+            if (this.bulkDeleteMatchFields) {
+                const where = this.bulkDeleteMatchFields.reduce((sentence, field) => {
+                    if (sentence.length !== 0) {
+                        sentence = `${sentence} and`;
+                    }
+                    return `${sentence} ${this.tableName}.${field} = C.${field} `;
+                }, '');
 
-            const deleteSQL = `DELETE from ${this.tableName}
-            USING (SELECT DISTINCT ${this.bulkDeleteMatchFields.join(', ')} from ${this.tableCopyName} ) as C
-            where ${where};`;
-            const deleted = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
-                return transaction.query(deleteSQL)
-                .then((rows) => {
-                    return true;
-                }).catch((error) => {
-                    log.fatal(error);
-                    return false;
+                const deleteSQL = `DELETE from ${this.tableName}
+                USING (SELECT DISTINCT ${this.bulkDeleteMatchFields.join(', ')} from ${this.tableCopyName} ) as C
+                where ${where};`;
+                log.debug(deleteSQL);
+
+                deleted = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
+                    return transaction.query(deleteSQL)
+                    .then((rows) => {
+                        return true;
+                    }).catch((error) => {
+                        log.fatal(error);
+                        return false;
+                    });
                 });
-            });
-
+            }
             // Insert all of the rows from the staging table.
             const insertSQL = `insert into ${this.tableName}
                 select * from ${this.tableCopyName};`;
