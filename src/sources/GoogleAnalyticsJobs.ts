@@ -19,7 +19,13 @@ export class GoogleAnalyticsJobs extends EtlSource {
 
   constructor(configGA: object) {
     super();
-    this.injectedFields = [{ source_account: configGA['account'] }];
+    this.injectedFields = [{
+      app_code: configGA['appCode'],
+      source_name: configGA['sourceName'],
+      source_account: configGA['sourceAccount'],
+      source_time_zone: configGA['sourceTimeZone'],
+      record_created_date: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
+    }];
     this.gaParams = {
         dimensions: 'ga:transactionId,ga:campaign,ga:adGroup,ga:source,ga:medium,ga:keyword,ga:landingPagePath,ga:adMatchedQuery,ga:deviceCategory',
         metrics: 'ga:transactions',
@@ -32,7 +38,7 @@ export class GoogleAnalyticsJobs extends EtlSource {
         nextPageToken: 1,
     };
     this.gaParams2 = {...this.gaParams};
-    this.gaParams2['dimensions'] = 'ga:transactionId,ga:browser,ga:browserVersion,ga:browserSize',
+    this.gaParams2['dimensions'] = 'ga:transactionId,ga:browser,ga:browserVersion,ga:browserSize,ga:dimension15',
     // The client
     this.gaClient = new GoogleAnalytics({
         viewId: configGA['gaViewId'],
@@ -146,6 +152,7 @@ export class GoogleAnalyticsJobs extends EtlSource {
           this.currentSavePoint['totalBatches'] = totalBatches;
         }
 
+        this.injectedFields[0]['record_created_date'] = moment.utc().format('YYYY-MM-DD HH:mm:ss');
         data = this.gaClient.mergeDimensionsRows(results, results2, this.injectedFields);
         log.debug(`read GA report from: ${startDate} - ${currentBatch}`);
       }

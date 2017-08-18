@@ -19,9 +19,15 @@ export class GoogleAnalyticsPages extends EtlSource {
 
   constructor(configGA: object) {
     super();
-    this.injectedFields = [{ source_account: configGA['account'] }];
+    this.injectedFields = [{
+      app_code: configGA['appCode'],
+      source_name: configGA['sourceName'],
+      source_account: configGA['sourceAccount'],
+      source_time_zone: configGA['sourceTimeZone'],
+      record_created_date: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
+    }];
     this.gaParams = {
-        dimensions: 'ga:medium,ga:source,ga:landingPagePath,ga:deviceCategory,ga:region,ga:campaign,ga:adGroup,ga:landingContentGroup1',
+        dimensions: 'ga:medium,ga:source,ga:landingPagePath,ga:deviceCategory,ga:region,ga:campaign,ga:adGroup,ga:landingContentGroup5',
         metrics: 'ga:sessions,ga:percentNewSessions,ga:organicSearches,ga:goal1Completions,ga:goal15Completions,ga:pageviews',
         dateRanges: {
           startDate: this.yesterday.format('YYYY-MM-DD'),
@@ -142,6 +148,7 @@ export class GoogleAnalyticsPages extends EtlSource {
           const totalBatches = Math.ceil(Number(this.gaClient.getObject(results, 'rowCount')) / this.MAX_RESULTS);
           this.currentSavePoint['totalBatches'] = totalBatches;
         }
+        this.injectedFields[0]['record_created_date'] = moment.utc().format('YYYY-MM-DD HH:mm:ss');
         this.injectedFields[0]['report_date'] = startDate;
         data = this.gaClient.mergeDimMetricsRows(results, this.injectedFields);
         log.debug(`read GA report from: ${startDate} - ${currentBatch}`);
