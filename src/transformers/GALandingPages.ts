@@ -3,7 +3,7 @@ import { DBClient } from 'inceptum';
 import { parse as parseUrl } from 'url';
 import { EtlTransformer } from '../EtlTransformer';
 import { EtlBatchRecord, EtlBatch, EtlState } from '../EtlBatch';
-import { CategoryDao, Categories, Category } from '../dao/hip/CategoryDao';
+import { CategoryDao, Categories, Category } from '../dao/dw/CategoryDao';
 
 const log = LogManager.getLogger();
 
@@ -119,7 +119,7 @@ export class GALandingPages extends EtlTransformer {
         let categoryParentId = 0;
         // find category id
         if (category.length && categories.hasOwnProperty(category)) {
-            categoryParentId = categories[category].practice_parent_id;
+            categoryParentId = categories[category].parent_category_id;
         }
 
         const transformations = {
