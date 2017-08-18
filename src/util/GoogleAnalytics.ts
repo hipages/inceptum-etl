@@ -71,7 +71,7 @@ export class GoogleAnalytics  {
                     .dimension(params.dimensions)
                     .metric(params.metrics)
                     .dateRanges(params.dateRanges.startDate, params.dateRanges.endDate)
-                    .filtersExpression(params.filtersExpression)
+                    .filtersExpression(params.filters)
                     .pageToken(params.nextPageToken || this.nextPageToken)
                     .pageSize(params.maxResults)
                     // .orderBys('ga:sessionDuration', 'DESCENDING')
