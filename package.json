@@ -35,11 +35,11 @@
     "test": "test"
   },
   "dependencies": {
-    "inceptum": "^0.4.7",
     "bluebird": "^3.5.0",
     "commander": "^2.11.0",
     "config": "1.25.1",
     "csvjson": "^4.3.3",
+    "inceptum": "^0.4.7",
     "moment": "^2.18.1",
     "node-adwords": "201705.1.0",
     "s3": "^4.4.0",
@@ -57,6 +57,7 @@
     "mocha-typescript": "1.1.2",
     "must": "^0.13.2",
     "nyc": "^10.3.2",
+    "sinon": "^3.2.0",
     "ts-node": "3.0.4",
     "tslint": "^5.4.3",
     "tslint-config-shopify": "^2.0.0",

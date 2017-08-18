@@ -1,6 +1,8 @@
 import { Context, BaseSingletonDefinition } from 'inceptum';
 import { SimpleCopy } from './SimpleCopy';
 import { SplitAdwordsCampaign } from './SplitAdwordsCampaign';
+import { GALandingPages } from './GALandingPages';
+import { GATransactions } from './GATransactions';
 
 export class TransformerConfigManager {
   static registerSingletons(etlName: string, context: Context) {
@@ -26,6 +28,20 @@ export class TransformerConfigManager {
         case 'splitadwordscampaign':
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(SplitAdwordsCampaign, 'EtlTransformer');
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
+        case 'galandingpages':
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(GALandingPages, 'EtlTransformer');
+            singletonDefinition.constructorParamByRef(transformersConfig['dbClient']);
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
+        case 'gajobs':
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(GATransactions, 'EtlTransformer');
+            singletonDefinition.constructorParamByRef(transformersConfig['dbClient']);
             context.registerSingletons(singletonDefinition);
         }
             break;
