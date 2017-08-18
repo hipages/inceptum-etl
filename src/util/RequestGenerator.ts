@@ -81,9 +81,10 @@ export default class  RequestGenerator {
         if (!this.reportRequests[this.currentIndex]['orderBys']) {
             this.reportRequests[this.currentIndex]['orderBys'] = [];
         }
-        const orderObject = {fieldName, sortOrder};
-        this.reportRequests[this.currentIndex]['orderBys'].push(orderObject);
-
+        if (fieldName.length > 0) {
+            const orderObject = {fieldName, sortOrder};
+            this.reportRequests[this.currentIndex]['orderBys'].push(orderObject);
+        }
         return this;
     }
 

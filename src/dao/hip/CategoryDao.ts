@@ -21,8 +21,8 @@ export class CategoryDao extends MysqlDao {
             return transaction.query(query)
                 .then((rows) => {
                     const categories: Categories<Category> = {};
-                    if (rows) {
-                        rows.foreach((r) => {
+                    if ((rows !== null && rows.length > 0)) {
+                        rows.map((r) => {
                             const cat: Category = { ...r };
                             categories[r['practice_seo_key']] = cat;
                         });

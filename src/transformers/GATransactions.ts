@@ -9,7 +9,7 @@ export class GATransactions extends EtlTransformer {
 
     constructor(fieldsMapping: object) {
         super();
-        // fieldsMapping: should have the mapping of fields name from source to destination in the required order.
+        // fieldsMapping: should have the mapping of fields name { destination: source } in the required order.
         this.fieldsMapping = fieldsMapping;
     }
 
@@ -32,8 +32,10 @@ export class GATransactions extends EtlTransformer {
         // Map the fields
         Object.keys(this.fieldsMapping).map((destinationField) => {
             const sourceField = this.fieldsMapping[destinationField];
-            transformedData[destinationField] = data[sourceField] || transformations[sourceField] || 'Error Found';
-            if (!data[sourceField] && !transformations[sourceField]) {
+            if (data.hasOwnProperty(sourceField) || transformations.hasOwnProperty(sourceField)) {
+                transformedData[destinationField] = data.hasOwnProperty(sourceField) ? data[sourceField] : transformations[sourceField];
+            } else {
+                transformedData[destinationField] = 'Error Found';
                 log.info(`Field not transformed: ${sourceField} to ${destinationField}`);
             }
         });

@@ -34,6 +34,8 @@ export class GoogleAnalyticsPages extends EtlSource {
           endDate: this.yesterday.format('YYYY-MM-DD'),
         },
         filters: '',
+        orderBys: '',
+        includeEmptyRows: true,
         maxResults: this.MAX_RESULTS,
         nextPageToken: 1,
     };
