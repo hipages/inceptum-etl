@@ -4,21 +4,21 @@ import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import * as moment from 'moment';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { StaticSavepointManager } from '../../src/savepoints/StaticSavepointManager';
-import { AdwordsKeywords } from '../../src/sources/AdwordsKeywords';
+import { GoogleAnalyticsPages } from '../../src/sources/GoogleAnalyticsPages';
 
-const adwordsConfig = utilConfig.get('sources.adwordskeywords.test_2');
-const savePointConfig = utilConfig.get('savepoints.static.test_2.savepoint');
+const gaConfig = utilConfig.get('sources.galandingpages.test_6');
+const savePointConfig = utilConfig.get('savepoints.static.test_6.savepoint');
 // tslint:disable-next-line
 const yesterday = moment().subtract(1, 'days');
 const today = moment();
 
-class HelperAdwordsKeywords extends AdwordsKeywords {
+class HelperGoogleAnalytics extends GoogleAnalyticsPages {
   // Overrite getNextBatch to test changing savepoint
   public async getNextBatch(): Promise<EtlBatch> {
     if (this.hasNextBatch()) {
       this.currentSavePoint = this.getNextSavePoint();
     }
-    const batch =  new EtlBatch([], this.currentSavePoint['currentBatch'], this.totalBatches, this.currentSavePoint['startDate']);
+    const batch =  new EtlBatch([], this.currentSavePoint['currentBatch'], this.currentSavePoint['totalBatches'], `${this.currentSavePoint['startDate']}:${this.currentSavePoint['endDate']}:${this.currentSavePoint['currentBatch']}`);
     batch.registerStateListener(this);
     return batch;
   }
@@ -31,66 +31,63 @@ class HelperAdwordsKeywords extends AdwordsKeywords {
   public exposeSavePointToString(savePoint: object) {
     return this.savePointToString(savePoint);
   }
+  public getParamRages(): object {
+    return this.gaParams['dateRanges'];
+  }
 }
 
-suite('Adwordskeywords', () => {
+suite('GoogleAnalyticsPages', () => {
   suite('Test public methods:', () => {
     const savePointManager = new StaticSavepointManager(savePointConfig);
-    test('Test initial savepoint formated', async () => {
-      const source = new AdwordsKeywords(adwordsConfig);
-      await source.initSavePoint(savePointManager);
-      source.getInitialSavepoint().must.be.equal('{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}');
-      source.getInitialSavepointObject().must.be.eql({startDate: '20170731', endDate: '20170801', currentBatch: 1, totalBatches: 1, currentDate: '2017-08-01T01:14:37.995Z'});
-    });
     test('Test initial savepoint manager', async () => {
-      const source = new AdwordsKeywords(adwordsConfig);
+      const source = new GoogleAnalyticsPages(gaConfig);
       await source.initSavePoint(savePointManager);
       const manager = source.getSavepointManager();
       manager.must.be.equal(savePointManager);
     });
     test('Test empty savepoint', async () => {
-      const source = new AdwordsKeywords(adwordsConfig);
+      const source = new GoogleAnalyticsPages(gaConfig);
       await source.initSavePoint(new StaticSavepointManager(''));
       const savePoint = source.getInitialSavepointObject();
-      savePoint['startDate'].must.be.equal(yesterday.format('YYYYMMDD'));
-      savePoint['endDate'].must.be.equal(today.format('YYYYMMDD'));
+      savePoint['startDate'].must.be.equal(yesterday.format('YYYY-MM-DD'));
+      savePoint['endDate'].must.be.equal(today.format('YYYY-MM-DD'));
     });
     test('Test defaultSavePoint', async () => {
-      const source = new AdwordsKeywords(adwordsConfig);
+      const source = new GoogleAnalyticsPages(gaConfig);
       await source.initSavePoint(savePointManager);
       const savePoint = source.defaultSavePoint();
-      savePoint['startDate'].must.be.equal(yesterday.format('YYYYMMDD'));
-      savePoint['endDate'].must.be.equal(today.format('YYYYMMDD'));
+      savePoint['startDate'].must.be.equal(yesterday.format('YYYY-MM-DD'));
+      savePoint['endDate'].must.be.equal(today.format('YYYY-MM-DD'));
     });
     test('Test current savePoint', async () => {
-      const source = new AdwordsKeywords(adwordsConfig);
+      const source = new GoogleAnalyticsPages(gaConfig);
       await source.initSavePoint(savePointManager);
       const savePoint = source.getCurrentSavepointObject();
-      savePoint['startDate'].must.be.equal('20170801');
-      savePoint['endDate'].must.be.equal('20170802');
+      savePoint['startDate'].must.be.equal('2017-08-12');
+      savePoint['endDate'].must.be.equal('2017-08-13');
       savePoint['currentBatch'].must.be.equal(0);
-      savePoint['totalBatches'].must.be.equal(2);
+      savePoint['totalBatches'].must.be.equal(1);
     });
     test('Test hasNextBatch', async () => {
-      const source = new AdwordsKeywords(adwordsConfig);
+      const source = new GoogleAnalyticsPages(gaConfig);
       await source.initSavePoint(savePointManager);
       source.hasNextBatch().must.be.true();
     });
   });
 
-  suite('Test private methods:', () => {
+  suite('Test private methods', () => {
     const savePointManager = new StaticSavepointManager(savePointConfig);
     test('Test stringToSavePoint', async () => {
-      const source = new HelperAdwordsKeywords(adwordsConfig);
+      const source = new HelperGoogleAnalytics(gaConfig);
       await source.initSavePoint(savePointManager);
       const savePoint = source.exposeStringToSavePoint(savePointConfig);
-      savePoint['startDate'].must.be.equal('20170731');
-      savePoint['endDate'].must.be.equal('20170801');
+      savePoint['startDate'].must.be.equal('2017-08-11');
+      savePoint['endDate'].must.be.equal('2017-08-12');
       savePoint['currentBatch'].must.be.equal(1);
       savePoint['totalBatches'].must.be.equal(1);
    });
     test('Test savePointToString', async () => {
-      const source = new HelperAdwordsKeywords(adwordsConfig);
+      const source = new HelperGoogleAnalytics(gaConfig);
       await source.initSavePoint(savePointManager);
       const savePoint = source.exposeSavePointToString({
         startDate: '2017-08-10',
@@ -101,36 +98,42 @@ suite('Adwordskeywords', () => {
       });
       savePoint.must.be.equal('{"startDate":"2017-08-10","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}');
     });
+    test('Test getParamRages', async () => {
+      const source = new HelperGoogleAnalytics(gaConfig);
+      await source.initSavePoint(savePointManager);
+      const ranges = source.getParamRages();
+      ranges['startDate'].must.be.equal('2017-08-12');
+      ranges['endDate'].must.be.equal('2017-08-12');
+    });
     test('Test change state', async () => {
-      const source = new HelperAdwordsKeywords(adwordsConfig);
+      const source = new HelperGoogleAnalytics(gaConfig);
       await source.initSavePoint(savePointManager);
       const batch = await source.getNextBatch();
       await batch.setState(EtlState.ERROR);
       source.getErrorFound().must.be.true();
     });
     test('Test getNextSavePoint', async () => {
-      const source = new HelperAdwordsKeywords(adwordsConfig);
+      const source = new HelperGoogleAnalytics(gaConfig);
       await source.initSavePoint(savePointManager);
       const savePointInit = source.getCurrentSavepointObject();
-      savePointInit['startDate'].must.be.equal('20170801');
-      savePointInit['endDate'].must.be.equal('20170802');
+      savePointInit['startDate'].must.be.equal('2017-08-12');
+      savePointInit['endDate'].must.be.equal('2017-08-13');
       savePointInit['currentBatch'].must.be.equal(0);
-      savePointInit['totalBatches'].must.be.equal(2);
+      savePointInit['totalBatches'].must.be.equal(1);
       let savePoint = source.exposeGetNextSavePoint();
-      savePoint['startDate'].must.be.equal('20170801');
-      savePoint['endDate'].must.be.equal('20170802');
+      savePoint['startDate'].must.be.equal('2017-08-12');
+      savePoint['endDate'].must.be.equal('2017-08-13');
       savePoint['currentBatch'].must.be.equal(1);
-      savePointInit['totalBatches'].must.be.equal(2);
-      await source.getNextBatch();
+      savePointInit['totalBatches'].must.be.equal(1);
       await source.getNextBatch();
       savePoint = source.exposeGetNextSavePoint();
-      savePoint['startDate'].must.be.equal('20170802');
-      savePoint['endDate'].must.be.equal('20170803');
+      savePoint['startDate'].must.be.equal('2017-08-13');
+      savePoint['endDate'].must.be.equal('2017-08-14');
       savePoint['currentBatch'].must.be.equal(1);
-      savePointInit['totalBatches'].must.be.equal(2);
+      savePointInit['totalBatches'].must.be.equal(1);
     });
     test('Test update savepoint', async () => {
-      const source = new HelperAdwordsKeywords(adwordsConfig);
+      const source = new HelperGoogleAnalytics(gaConfig);
       await source.initSavePoint(savePointManager);
       // Emulates 2 batches call
       await source.getNextBatch();
@@ -140,10 +143,10 @@ suite('Adwordskeywords', () => {
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal(current);
       const sourceSave = source.getCurrentSavepointObject();
-      sourceSave['startDate'].must.be.equal('20170801');
-      sourceSave['endDate'].must.be.equal('20170802');
-      sourceSave['currentBatch'].must.be.equal(2);
-      sourceSave['totalBatches'].must.be.equal(2);
+      sourceSave['startDate'].must.be.equal('2017-08-13');
+      sourceSave['endDate'].must.be.equal('2017-08-14');
+      sourceSave['currentBatch'].must.be.equal(1);
+      sourceSave['totalBatches'].must.be.equal(1);
     });
   });
 });

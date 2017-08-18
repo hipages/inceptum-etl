@@ -1,6 +1,9 @@
 import { Context, BaseSingletonDefinition } from 'inceptum';
 import { AdwordsClicks } from './AdwordsClicks';
 import { AdwordsKeywords } from './AdwordsKeywords';
+import { GoogleAnalyticsJobs } from './GoogleAnalyticsJobs';
+import { GoogleAnalyticsPages } from './GoogleAnalyticsPages';
+
 
 export class SourceConfigManager {
   static registerSingletons(etlName: string, context: Context) {
@@ -27,6 +30,20 @@ export class SourceConfigManager {
         case 'adwordskeywords':
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsKeywords, 'EtlSource');
+            singletonDefinition.constructorParamByValue(sourceConfig);
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
+        case 'gatransactions':
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsJobs, 'EtlSource');
+            singletonDefinition.constructorParamByValue(sourceConfig);
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
+        case 'galandingpages':
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsPages, 'EtlSource');
             singletonDefinition.constructorParamByValue(sourceConfig);
             context.registerSingletons(singletonDefinition);
         }
