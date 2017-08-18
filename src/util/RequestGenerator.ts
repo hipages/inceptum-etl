@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 export default class  RequestGenerator {
     public reportRequests = [];
     public currentIndex = null;
@@ -7,12 +8,23 @@ export default class  RequestGenerator {
         return this;
     }
 
+    private static typechecker(type: string, obj: any, func?: string): void {
+        if (typeof obj === type) {
+           if (func === 'dateRanges' && !moment(new Date(obj)).isValid()) {
+               throw new Error(`${func}: Invalid Type. Expected date equal to ${typeof obj}`);
+           }
+           return;
+        }
+        throw new Error(`${func}: Invalid Type. Expected ${type} equal to ${typeof obj}`);
+    }
+
     public viewId(id: string) {
         this.reportRequests[this.currentIndex]['viewId'] = `${id}`;
         return this;
     }
 
     public pageToken(num: number) {
+        RequestGenerator.typechecker('number', num, 'pageToken');
         this.reportRequests[this.currentIndex]['pageToken'] = num.toString();
         return this;
     }
@@ -60,11 +72,14 @@ export default class  RequestGenerator {
     }
 
     public filtersExpression(expression: string) {
+        RequestGenerator.typechecker('string', expression, 'filtersExpression');
         this.reportRequests[this.currentIndex].filtersExpression = expression;
         return this;
     }
 
     public dateRanges(startDate, endDate) {
+        RequestGenerator.typechecker('string', startDate, 'dateRanges');
+        RequestGenerator.typechecker('string', endDate, 'dateRanges');
         const dateObj = {startDate, endDate};
         this.addToCurrentIndex('dateRanges', dateObj);
         return this;
