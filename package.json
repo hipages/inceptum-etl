@@ -8,7 +8,7 @@
     "clean": "rm -rf dist docs && mkdir docs",
     "test": "NODE_ENV=test nyc --reporter=lcov mocha",
     "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
-    "coverage": "codecov -f coverage/lcov.info",
+    "coverage": "NODE_ENV=test nyc --reporter=lcov --reporter=text mocha",
     "lint": "tslint -p . --type-check",
     "docsapi": "typedoc --out docs/api --theme node_modules/typedoc-clarity-theme/bin  .",
     "docssite": "jekyll build -s docs-src -p docs-src/_plugins --layouts docs-src/_layouts -d docs && touch docs/.nojekyll",

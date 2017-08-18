@@ -35,7 +35,7 @@ interface GATransformedData {
     browser_size: string,
 }
 
-@suite.only class gaTransactionsTest {
+@suite class gaTransactionsTest {
 
     private inputData: GATransactionData[];
     private outputData: GATransformedData[];
