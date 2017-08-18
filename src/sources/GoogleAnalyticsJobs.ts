@@ -16,6 +16,7 @@ export class GoogleAnalyticsJobs extends EtlSource {
   protected lastDay = moment();
   protected gaParams: object;
   protected gaParams2: object;
+  protected gaParams3: object;
 
   constructor(configGA: object) {
     super();
@@ -34,11 +35,15 @@ export class GoogleAnalyticsJobs extends EtlSource {
           endDate: this.lastDay.format('YYYY-MM-DD'),
         },
         filters: 'ga:transactionId=~^JOB*',
+        orderBys: 'ga:transactionId',
+        includeEmptyRows: true,
         maxResults: this.MAX_RESULTS,
         nextPageToken: 1,
     };
     this.gaParams2 = {...this.gaParams};
-    this.gaParams2['dimensions'] = 'ga:transactionId,ga:browser,ga:browserVersion,ga:browserSize,ga:dimension15',
+    this.gaParams2['dimensions'] = 'ga:transactionId,ga:browser,ga:browserVersion,ga:browserSize',
+    this.gaParams3 = {...this.gaParams};
+    this.gaParams3['dimensions'] = 'ga:transactionId,ga:dimension15',
     // The client
     this.gaClient = new GoogleAnalytics({
         viewId: configGA['gaViewId'],
@@ -104,6 +109,7 @@ export class GoogleAnalyticsJobs extends EtlSource {
     };
     this.gaParams['dateRanges'] = dateRanges;
     this.gaParams2['dateRanges'] = dateRanges;
+    this.gaParams3['dateRanges'] = dateRanges;
   }
 
   /**
@@ -139,13 +145,16 @@ export class GoogleAnalyticsJobs extends EtlSource {
 
       // Get the data from GA
       let results = await this.gaClient.fetch(this.gaParams);
-      this.gaParams['nextPageToken'] = this.gaClient.getNextPageToken();
       let results2 = await this.gaClient.fetch(this.gaParams2);
-      this.gaParams2['nextPageToken'] = this.gaClient.getNextPageToken();
+      let results3 = await this.gaClient.fetch(this.gaParams3);
 
       if (results && results2) {
         results = results.reports[0];
         results2 = results2.reports[0];
+        results3 = results3.reports[0];
+        this.gaParams['nextPageToken'] = this.gaClient.getObject(results, 'nextPageToken');
+        this.gaParams2['nextPageToken'] = this.gaClient.getObject(results2, 'nextPageToken');
+        this.gaParams3['nextPageToken'] = this.gaClient.getObject(results3, 'nextPageToken');
         // If it is the first batch store total batches
         if (this.currentSavePoint['currentBatch'] === 1) {
           const totalBatches = Math.ceil(Number(this.gaClient.getObject(results, 'rowCount')) / this.MAX_RESULTS);
@@ -153,7 +162,7 @@ export class GoogleAnalyticsJobs extends EtlSource {
         }
 
         this.injectedFields[0]['record_created_date'] = moment.utc().format('YYYY-MM-DD HH:mm:ss');
-        data = this.gaClient.mergeDimensionsRows(results, results2, this.injectedFields);
+        data = this.gaClient.mergeDimensionsRows(results, results2, results3, this.injectedFields);
         log.debug(`read GA report from: ${startDate} - ${currentBatch}`);
       }
     }

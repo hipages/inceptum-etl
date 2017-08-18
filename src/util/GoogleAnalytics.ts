@@ -74,7 +74,8 @@ export class GoogleAnalytics  {
                     .filtersExpression(params.filters)
                     .pageToken(params.nextPageToken || this.nextPageToken)
                     .pageSize(params.maxResults)
-                    // .orderBys('ga:sessionDuration', 'DESCENDING')
+                    .includeEmptyRows(params.includeEmptyRows || true)
+                    .orderBys(params.orderBys || '', 'ASCENDING')
                     .get(),
                 auth: this.jwtClient,
             });
@@ -147,17 +148,31 @@ export class GoogleAnalytics  {
         }, []);
         const columnHeader = this.getObject(results, 'columnHeader')['dimensions'];
         const rows = this.getObject(results, 'rows');
-        const data = this.mergeHeadersRows(columnHeader, rows, injectedFields, 'dimensions');
-        const data2 = this.mergeHeadersRows(metricHeader, rows, false, 'metrics');
-        return data.reduce((newArray, block, index) => {
-            return newArray.concat([{...block, ...data2[index]}]);
-        }, []);
+        if (Array.isArray(rows) && (rows.length > 0)) {
+            const data = this.mergeHeadersRows(columnHeader, rows, injectedFields, 'dimensions');
+            const data2 = this.mergeHeadersRows(metricHeader, rows, false, 'metrics');
+            return data.reduce((newArray, block, index) => {
+                return newArray.concat([{...block, ...data2[index]}]);
+            }, []);
+        } else {
+            log.error(`No records to merge found`);
+            return [];
+        }
     }
 
-    public mergeDimensionsRows(results, results2, injectedFields: any= false) {
-        const data1 = this.mergeHeadersRows(this.getObject(results, 'columnHeader')['dimensions'], this.getObject(results, 'rows'), injectedFields, 'dimensions');
-        const data2 = this.mergeHeadersRows(this.getObject(results2, 'columnHeader')['dimensions'], this.getObject(results2, 'rows'), false, 'dimensions');
-        return lodash.merge(data1, data2);
+    public mergeDimensionsRows(results, results2, results3, injectedFields: any= false) {
+        const rows = this.getObject(results, 'rows');
+        const rows2 = this.getObject(results2, 'rows');
+        const rows3 = this.getObject(results3, 'rows');
+
+        if (Array.isArray(rows) && (rows.length > 0) && Array.isArray(rows2) && (rows2.length > 0) && Array.isArray(rows3) && (rows3.length > 0)) {
+            const data1 = this.mergeHeadersRows(this.getObject(results, 'columnHeader')['dimensions'], rows, injectedFields, 'dimensions');
+            const data2 = this.mergeHeadersRows(this.getObject(results2, 'columnHeader')['dimensions'], rows2, false, 'dimensions');
+            const data3 = this.mergeHeadersRows(this.getObject(results3, 'columnHeader')['dimensions'], rows3, false, 'dimensions');
+            return data1; // lodash.merge(lodash.merge(data1, data2, data3));
+        } else {
+            log.error(`No records to merge in dimensions and metrics found`);
+            return [];
+        }
     }
 }
-

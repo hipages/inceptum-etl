@@ -60,7 +60,14 @@ export default class  RequestGenerator {
     }
 
     public filtersExpression(expression: string) {
-        this.reportRequests[this.currentIndex].filtersExpression = expression;
+        this.reportRequests[this.currentIndex]['filtersExpression'] = expression;
+        return this;
+    }
+
+    public includeEmptyRows(inc: boolean) {
+        if (inc) {
+            this.reportRequests[this.currentIndex]['includeEmptyRows'] = true;
+        }
         return this;
     }
 
@@ -71,11 +78,11 @@ export default class  RequestGenerator {
     }
 
     public orderBys(fieldName, sortOrder) {
-        if (!this.reportRequests[this.currentIndex].orderBys) {
-            this.reportRequests[this.currentIndex].orderBys = [];
+        if (!this.reportRequests[this.currentIndex]['orderBys']) {
+            this.reportRequests[this.currentIndex]['orderBys'] = [];
         }
         const orderObject = {fieldName, sortOrder};
-        this.reportRequests[this.currentIndex].orderBys.push(orderObject);
+        this.reportRequests[this.currentIndex]['orderBys'].push(orderObject);
 
         return this;
     }
