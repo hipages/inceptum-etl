@@ -35,8 +35,7 @@ export class GATransactions extends EtlTransformer {
             if (data.hasOwnProperty(sourceField) || transformations.hasOwnProperty(sourceField)) {
                 transformedData[destinationField] = data.hasOwnProperty(sourceField) ? data[sourceField] : transformations[sourceField];
             } else {
-                transformedData[destinationField] = 'Error Found';
-                log.info(`Field not transformed: ${sourceField} to ${destinationField}`);
+                transformedData[destinationField] = '';
             }
         });
         record.setTransformedData(transformedData);
