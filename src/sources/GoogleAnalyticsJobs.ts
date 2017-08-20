@@ -17,6 +17,9 @@ export class GoogleAnalyticsJobs extends EtlSource {
   protected gaParams: object;
   protected gaParams2: object;
   protected gaParams3: object;
+  protected myDimensions: object;
+  protected nextPageToken: number;
+  protected dateRanges: object;
 
   constructor(configGA: object) {
     super();
@@ -27,23 +30,26 @@ export class GoogleAnalyticsJobs extends EtlSource {
       source_time_zone: configGA['sourceTimeZone'],
       record_created_date: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
     }];
-    this.gaParams = {
-        dimensions: 'ga:transactionId,ga:campaign,ga:adGroup,ga:source,ga:medium,ga:keyword,ga:landingPagePath,ga:adMatchedQuery,ga:deviceCategory',
-        metrics: 'ga:transactions',
-        dateRanges: {
-          startDate: this.lastDay.format('YYYY-MM-DD'),
-          endDate: this.lastDay.format('YYYY-MM-DD'),
-        },
-        filters: 'ga:transactionId=~^JOB*',
-        orderBys: 'ga:transactionId',
-        includeEmptyRows: true,
-        maxResults: this.MAX_RESULTS,
-        nextPageToken: 1,
+    this.nextPageToken = 1;
+    this.myDimensions = {
+      'ga:transactionId': 'transactionId',
+      'ga:campaign': 'campaign',
+      'ga:adGroup': 'adGroup',
+      'ga:source': 'source',
+      'ga:medium': 'medium',
+      'ga:keyword': 'keyword',
+      'ga:landingPagePath': 'landingPagePath',
+      'ga:adMatchedQuery': 'adMatchedQuery',
+      'ga:deviceCategory': 'deviceCategory',
+      'ga:browser': 'browser',
+      'ga:browserVersion': 'browserVersion',
+      'ga:browserSize': 'browserSize',
+      // 'ga:dimension15': 'dimension15',
     };
-    this.gaParams2 = {...this.gaParams};
-    this.gaParams2['dimensions'] = 'ga:transactionId,ga:browser,ga:browserVersion,ga:browserSize',
-    this.gaParams3 = {...this.gaParams};
-    this.gaParams3['dimensions'] = 'ga:transactionId,ga:dimension15',
+    this.dateRanges = {
+      startDate: this.lastDay.format('YYYY-MM-DD'),
+      endDate: this.lastDay.format('YYYY-MM-DD'),
+    };
     // The client
     this.gaClient = new GoogleAnalytics({
         viewId: configGA['gaViewId'],
@@ -103,13 +109,10 @@ export class GoogleAnalyticsJobs extends EtlSource {
       totalBatches: 1,
       currentDate: moment().toISOString(),
     };
-    const dateRanges = {
+    this.dateRanges = {
           startDate: this.currentSavePoint['startDate'],
           endDate: this.currentSavePoint['endDate'],
     };
-    this.gaParams['dateRanges'] = dateRanges;
-    this.gaParams2['dateRanges'] = dateRanges;
-    this.gaParams3['dateRanges'] = dateRanges;
   }
 
   /**
@@ -131,42 +134,81 @@ export class GoogleAnalyticsJobs extends EtlSource {
     return savePoint;
   }
 
+  private static constructDimentions(arr: string[], chunkSize: number): string[][] {
+      const groups = [];
+      for (let i = 0; i < arr.length; i += chunkSize) {
+          groups.push(arr.slice(i, i + chunkSize));
+      }
+      return groups;
+  }
+
+  set thisNextPageToken(result) {
+    const self = this;
+    // setup the next page token if returned back in response
+    self.nextPageToken = (result && result[0].reports && result[0].reports.length > 0 && self.gaClient.getObject(result[0].reports, 'nextPageToken'))
+    ? Number(self.gaClient.getObject(result[0].reports, 'nextPageToken'))
+    : self.nextPageToken;
+  }
   /**
    * Get's the next batch of objects. It should add this object as listener to the batch
    * to know when it finished and make the relevant updates to the savePoint in
    * {@link #stateChanged}
    */
   public async getNextBatch(): Promise<EtlBatch> {
+    const self = this;
     let data = [];
-    if (this.hasNextBatch()) {
-      this.currentSavePoint = this.getNextSavePoint();
-      const currentBatch = this.currentSavePoint['currentBatch'];
-      const startDate = this.currentSavePoint['startDate'];
-
-      // Get the data from GA
-      let results = await this.gaClient.fetch(this.gaParams);
-      let results2 = await this.gaClient.fetch(this.gaParams2);
-      let results3 = await this.gaClient.fetch(this.gaParams3);
-
-      if (results && results2) {
-        results = results.reports[0];
-        results2 = results2.reports[0];
-        results3 = results3.reports[0];
-        this.gaParams['nextPageToken'] = this.gaClient.getObject(results, 'nextPageToken');
-        this.gaParams2['nextPageToken'] = this.gaClient.getObject(results2, 'nextPageToken');
-        this.gaParams3['nextPageToken'] = this.gaClient.getObject(results3, 'nextPageToken');
+    if (self.hasNextBatch()) {
+      self.currentSavePoint = self.getNextSavePoint();
+      const dimensionToProcess: string[][] = GoogleAnalyticsJobs.constructDimentions(Object.keys(self.myDimensions), 9);
+      // TODO: FIXEME: Hack to add dimension15 as seperate array.
+      dimensionToProcess.push(['ga:dimension15']);
+      try {
+        const allPromises = dimensionToProcess.map(
+          (dimension: any) => {
+            if (dimension.includes('ga:transactionId') === false) {
+              dimension.push('ga:transactionId');
+            }
+            return self.gaClient.fetch(
+              {
+                dimensions: dimension,
+                metrics: 'ga:transactions',
+                dateRanges: self.dateRanges,
+                filters: 'ga:transactionId=~^JOB*',
+                orderBys: 'ga:transactionId',
+                includeEmptyRows: true,
+                maxResults: self.MAX_RESULTS,
+                nextPageToken: self.nextPageToken,
+              },
+            );
+          },
+        );
+        const result = await Promise.all(allPromises);
+        // console.log('finalArray ', JSON.stringify(result));
+        // setup the next page token if returned back in response
+        self.thisNextPageToken = result;
         // If it is the first batch store total batches
-        if (this.currentSavePoint['currentBatch'] === 1) {
-          const totalBatches = Math.ceil(Number(this.gaClient.getObject(results, 'rowCount')) / this.MAX_RESULTS);
-          this.currentSavePoint['totalBatches'] = totalBatches;
+        if (self.currentSavePoint['currentBatch'] === 1) {
+          const totalBatches = Math.ceil(Number(self.gaClient.getObject(result[0], 'rowCount')) / self.MAX_RESULTS);
+          self.currentSavePoint['totalBatches'] = totalBatches;
         }
-
-        this.injectedFields[0]['record_created_date'] = moment.utc().format('YYYY-MM-DD HH:mm:ss');
-        data = this.gaClient.mergeDimensionsRows(results, results2, results3, this.injectedFields);
-        log.debug(`read GA report from: ${startDate} - ${currentBatch}`);
+        // TODO: Do we really want to set it here as its already set during initialization.
+        // setting created date to be injected in each record
+        self.injectedFields[0]['record_created_date'] = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+        // push injected fields to the resut set
+        // result.push(self.injectedFields);
+        // data = self.gaClient.mergeDimensionsRows.apply(self.gaClient, result);
+        data = self.gaClient.mergeDimensionsRows1(result, self.injectedFields);
+        log.debug(`read GA report from: ${self.currentSavePoint['startDate']} - ${self.currentSavePoint['currentBatch']}`);
+      } catch (e) {
+        log.error('Error while fetch records from GA: ', e);
       }
     }
-    const batch =  new EtlBatch(data, this.currentSavePoint['currentBatch'], this.currentSavePoint['totalBatches'], `${this.currentSavePoint['startDate']}:${this.currentSavePoint['endDate']}:${this.currentSavePoint['currentBatch']}`);
+    const batch = new EtlBatch(
+      data,
+      this.currentSavePoint['currentBatch'],
+      this.currentSavePoint['totalBatches'],
+      `${this.currentSavePoint['startDate']}:${this.currentSavePoint['endDate']}:${this.currentSavePoint['currentBatch']}`,
+    );
     batch.registerStateListener(this);
     return batch;
   }
