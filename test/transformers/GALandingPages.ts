@@ -5,7 +5,7 @@ import { parse } from 'url';
 import { suite, test, slow, timeout } from 'mocha-typescript';
 import { EtlBatchRecord } from '../../src/EtlBatch';
 import { GALandingPages } from '../../src/transformers/GALandingPages';
-import { Categories, Category } from '../../src/dao/hip/CategoryDao';
+import { Categories, Category } from '../../src/dao/dw/CategoryDao';
 
 const fieldsMapping = utilConfig.get('transformers.galandingpages.test_4.fieldsMapping');
 
@@ -206,14 +206,14 @@ export interface GaLandingPageOutputData {
         }
 
         this.categories['security_screens_doors'] = {
-            practice_id: 123,
-            practice_seo_key: 'security_screens_doors',
-            practice_parent_id: 67,
+            category_id: 123,
+            category_seo_key: 'security_screens_doors',
+            parent_category_id: 67,
         };
         this.categories['kitchen_renovations'] = {
-            practice_id: 124,
-            practice_seo_key: 'kitchen_renovations',
-            practice_parent_id: 68,
+            category_id: 124,
+            category_seo_key: 'kitchen_renovations',
+            parent_category_id: 68,
         };
         const DBClient = {};
         const DBClientMock = mock(DBClient);
