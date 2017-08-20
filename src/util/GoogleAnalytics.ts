@@ -163,8 +163,7 @@ export class GoogleAnalytics  {
      * @param injectedFields
      */
     public mergeDimensionsRows1(results, injectedFields: any= false) {
-        // require('fs').writeFileSync('./result.js', JSON.stringify(results));
-        let data = [];
+        const data = [];
         results.reduce(
             (recordSet, index, arr) => {
                 injectedFields = (index === 0) ? injectedFields : false;
@@ -184,24 +183,18 @@ export class GoogleAnalytics  {
                         }
                         return 0;
                     });
-
-                    // console.log(recordSetWithHeaders.length);
-                    require('fs').writeFileSync(`./recordSetWithHeaders-${index}.js`, JSON.stringify(recordSetWithHeaders));
-                    // lodash.merge(data, recordSetWithHeaders);
-                    data = lodash.map(recordSetWithHeaders, (obj) => {
-                        return lodash.assign(obj, lodash.find(data, { transactionId: obj.transactionId }));
+                    // Merge with data based on transactionId. if not present then add new object to array else merge witht he object found
+                    recordSetWithHeaders.map((obj) => {
+                        if (lodash.findIndex(data, (o) => o.transactionId === obj.transactionId) !== -1) {
+                            lodash.assign(data[lodash.findIndex(data, (o) => o.transactionId === obj.transactionId)], obj);
+                        } else {
+                            data.push(obj);
+                        }
                     });
-                    // lodash.each(recordSetWithHeaders, function(arr2obj) {
-                    //     const arr1obj = lodash.find(data, function(arr1obj) {
-                    //         return arr1obj['transactionId'] === arr2obj['transactionId'];
-                    //     });
-                    //     arr1obj ? lodash.extend(arr1obj, arr2obj) : data.push(arr2obj);
-                    // });
                 }
                 log.error(`No records found to merge in dimensions and metrics`);
             },
         );
-        require('fs').writeFileSync('./combinedresult.js', JSON.stringify(data));
         return data;
     }
 
