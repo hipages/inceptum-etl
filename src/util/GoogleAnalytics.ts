@@ -46,7 +46,7 @@ export class GoogleAnalytics  {
             return Promise.resolve(promise.promisifyAll(google.analyticsreporting('v4')));
         } catch (e) {
             log.fatal(new Error(`Unable to generate Key. Returned message: ${e}`));
-            return Promise.reject(new Error(`Unable to generate Key. Returned message: ${e.message}`));
+            return Promise.reject(  new Error(`Unable to generate Key. Returned message: ${e.message}`));
         }
     }
 
@@ -74,7 +74,8 @@ export class GoogleAnalytics  {
                     .filtersExpression(params.filters)
                     .pageToken(params.nextPageToken || this.nextPageToken)
                     .pageSize(params.maxResults)
-                    // .orderBys('ga:sessionDuration', 'DESCENDING')
+                    .includeEmptyRows(params.includeEmptyRows || true)
+                    .orderBys(params.orderBys || '', 'ASCENDING')
                     .get(),
                 auth: this.jwtClient,
             });
@@ -141,23 +142,84 @@ export class GoogleAnalytics  {
         return mixed;
     }
 
+    public mergeDimensionsRows(results, results2, results3, injectedFields: any= false) {
+        const rows = this.getObject(results, 'rows');
+        const rows2 = this.getObject(results2, 'rows');
+        const rows3 = this.getObject(results3, 'rows');
+
+        if (Array.isArray(rows) && (rows.length > 0) && Array.isArray(rows2) && (rows2.length > 0) && Array.isArray(rows3) && (rows3.length > 0)) {
+            const data1 = this.mergeHeadersRows(this.getObject(results, 'columnHeader')['dimensions'], rows, injectedFields, 'dimensions');
+            const data2 = this.mergeHeadersRows(this.getObject(results2, 'columnHeader')['dimensions'], rows2, false, 'dimensions');
+            const data3 = this.mergeHeadersRows(this.getObject(results3, 'columnHeader')['dimensions'], rows3, false, 'dimensions');
+            return data1; // lodash.merge(lodash.merge(data1, data2, data3));
+        } else {
+            log.error(`No records to merge in dimensions and metrics found`);
+            return [];
+        }
+    }
+    /**
+     *
+     * @param results
+     * @param injectedFields
+     */
+    public mergeDimensionsRows1(results, injectedFields: any= false) {
+        let data = [];
+        results.map(
+            (recordSet, index) => {
+                injectedFields = (index === 0) ? injectedFields : false;
+                const rows = this.getObject(recordSet, 'rows');
+                if (Array.isArray(rows) && rows.length > 0) {
+                    const recordSetWithHeaders = this.mergeHeadersRows(
+                        this.getObject(recordSet, 'columnHeader')['dimensions'],
+                        rows,
+                        injectedFields,
+                        'dimensions',
+                    ).sort((currnetObj, nexObj) => {
+                        // Compare by transactionId
+                        if (currnetObj.transactionId < nexObj.transactionId) {
+                            return -1;
+                        }
+                        if (currnetObj.transactionId > nexObj.transactionId) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                    // Merge with data based on transactionId. if not present then add new object to array else merge with he object found
+                    if (data.length === 0) {
+                        data = recordSetWithHeaders;
+                    } else {
+                        recordSetWithHeaders.map((obj) => {
+                            const idIndex = lodash.findIndex(data, (o) => o.transactionId === obj.transactionId);
+                            if ( idIndex !== -1) {
+                                lodash.assign(data[idIndex], obj);
+                            } else {
+                                data.push(obj);
+                            }
+                        });
+                    }
+
+                }
+                log.error(`No records found to merge in dimensions and metrics`);
+            },
+        );
+        return data;
+    }
+
     public mergeDimMetricsRows(results, injectedFields: any= false) {
         const metricHeader = this.getObject(results, 'metricHeaderEntries').reduce((newArry, item) => {
             return newArry.concat(item.name);
         }, []);
         const columnHeader = this.getObject(results, 'columnHeader')['dimensions'];
         const rows = this.getObject(results, 'rows');
-        const data = this.mergeHeadersRows(columnHeader, rows, injectedFields, 'dimensions');
-        const data2 = this.mergeHeadersRows(metricHeader, rows, false, 'metrics');
-        return data.reduce((newArray, block, index) => {
-            return newArray.concat([{...block, ...data2[index]}]);
-        }, []);
-    }
-
-    public mergeDimensionsRows(results, results2, injectedFields: any= false) {
-        const data1 = this.mergeHeadersRows(this.getObject(results, 'columnHeader')['dimensions'], this.getObject(results, 'rows'), injectedFields, 'dimensions');
-        const data2 = this.mergeHeadersRows(this.getObject(results2, 'columnHeader')['dimensions'], this.getObject(results2, 'rows'), false, 'dimensions');
-        return lodash.merge(data1, data2);
+        if (Array.isArray(rows) && (rows.length > 0)) {
+            const data = this.mergeHeadersRows(columnHeader, rows, injectedFields, 'dimensions');
+            const data2 = this.mergeHeadersRows(metricHeader, rows, false, 'metrics');
+            return data.reduce((newArray, block, index) => {
+                return newArray.concat([{...block, ...data2[index]}]);
+            }, []);
+        } else {
+            log.error(`No records to merge found`);
+            return [];
+        }
     }
 }
-

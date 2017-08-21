@@ -1,86 +1,49 @@
+import { LogManager } from 'inceptum';
 import { DBClient } from 'inceptum';
 import { parse as parseUrl } from 'url';
 import { EtlTransformer } from '../EtlTransformer';
-import { EtlBatchRecord, EtlBatch } from '../EtlBatch';
-import { CategoryDao, Categories, Category } from '../dao/hip/CategoryDao';
-export interface GaLandingPageInputData {
-    pages: string,
-    source_account: string,
-    report_date: string,
-    medium: string,
-    source: string,
-    landingPagePath: string,
-    deviceCategory: string,
-    region: string,
-    campaign: string,
-    adGroup: string,
-    landingContentGroup1: string,
-    sessions: number,
-    percentNewSessions: number,
-    organicSearches: number,
-    goal1Completions: number,
-    goal15Completions: number,
-    pageviews: number,
-    record_created_date: string,
-}
+import { EtlBatchRecord, EtlBatch, EtlState } from '../EtlBatch';
+import { CategoryDao, Categories, Category } from '../dao/dw/CategoryDao';
 
-export interface GaLandingPageOutputData {
-    landing: string,
-    source_account: string,
-    report_date: string,
-    base: string,
-    page: string,
-    category: string,
-    category_parent_id: number,
-    medium: string,
-    source: string,
-    landing_page_path: string,
-    device_category: string,
-    region: string,
-    campaign: string,
-    ad_group: string,
-    landing_content_group1: string,
-    sessions: number,
-    percent_new_sessions: number,
-    organic_searches: number,
-    goal1_completions: number,
-    goal15_completions: number,
-    pageviews: number,
-    record_created_date: string,
-}
+const log = LogManager.getLogger();
 
 export class GALandingPages extends EtlTransformer {
     private mysqlClient;
-    private categories: Promise<Categories<Category>>;
+    private categories: Categories<Category>;
+    private fieldsMapping: object;
 
     private hasCatAfterBase = ['c', 'local_categories', 'find', 'find_v8', 'find_variation', 'photo', 'photos'];
     private photoStyles = ['modern', 'contemporary', 'luxury', 'simple', 'country', 'traditional', 'beautiful', 'low', 'natural'];
     private photoCat = ['kitchens', 'bathrooms', 'gates', 'fences', 'gardens', 'decks', 'pergolas', 'curtains', 'pools', 'exteriors'];
     private photoCatReplace = ['kitchen_renovations', 'bathroom_renovations', 'gates', 'fences', 'garden_designer', 'decking', 'pergola', 'curtains', 'pools_spas', 'exteriors'];
 
-    constructor(mysqlClient: DBClient) {
+    constructor(mysqlClient: DBClient, fieldsMapping: object) {
         super();
         this.mysqlClient = mysqlClient;
+         // fieldsMapping: should have the mapping of fields name { destination: source } in the required order.
+         this.fieldsMapping = fieldsMapping;
     }
 
     public async transform(batch: EtlBatch): Promise<void> {
-        this.fetchCategories();
+        await this.fetchCategories();
         batch.getRecords().map((record) => {
             this.transformRecord(record);
         });
     }
 
-    public setCategories(categories: Promise<Categories<Category>>) {
+    public setCategories(categories: Categories<Category>) {
         this.categories = categories;
     }
 
-    public getCategories(): Promise<Categories<Category>> {
+    public getCategories(): Categories<Category> {
         return this.categories;
     }
 
-    public fetchCategories() {
-       const dao = new CategoryDao(this.mysqlClient);
-       this.setCategories(dao.getCategories());
+    public async fetchCategories() {
+        if (!this.categories) {
+            const dao = new CategoryDao(this.mysqlClient);
+            this.setCategories(await dao.getCategories());
+        }
     }
 
     /**
@@ -144,44 +107,43 @@ export class GALandingPages extends EtlTransformer {
         return category;
     }
 
-    public async transformRecord(record: EtlBatchRecord): Promise<boolean> {
-        const transformed = {};
+    public transformRecord(record: EtlBatchRecord) {
+        const transformedData = {};
         const input = record.getData();
-        const categories = await this.getCategories();
+        const categories = this.getCategories();
 
         const page = this.parsePagePath(input['landingPagePath']);
         const base = this.extractBaseFromPage(page);
         const matches = page.match('(\/.*\/){1}');
         const category = this.findCategory(page, base);
         let categoryParentId = 0;
-        if (category.length) {
-            // find category id
-            categoryParentId = categories[category].practice_parent_id;
+        // find category id
+        if (category.length && categories.hasOwnProperty(category)) {
+            categoryParentId = categories[category].parent_category_id;
         }
-        transformed['landing'] = input['pages'];
-        transformed['page'] = page;
-        transformed['base'] = base;
-        transformed['category'] = category;
-        transformed['category_parent_id'] = categoryParentId;
-        transformed['source_account'] = input['source_account'];
-        transformed['report_date'] = input['report_date'];
-        transformed['medium'] = input['medium'];
-        transformed['source'] = input['source'];
-        transformed['landing_page_path'] = input['landingPagePath'];
-        transformed['device_category'] = input['deviceCategory'];
-        transformed['region'] = input['region'];
-        transformed['campaign'] = input['campaign'];
-        transformed['ad_group'] = input['adGroup'];
-        transformed['landing_content_group1'] = input['landingContentGroup1'];
-        transformed['sessions'] = input['sessions'];
-        transformed['percent_new_sessions'] = input['percentNewSessions'];
-        transformed['organic_searches'] = input['organicSearches'];
-        transformed['goal1_completions'] = input['goal1Completions'];
-        transformed['goal15_completions'] = input['goal15Completions'];
-        transformed['pageviews'] = input['pageviews'];
-        transformed['record_created_date'] = input['record_created_date'];
 
-        record.setTransformedData(transformed);
-        return Promise.resolve(true);
+        const transformations = {
+            page,
+            base,
+            category,
+            category_parent_id: categoryParentId,
+        };
+
+        // Map the fields
+        let errorFound = false;
+        Object.keys(this.fieldsMapping).map((destinationField) => {
+            const sourceField = this.fieldsMapping[destinationField];
+            if (input.hasOwnProperty(sourceField) || transformations.hasOwnProperty(sourceField)) {
+                transformedData[destinationField] = input.hasOwnProperty(sourceField) ? input[sourceField] : transformations[sourceField];
+            } else {
+                log.info(`Field not transformed: ${sourceField} to ${destinationField}`);
+                errorFound = true;
+            }
+        });
+
+        record.setTransformedData(transformedData);
+        if (errorFound) {
+            record.setState(EtlState.ERROR);
+        }
     }
 }

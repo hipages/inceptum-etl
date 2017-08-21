@@ -14,7 +14,7 @@ export interface Categories<T> {
 
 export class CategoryDao extends MysqlDao {
     public async getCategories(): Promise<Categories<Category>> {
-        const query = 'SELECT RPS.practice_seo_key, RP.practice_id, RP.practice_parent_id \
+        const query = 'SELECT LCASE(RPS.practice_seo_key) as practice_seo_key, RP.practice_id, RP.practice_parent_id \
                        FROM ref_practice_seo RPS \
                        INNER JOIN ref_practice RP ON RP.practice_id = RPS.practice_seo_practice_id';
         const results = await this.mysqlClient.runInTransaction(

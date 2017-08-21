@@ -35,13 +35,14 @@ export class TransformerConfigManager {
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(GALandingPages, 'EtlTransformer');
             singletonDefinition.constructorParamByRef(transformersConfig['dbClient']);
+            singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
             context.registerSingletons(singletonDefinition);
         }
             break;
-        case 'gajobs':
+        case 'gatransactions':
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(GATransactions, 'EtlTransformer');
-            singletonDefinition.constructorParamByRef(transformersConfig['dbClient']);
+            singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
             context.registerSingletons(singletonDefinition);
         }
             break;

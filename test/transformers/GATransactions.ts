@@ -1,27 +1,30 @@
+import * as utilConfig from 'config';
 import { suite, test } from 'mocha-typescript';
 import { must } from 'must';
 import { GATransactions } from '../../src/transformers/GATransactions';
 import { EtlBatchRecord } from '../../src/EtlBatch';
 
+const fieldsMapping = utilConfig.get('transformers.gatransactions.test_3.fieldsMapping');
+
 interface GATransactionData {
-    transactionid: string,
+    transactionId: string,
     campaign: string,
     source: string,
-    adgroup: string,
+    adGroup: string,
     medium: string,
     keyword: string,
-    landingpagepath: string,
-    admatchedquery: string,
-    devicecategory: string,
+    landingPagePath: string,
+    adMatchedQuery: string,
+    deviceCategory: string,
     browser: string,
-    browserversion: string,
-    browsersize: string,
+    browserVersion: string,
+    browserSize: string,
 }
 
 interface GATransformedData {
-    transaction_id: string,
     job_id: number,
     partner_job_id:	number,
+    transaction_id: string,
     campaign: string,
     source: string,
     ad_group: string,
@@ -48,18 +51,18 @@ interface GATransformedData {
 
         // init test data
         this.inputData[0] = {
-            transactionid: 'JOB3649837',
+            transactionId: 'JOB3649837',
             campaign: 'TBD',
             source: 'google',
-            adgroup: 'TBD',
+            adGroup: 'TBD',
             medium: 'TBD',
             keyword: 'TBD',
-            landingpagepath: 'TBD',
-            admatchedquery: '(not set)',
-            devicecategory: 'tablet',
+            landingPagePath: 'TBD',
+            adMatchedQuery: '(not set)',
+            deviceCategory: 'tablet',
             browser: 'Chrome',
-            browserversion: '59.0.3071.125',
-            browsersize: '1100x1290',
+            browserVersion: '59.0.3071.125',
+            browserSize: '1100x1290',
         };
 
         this.outputData[0] = {
@@ -83,7 +86,7 @@ interface GATransformedData {
     }
 
     @test transformRecord() {
-        const gaTransactions = new GATransactions();
+        const gaTransactions = new GATransactions(fieldsMapping);
         // for( let key in this.batchRecords) {
         this.batchRecords.map((bRecord, key) => {
             gaTransactions.transformBatchRecord(bRecord);
