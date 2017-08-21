@@ -77,6 +77,13 @@ export default class  RequestGenerator {
         return this;
     }
 
+    public includeEmptyRows(inc: boolean) {
+        if (inc) {
+            this.reportRequests[this.currentIndex]['includeEmptyRows'] = true;
+        }
+        return this;
+    }
+
     public dateRanges(startDate, endDate) {
         RequestGenerator.typechecker('string', startDate, 'dateRanges');
         RequestGenerator.typechecker('string', endDate, 'dateRanges');
@@ -86,12 +93,13 @@ export default class  RequestGenerator {
     }
 
     public orderBys(fieldName, sortOrder) {
-        if (!this.reportRequests[this.currentIndex].orderBys) {
-            this.reportRequests[this.currentIndex].orderBys = [];
+        if (!this.reportRequests[this.currentIndex]['orderBys']) {
+            this.reportRequests[this.currentIndex]['orderBys'] = [];
         }
-        const orderObject = {fieldName, sortOrder};
-        this.reportRequests[this.currentIndex].orderBys.push(orderObject);
-
+        if (fieldName.length > 0) {
+            const orderObject = {fieldName, sortOrder};
+            this.reportRequests[this.currentIndex]['orderBys'].push(orderObject);
+        }
         return this;
     }
 

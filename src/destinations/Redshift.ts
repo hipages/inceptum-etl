@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as moment from 'moment';
 import { join as joinPath } from 'path';
 import { LogManager } from 'inceptum';
 import { DBClient, DBTransaction } from 'inceptum';
@@ -64,6 +65,7 @@ export class Redshift extends EtlDestination {
     }
 
     public async processRecord(filePathInS3: string): Promise<boolean> {
+        const transactionDate = moment.utc().format('YYYY-MM-DD HH:mm:ss');
         // Run the copy
         const iamRole = (this.iamRole && this.iamRole.length > 0) ? `iam_role '${this.iamRole}'` : '';
         const sql = `copy ${this.tableCopyName}
@@ -164,7 +166,8 @@ export class Redshift extends EtlDestination {
         //         return false;
         //     });
         // });
-        const sqlVerify = `select * from stl_load_errors order by starttime desc;`;
+        const sqlVerify = `select * from stl_load_errors where filename = '${filePathInS3}' and starttime >= '${transactionDate}' order by starttime desc;`;
+        log.debug(sqlVerify);
         const verified = await this.pgClient.runInTransaction(true, (transaction: DBTransaction) => {
             return transaction.query(sqlVerify)
             .then((rows) => {
