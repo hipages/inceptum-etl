@@ -34,14 +34,14 @@ export class SourceConfigManager {
             context.registerSingletons(singletonDefinition);
         }
             break;
-        case 'gatransactions':
+        case 'googleanalyticsjobs':
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsJobs, 'EtlSource');
             singletonDefinition.constructorParamByValue(sourceConfig);
             context.registerSingletons(singletonDefinition);
         }
             break;
-        case 'galandingpages':
+        case 'googleanalyticspages':
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsPages, 'EtlSource');
             singletonDefinition.constructorParamByValue(sourceConfig);

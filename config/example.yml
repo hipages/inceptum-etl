@@ -50,6 +50,7 @@ transformers:
   simplecopy:
     etl_2_name:
       available: true
+ 
 
 destinations:
   csvfile:
