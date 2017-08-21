@@ -198,8 +198,9 @@ export class GoogleAnalytics  {
                         });
                     }
 
+                } else {
+                    log.error(`No records found to merge in dimensions and metrics. index:${index} `);
                 }
-                log.error(`No records found to merge in dimensions and metrics`);
             },
         );
         return data;

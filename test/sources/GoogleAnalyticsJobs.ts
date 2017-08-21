@@ -12,8 +12,25 @@ const savePointConfig = utilConfig.get('savepoints.static.test_5.savepoint');
 const twoDaysAgo = moment().subtract(2, 'days');
 const lastDay = moment();
 
+const myDimensions = {
+  'ga:transactionId': 'transactionId',
+  'ga:campaign': 'campaign',
+  'ga:adGroup': 'adGroup',
+  'ga:source': 'source',
+  'ga:medium': 'medium',
+  'ga:keyword': 'keyword',
+  'ga:landingPagePath': 'landingPagePath',
+  'ga:adMatchedQuery': 'adMatchedQuery',
+  'ga:deviceCategory': 'deviceCategory',
+  'ga:browser': 'browser',
+  'ga:browserVersion': 'browserVersion',
+  'ga:browserSize': 'browserSize',
+  // 'ga:dimension15': 'dimension15',
+};
+
+
 class HelperGoogleAnalytics extends GoogleAnalyticsJobs {
-  // Overrite getNextBatch to test changing savepoint
+  // Overwrite getNextBatch to test changing savepoint
   public async getNextBatch(): Promise<EtlBatch> {
     if (this.hasNextBatch()) {
       this.currentSavePoint = this.getNextSavePoint();
@@ -31,12 +48,11 @@ class HelperGoogleAnalytics extends GoogleAnalyticsJobs {
   public exposeSavePointToString(savePoint: object) {
     return this.savePointToString(savePoint);
   }
-
-  public getParam1Rages(): object {
-    return this.gaParams['dateRanges'];
+  public getMyDimensions(): object {
+    return this.myDimensions;
   }
-  public getParam2Rages(): object {
-    return this.gaParams2['dateRanges'];
+  public getDateRanges(): object {
+    return this.dateRanges;
   }
 }
 
@@ -103,19 +119,16 @@ suite('GoogleAnalyticsJobs', () => {
       });
       savePoint.must.be.equal('{"startDate":"2017-08-10","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}');
     });
-    test('Test getParam1Rages', async () => {
+    test('Test getDateRanges', async () => {
       const source = new HelperGoogleAnalytics(gaConfig);
       await source.initSavePoint(savePointManager);
-      const ranges = source.getParam1Rages();
+      const ranges = source.getDateRanges();
       ranges['startDate'].must.be.equal('2017-08-11');
       ranges['endDate'].must.be.equal(lastDay.format('YYYY-MM-DD'));
     });
-    test('Test getParam2Rages', async () => {
+    test('Test getMyDimensions', async () => {
       const source = new HelperGoogleAnalytics(gaConfig);
-      await source.initSavePoint(savePointManager);
-      const ranges = source.getParam2Rages();
-      ranges['startDate'].must.be.equal('2017-08-11');
-      ranges['endDate'].must.be.equal(lastDay.format('YYYY-MM-DD'));
+      source.getMyDimensions().must.be.eql(myDimensions);
     });
     test('Test change state', async () => {
       const source = new HelperGoogleAnalytics(gaConfig);
