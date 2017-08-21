@@ -1,9 +1,14 @@
 import { suite, test } from 'mocha-typescript';
 import { must } from 'must';
 import * as sinon from 'sinon';
-import { DBClient } from 'inceptum';
+import { DBClient, DBTransaction } from 'inceptum';
 import { CategoryDao, Category, Categories } from '../../../src/dao/hip/CategoryDao';
 
+class TestDBClient extends DBClient {
+    public runInTransaction(readonly: boolean, func: (transaction: DBTransaction) => Promise<any>): Promise<any> {
+        return Promise.resolve(123);
+    }
+}
 
 @suite class CategoryDaoTest {
 
@@ -33,12 +38,12 @@ import { CategoryDao, Category, Categories } from '../../../src/dao/hip/Category
             },
         };
 
-        //const mc = {runInTransaction: () => results};
-        //const mysqlClient = sinon.stub(mc, 'runInTransaction').withArgs().returns(results);
-        //mysqlClient.runInTransaction().must.be.eql(results);
-        // const categoryDao = new CategoryDao(mysqlClient);
-        // const categories = await categoryDao.getCategories();
-        // categories.must.be.eql(expectedCategories);
+        const mysqlClient = sinon.createStubInstance(TestDBClient);
+        mysqlClient.runInTransaction.returns(results);
+
+        const categoryDao = new CategoryDao(mysqlClient);
+        const categories = await categoryDao.getCategories();
+        categories.must.be.eql(expectedCategories);
     }
 
 }

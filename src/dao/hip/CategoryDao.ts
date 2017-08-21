@@ -22,10 +22,11 @@ export class CategoryDao extends MysqlDao {
                             (transaction: DBTransaction) => transaction.query(query));
 
         const categories: Categories<Category> = {};
-        results.foreach((row) => {
+        results.forEach((row) => {
                 const cat: Category = { ...row };
                 categories[row['practice_seo_key']] = cat;
         });
         return Promise.resolve(categories);
     }
+
 }

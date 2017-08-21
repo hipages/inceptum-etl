@@ -1,6 +1,7 @@
 import * as utilConfig from 'config';
 import { must } from 'must';
-import { mock, stub } from 'sinon';
+import { DBClient } from 'inceptum';
+import * as sinon from 'sinon';
 import { parse } from 'url';
 import { suite, test, slow, timeout } from 'mocha-typescript';
 import { EtlBatchRecord } from '../../src/EtlBatch';
@@ -215,8 +216,8 @@ export interface GaLandingPageOutputData {
             category_seo_key: 'kitchen_renovations',
             parent_category_id: 68,
         };
-        const DBClient = {};
-        const DBClientMock = mock(DBClient);
+
+        const DBClientMock: DBClient = sinon.createStubInstance(DBClient);
         this.GALandingPages = new GALandingPages(DBClientMock, fieldsMapping);
     }
 
