@@ -163,14 +163,15 @@ export class GoogleAnalytics  {
      * @param injectedFields
      */
     public mergeDimensionsRows1(results, injectedFields: any= false) {
-        const data = [];
-        results.reduce(
-            (recordSet, index, arr) => {
+        let data = [];
+        results.map(
+            (recordSet, index) => {
                 injectedFields = (index === 0) ? injectedFields : false;
-                if (Array.isArray(this.getObject(recordSet, 'rows')) && this.getObject(recordSet, 'rows').length > 0) {
+                const rows = this.getObject(recordSet, 'rows');
+                if (Array.isArray(rows) && rows.length > 0) {
                     const recordSetWithHeaders = this.mergeHeadersRows(
                         this.getObject(recordSet, 'columnHeader')['dimensions'],
-                        this.getObject(recordSet, 'rows'),
+                        rows,
                         injectedFields,
                         'dimensions',
                     ).sort((currnetObj, nexObj) => {
@@ -178,19 +179,25 @@ export class GoogleAnalytics  {
                         if (currnetObj.transactionId < nexObj.transactionId) {
                             return -1;
                         }
-                        if (currnetObj > nexObj) {
+                        if (currnetObj.transactionId > nexObj.transactionId) {
                             return 1;
                         }
                         return 0;
                     });
-                    // Merge with data based on transactionId. if not present then add new object to array else merge witht he object found
-                    recordSetWithHeaders.map((obj) => {
-                        if (lodash.findIndex(data, (o) => o.transactionId === obj.transactionId) !== -1) {
-                            lodash.assign(data[lodash.findIndex(data, (o) => o.transactionId === obj.transactionId)], obj);
-                        } else {
-                            data.push(obj);
-                        }
-                    });
+                    // Merge with data based on transactionId. if not present then add new object to array else merge with he object found
+                    if (data.length === 0) {
+                        data = recordSetWithHeaders;
+                    } else {
+                        recordSetWithHeaders.map((obj) => {
+                            const idIndex = lodash.findIndex(data, (o) => o.transactionId === obj.transactionId);
+                            if ( idIndex !== -1) {
+                                lodash.assign(data[idIndex], obj);
+                            } else {
+                                data.push(obj);
+                            }
+                        });
+                    }
+
                 }
                 log.error(`No records found to merge in dimensions and metrics`);
             },
