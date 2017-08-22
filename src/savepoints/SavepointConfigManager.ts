@@ -10,12 +10,20 @@ export class SavepointConfigManager {
     const savepoints = context.getConfig('savepoints');
     Object.keys(savepoints).forEach((savepointType) => {
         if (context.hasConfig(`savepoints.${savepointType}.${etlName}`)) {
-            SavepointConfigManager.registerSavepointSingleton(etlName, savepointType, savepoints[savepointType][etlName], context);
+            SavepointConfigManager.registerSavepointSingleton(etlName, savepointType, savepoints[savepointType][etlName], context, this);
         }
     });
   }
 
-  static registerSavepointSingleton(etlName: string, savepointType: string, savepointConfig: object, context: Context) {
+  /**
+   * Register the save point in the context
+   * @param etlName
+   * @param savepointType
+   * @param savepointConfig
+   * @param context
+   * @param self
+   */
+  static registerSavepointSingleton(etlName: string, savepointType: string, savepointConfig: object, context: Context, self: SavepointConfigManager) {
       switch (savepointType) {
         case 'mysql' :
         {
@@ -33,7 +41,18 @@ export class SavepointConfigManager {
         }
             break;
         default:
-            throw new Error(`Unknown savepoint type: ${savepointType}`);
+            self['extendedRegisterSingleton'](etlName, savepointType, savepointConfig, context);
     }
+  }
+
+  /**
+   * Overload this function to extend the registration of savepoint in the context
+   * @param etlName
+   * @param savepointType
+   * @param savepointConfig
+   * @param context
+   */
+  static extendedRegisterSingleton(etlName: string, savepointType: string, savepointConfig: object, context: Context) {
+    throw new Error(`Unknown savepoint type: ${savepointType}`);
   }
 }
