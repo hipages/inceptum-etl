@@ -172,6 +172,7 @@ export class Redshift extends EtlDestination {
             return transaction.query(sqlVerify)
             .then((rows) => {
                 if (rows === null || rows.length === 0) {
+                    log.debug(`No errors found in stl_load_errors from copy`);
                     return true;
                 }
                 log.fatal(rows);
@@ -207,6 +208,7 @@ export class Redshift extends EtlDestination {
                 deleted = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
                     return transaction.query(deleteSQL)
                     .then((rows) => {
+                        log.debug(`deleted existing records from ${this.tableName}`);
                         return true;
                     }).catch((error) => {
                         log.fatal(error);
@@ -222,7 +224,8 @@ export class Redshift extends EtlDestination {
             const inserted = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
                 return transaction.query(insertSQL)
                 .then((resp) => {
-                   return true;
+                    log.debug(`inserted copied records to ${this.tableName}`);
+                    return true;
                 }).catch((error) => {
                     log.fatal(error);
                     return false;
@@ -237,6 +240,7 @@ export class Redshift extends EtlDestination {
         result = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
             return transaction.query(truncateSQL)
             .then((resp) => {
+                log.debug(`Delete all records from ${this.tableCopyName}`);
                 return true;
             }).catch((error) => {
                 log.fatal(error);
