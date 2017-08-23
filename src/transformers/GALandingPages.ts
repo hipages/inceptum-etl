@@ -52,7 +52,7 @@ export class GALandingPages extends EtlTransformer {
      */
     // tslint:disable-next-line:prefer-function-over-method
     public parsePagePath(path: string): string {
-        return parseUrl(path).pathname;
+        return parseUrl(path).pathname.substring(0, 499);
     }
 
     /**
@@ -74,7 +74,8 @@ export class GALandingPages extends EtlTransformer {
                 base = tmp;
             }
         }
-        return base;
+
+        return base.substring(0, 99);
     }
 
     public findCategory(page: string, base: string): string {
