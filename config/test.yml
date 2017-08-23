@@ -32,8 +32,8 @@ etlOptions:
     <<: *generalOptions
 
 sources:
-  adwordsclicks:
-    adwords: &adwords
+  adwordsreports:
+    test_1: &adwords
       maxRetries: 5000
       timeoutMillis: 1
       account: THE_ACCOUNT_NAME
@@ -49,11 +49,24 @@ sources:
           id: ADWORDS_ACOUNT_ID_1
         - name: ADWORDS_ACOUNT_NAME_2
           id: ADWORDS_ACOUNT_ID_2
-    test_1: 
-      <<: *adwords
-  adwordskeywords:
+      reportQuery: "SELECT AccountDescriptiveName, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM   KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0"
     test_2: 
-      <<: *adwords
+      maxRetries: 5000
+      timeoutMillis: 1
+      account: THE_ACCOUNT_NAME
+      token: DEVELOPER_TOKEN
+      userAgent: YOUR_PROJECT_NAME
+      clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
+      clientId: ADWORDS_API_CLIENT_ID
+      clientSecret: ADWORDS_API_CLIENT_SECRET
+      refreshToken: ADWORDS_API_REFRESHTOKEN
+      version: v201705
+      accountsList:
+        - name: ADWORDS_ACOUNT_NAME_1
+          id: ADWORDS_ACOUNT_ID_1
+        - name: ADWORDS_ACOUNT_NAME_2
+          id: ADWORDS_ACOUNT_ID_2
+      reportQuery: "SELECT AccountDescriptiveName, CampaignName, CampaignId, AdGroupName, AdGroupId, CriteriaParameters, CriteriaId, KeywordMatchType, AdFormat, CreativeId, Device, Date, GclId, Clicks, ClickType, ExternalCustomerId, Page, Slot FROM   CLICK_PERFORMANCE_REPORT"
   gatransactions:
     test_5:
       account: hip

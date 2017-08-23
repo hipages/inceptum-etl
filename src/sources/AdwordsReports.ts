@@ -10,22 +10,21 @@ import { EtlBatch, EtlState } from '../EtlBatch';
 promisifyAll(nodeAdwords);
 const log = LogManager.getLogger();
 
-export class AdwordsKeywords extends EtlSource {
+export class AdwordsReports extends EtlSource {
+  // Example of queries
+  protected keywordsQuery = `SELECT AccountDescriptiveName, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0 `;
+  protected clicksQuery = `SELECT AccountDescriptiveName, CampaignName, CampaignId, AdGroupName, AdGroupId, CriteriaParameters, CriteriaId, KeywordMatchType, AdFormat, CreativeId, Device, Date, GclId, Clicks, ClickType, ExternalCustomerId, Page, Slot FROM CLICK_PERFORMANCE_REPORT`;
+
   protected account: string;
   protected accountList: string;
+  protected query: string;
   protected configAdwords: object;
-  protected query = `SELECT AccountDescriptiveName, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id,
-  KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc,
-  ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl,
-  AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare,
-  SearchImpressionShare, SearchRankLostImpressionShare, BidType
-  FROM   KEYWORDS_PERFORMANCE_REPORT
-  WHERE  Clicks > 0 DURING `;
   protected lastDay = moment().format('YYYYMMDD');
   protected errorFound = false;
 
   constructor(configAdwords: object) {
     super();
+    this.query = configAdwords['reportQuery'];
     this.account = configAdwords['account'];
     this.accountList = configAdwords['accountsList'];
     this.totalBatches = this.accountList.length;
@@ -42,6 +41,10 @@ export class AdwordsKeywords extends EtlSource {
 
   public getErrorFound(): boolean {
     return this.errorFound;
+  }
+
+  public getQuery(): string {
+    return this.query;
   }
 
   /**
@@ -128,7 +131,7 @@ export class AdwordsKeywords extends EtlSource {
       config['clientCustomerId'] = this.accountList[currentBatch]['id'];
       const report = new nodeAdwords.AdwordsReport(config);
       const csv = await report.getReportAsync(config['version'], {
-          query: `${this.query} ${startDate},${startDate}`,
+          query: `${this.query} DURING ${startDate},${startDate}`,
           format: 'CSV',
           additionalHeaders: {
             skipReportHeader: true,
