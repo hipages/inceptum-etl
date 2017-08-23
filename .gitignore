@@ -41,3 +41,6 @@ dist/
 dist
 
 .nyc*
+
+#temporal ditectory
+tmp
