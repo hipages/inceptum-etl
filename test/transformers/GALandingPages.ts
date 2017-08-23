@@ -263,6 +263,7 @@ export interface GaLandingPageOutputData {
             '/login/success/redirect.php',
             '/',
             '(not set)',
+            'null&app_only=1&responsive=1&style=hui&hide_cta=1&hui_header_layout=none&footer_style=none&name=Brett%20Johnstone&feedback_link=https:',
         ];
 
         const expects: string[] = [
@@ -273,6 +274,7 @@ export interface GaLandingPageOutputData {
             'login',
             'homepage',
             '(not set)',
+            'null&app_only=1&responsive=1&style=hui&hide_cta=1&hui_header_layout=none&footer_style=none&name=Bre',
         ];
 
         inputs.map((s, i) => {
