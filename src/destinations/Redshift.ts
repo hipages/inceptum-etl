@@ -65,6 +65,12 @@ export class Redshift extends EtlDestination {
     }
 
     public async processRecord(filePathInS3: string): Promise<boolean> {
+        return await this.pgClient.runInTransaction(false, async (transaction: DBTransaction) => {
+            return await this.processRecordInTransaction(filePathInS3, transaction);
+        });
+    }
+
+    public async processRecordInTransaction(filePathInS3: string, transaction: DBTransaction): Promise<boolean> {
         const transactionDate = moment.utc().format('YYYY-MM-DD HH:mm:ss');
         // Run the copy
         const iamRole = (this.iamRole && this.iamRole.length > 0) ? `iam_role '${this.iamRole}'` : '';
@@ -74,15 +80,13 @@ export class Redshift extends EtlDestination {
             ${this.fileTypeOptions[this.fileType]};`;
         log.debug(`copy the file: ${sql}`);
 
-        const stored = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
-            return transaction.query(sql)
-            .then((resp) => {
-                log.debug(`Copy file to temp table : ${filePathInS3}`);
-                return true;
-            }).catch((error) => {
-                log.fatal(error);
-                return false;
-            });
+        const stored = await transaction.query(sql)
+        .then((resp) => {
+            log.debug(`Copy file to temp table : ${filePathInS3}`);
+            return true;
+        }).catch((error) => {
+            log.fatal(error);
+            return false;
         });
         if (!stored) {
             return false;
@@ -168,18 +172,17 @@ export class Redshift extends EtlDestination {
         // });
         const sqlVerify = `select * from stl_load_errors where filename = '${filePathInS3}' and starttime >= '${transactionDate}' order by starttime desc;`;
         log.debug(sqlVerify);
-        const verified = await this.pgClient.runInTransaction(true, (transaction: DBTransaction) => {
-            return transaction.query(sqlVerify)
-            .then((rows) => {
-                if (rows === null || rows.length === 0) {
-                    return true;
-                }
-                log.fatal(rows);
-                return false;
-            }).catch((error) => {
-                log.fatal(error);
-                return false;
-            });
+        const verified = await transaction.query(sqlVerify)
+        .then((rows) => {
+            if (rows === null || rows.length === 0) {
+                log.debug(`------ No errors found in stl_load_errors from copy`);
+                return true;
+            }
+            log.fatal(rows);
+            return false;
+        }).catch((error) => {
+            log.fatal(error);
+            return false;
         });
 
         let result = verified;
@@ -204,14 +207,13 @@ export class Redshift extends EtlDestination {
                 where ${where};`;
                 log.debug(deleteSQL);
 
-                deleted = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
-                    return transaction.query(deleteSQL)
-                    .then((rows) => {
-                        return true;
-                    }).catch((error) => {
-                        log.fatal(error);
-                        return false;
-                    });
+                deleted = await transaction.query(deleteSQL)
+                .then((rows) => {
+                    log.debug(`------ deleted existing records from ${this.tableName}`);
+                    return true;
+                }).catch((error) => {
+                    log.fatal(error);
+                    return false;
                 });
             }
             // Insert all of the rows from the staging table.
@@ -219,14 +221,13 @@ export class Redshift extends EtlDestination {
                 select * from ${this.tableCopyName};`;
             log.debug(insertSQL);
 
-            const inserted = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
-                return transaction.query(insertSQL)
-                .then((resp) => {
-                   return true;
-                }).catch((error) => {
-                    log.fatal(error);
-                    return false;
-                });
+            const inserted = await transaction.query(insertSQL)
+            .then((resp) => {
+                log.debug(`------ inserted copied records to ${this.tableName}`);
+                return true;
+            }).catch((error) => {
+                log.fatal(error);
+                return false;
             });
             result = deleted && inserted;
         } else { // Delete the temp database
@@ -234,14 +235,13 @@ export class Redshift extends EtlDestination {
         }
         // Drop the staging table.
         const truncateSQL = `delete from ${this.tableCopyName}`;
-        result = await this.pgClient.runInTransaction(false, (transaction: DBTransaction) => {
-            return transaction.query(truncateSQL)
-            .then((resp) => {
-                return true;
-            }).catch((error) => {
-                log.fatal(error);
-                return false;
-            });
+        result = await transaction.query(truncateSQL)
+        .then((resp) => {
+            log.debug(`------ Delete all records from ${this.tableCopyName}`);
+            return true;
+        }).catch((error) => {
+            log.fatal(error);
+            return false;
         });
 
         return result;

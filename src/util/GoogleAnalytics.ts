@@ -24,7 +24,7 @@ export class GoogleAnalytics  {
         this.viewId = configGA['viewId'];
         this.configGA = {
             client_email: configGA['client_email'],
-            private_key: configGA['private_key'],
+            private_key: configGA['private_key'].replace(/\\n/g, '\n'),
         };
         this.nextPageToken = startIndex || 1;
     }
@@ -202,8 +202,9 @@ export class GoogleAnalytics  {
                         });
                     }
 
+                } else {
+                    log.error(`No records found to merge in dimensions and metrics. index:${index} `);
                 }
-                log.error(`No records found to merge in dimensions and metrics`);
             },
         );
         return data;
