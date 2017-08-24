@@ -50,6 +50,10 @@ export class GoogleAnalytics  {
         }
     }
 
+    public testAuth() {
+        return this.authorize();
+    }
+
     /**
      * perform batch get from the Google Analytics V4 API
      * // 50,000 requests per project per day
