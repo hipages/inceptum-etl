@@ -18,4 +18,4 @@ export { JsonFile } from './destinations/JsonFile';
 export { S3Bucket } from './destinations/S3Bucket';
 export { Redshift } from './destinations/Redshift';
 export { DestinationConfigManager } from './destinations/DestinationConfigManager';
-export { SavepointConfigManager } from './savepoints/SavepointConfigManager';
+export { SavepointPlugin } from './savepoints/SavepointPlugin';
