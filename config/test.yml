@@ -6,9 +6,10 @@ app:
     - test_3
     - test_4
     - test_5
+    - test_6
 
 etlOptions:
-  test_1:
+  test_1: &generalOptions
     source:
       maxRetries: 3
       timeoutMillis: 5000
@@ -20,16 +21,15 @@ etlOptions:
       timeoutMillis: 5000
       batchSize: 1
   test_2:
-    source:
-      maxRetries: 3
-      timeoutMillis: 5000
-    transformers:
-      minSuccessPercentage: 1
-      timeoutMillis: 5000
-    destinations:
-      maxRetries: 3
-      timeoutMillis: 5000
-      batchSize: 1
+    <<: *generalOptions
+  test_3:
+    <<: *generalOptions
+  test_4:
+    <<: *generalOptions
+  test_5:
+    <<: *generalOptions
+  test_6:
+    <<: *generalOptions
 
 sources:
   adwordsclicks:
@@ -54,6 +54,18 @@ sources:
   adwordskeywords:
     test_2: 
       <<: *adwords
+  gatransactions:
+    test_5:
+      account: hip
+      gaViewId: 123456
+      clientKey: "-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----\n"
+      clientEmail: "the.iam.gserviceaccount.com"
+  galandingpages:
+    test_6:
+      account: hip
+      gaViewId: 123456
+      clientKey: "-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----\n"
+      clientEmail: "the.iam.gserviceaccount.com"
 
 transformers:
   splitadwordscampaign:
@@ -62,6 +74,48 @@ transformers:
   simplecopy:
     test_2:
       available: true
+  gatransactions:
+    test_3:
+      fieldsMapping: 
+        job_id: job_id
+        partner_job_id: partner_job_id
+        transaction_id: transactionId
+        campaign: campaign
+        source: source
+        ad_group: adGroup
+        medium: medium
+        keyword: keyword
+        landing_page_path: landingPagePath
+        ad_matched_query: adMatchedQuery
+        device_category: deviceCategory
+        browser: browser
+        browser_version: browserVersion
+        browser_size: browserSize
+  galandingpages:
+    test_4:
+      dbClient: EtlSavePoint
+      fieldsMapping: 
+        source_account: source_account
+        report_date: report_date
+        page: page
+        base: base
+        category: category
+        category_parent_id: category_parent_id
+        medium: medium
+        source: source
+        landing_page_path: landingPagePath
+        device_category: deviceCategory
+        region: region
+        campaign: campaign
+        ad_group: adGroup
+        landing_content_group5: landingContentGroup5
+        sessions: sessions
+        percent_new_sessions: percentNewSessions
+        organic_searches: organicSearches
+        goal1_completions: goal1Completions
+        goal15_completions: goal15Completions
+        pageviews: pageviews
+        record_created_date: record_created_date
 
 destinations:
   csvfile:
@@ -103,6 +157,10 @@ savepoints:
       savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
     test_4:
       savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+    test_5: 
+      savepoint: '{"startDate":"2017-08-10","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+    test_6: 
+      savepoint: '{"startDate":"2017-08-11","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
 
 mysql:
   EtlSavePoint:    

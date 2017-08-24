@@ -27,19 +27,21 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                 subCategory = subParts[0].trim();
                 subCategoryId = (subParts.length > 1) ? Number(subParts[1]) : '';
             } else if ((adgroupParts.length >= 3) && (adgroupParts[2].indexOf('>') > -1)) {
-                state = adgroupParts[1].trim().split('2');
+                state = adgroupParts[1].trim().split('>');
                 const subParts = adgroupParts[1].trim().split(':');
                 subCategory = subParts[0].trim();
                 subCategoryId = (subParts.length > 1) ? Number(subParts[1]) : '';
             }
+
             if (subCategory === 'NA') {
                 subCategory = '';
                 subCategoryId = '';
             }
 
             let locationType = '';
-            if (state.length >= 1) {
-                state = state[1].trim();
+            let recordState = '';
+            if (state.length > 1) {
+                recordState = state[1].trim();
                 locationType = 'State';
             }
 
@@ -91,11 +93,12 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                         locationType = 'Suburb';
                     }
             }
+
             newRecord['category'] = category;
             newRecord['category_id'] = categoryId;
             newRecord['sub_category'] = subCategory;
             newRecord['sub_category_id'] = subCategoryId;
-            newRecord['state'] = state;
+            newRecord['state'] = recordState;
             newRecord['location'] = location;
             newRecord['location_type'] = locationType;
         }
