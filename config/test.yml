@@ -49,7 +49,7 @@ sources:
           id: ADWORDS_ACOUNT_ID_1
         - name: ADWORDS_ACOUNT_NAME_2
           id: ADWORDS_ACOUNT_ID_2
-      reportQuery: "SELECT AccountDescriptiveName, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM   KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0"
+      reportQuery: "SELECT AccountDescriptiveName, AccountTimeZone, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM   KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0"
     test_2: 
       maxRetries: 5000
       timeoutMillis: 1
@@ -83,7 +83,15 @@ sources:
 transformers:
   splitadwordscampaign:
     test_1:
-      available: true
+      fixedFields:
+        app_code: HIP
+        source_name: Adwords
+        source_account: hip
+        record_created_date: '2017-08-23 10:30:45'
+        source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
+      fieldsRequiringMapping:
+        keyword_placement: keyword__placement
+
   simplecopy:
     test_2:
       available: true

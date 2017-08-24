@@ -1,15 +1,55 @@
+import { LogManager } from 'inceptum';
+import * as moment from 'moment';
 import { EtlBatch } from '../EtlBatch';
 import { EtlTransformer } from '../EtlTransformer';
 
+const log = LogManager.getLogger();
+
 export class SplitAdwordsCampaign extends EtlTransformer {
+  private adgroupMatchList = ['[UB]', '(UB)', '(BROAD)', '[OB]', '[B]', '(B)', '[BMM]', '(BMM)', '|BMM|', '[E]', '(E)', '[EXA]', '(EXA)', '|E|', '[P]', '(P)', '|P|'];
+  private fixedFields: object;
+  private fieldsRequiringMapping: object;
+
+  constructor(fixedFields: object, fieldsRequiringMapping: object) {
+      super();
+      this.fixedFields = fixedFields || {};
+      this.fieldsRequiringMapping = fieldsRequiringMapping || {};
+  }
+
+  public getFixedFields(): object {
+    return this.fixedFields;
+  }
+
+  public getFieldsRequiringMapping(): object {
+    return this.fieldsRequiringMapping;
+  }
+
   /**
    * Copy batch records to transform data
    * @param batch
    */
   // tslint:disable-next-line:prefer-function-over-method
   public async transform(batch: EtlBatch): Promise<void> {
+    // Replace date in fixed fields
+    let fixedFields = {};
+    if (this.fixedFields) {
+        fixedFields = {...this.fixedFields};
+        Object.keys(fixedFields).map((key) => {
+            switch (fixedFields[key]) {
+                case 'UTC_TIMESTAMP' :   fixedFields[key] = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+                                    break;
+                case 'UTC_DATE' :   fixedFields[key] = moment.utc().format('YYYY-MM-DD');
+                                    break;
+                case 'LOCAL_TIMESTAMP': fixedFields[key] = moment().format('YYYY-MM-DD HH:mm:ss');
+                                        break;
+                case 'LOCAL_DATE':  fixedFields[key] = moment().format('YYYY-MM-DD');
+            }
+        });
+    }
+
     batch.getRecords().map( (record, index) => {
-        const newRecord = {...{ line_number: index }, ...record.getData()};
+        const newRecord = {...fixedFields, ...{ line_number: index }, ...record.getData()};
+
         if (newRecord.hasOwnProperty('ad_group')) {
             const adgroupParts = newRecord['ad_group'].split('|');
             // Get category
@@ -93,7 +133,16 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                         locationType = 'Suburb';
                     }
             }
+            const keywordHasPlus = (newRecord.hasOwnProperty('keyword__placement') && newRecord['keyword__placement'].includes('+')) || (newRecord.hasOwnProperty('keyword') && newRecord['keyword'].includes('+'));
 
+            let adgroupMatch = '';
+            let foundMatch = false;
+            this.adgroupMatchList.map((match) => {
+                if (!foundMatch && newRecord['ad_group'].includes(match)) {
+                    adgroupMatch = match;
+                    foundMatch = true;
+                }
+            });
             newRecord['category'] = category;
             newRecord['category_id'] = categoryId;
             newRecord['sub_category'] = subCategory;
@@ -101,7 +150,19 @@ export class SplitAdwordsCampaign extends EtlTransformer {
             newRecord['state'] = recordState;
             newRecord['location'] = location;
             newRecord['location_type'] = locationType;
+            newRecord['adgroup_match'] = adgroupMatch ;
+            newRecord['keyword_match'] = keywordHasPlus ? 'BMM' : (newRecord.hasOwnProperty('match_type') ? newRecord['match_type'] : '');
         }
+        // Map the required fields
+        Object.keys(this.fieldsRequiringMapping).map((destinationField) => {
+            const sourceField = this.fieldsRequiringMapping[destinationField];
+            if ((destinationField !== sourceField) && newRecord.hasOwnProperty(sourceField)) {
+                newRecord[destinationField] = newRecord[sourceField];
+                delete newRecord[sourceField];
+            } else {
+                log.info(`Field not transformed: ${sourceField} to ${destinationField}`);
+            }
+        });
         record.setTransformedData(newRecord);
     } );
   }

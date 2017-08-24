@@ -12,7 +12,7 @@ const log = LogManager.getLogger();
 
 export class AdwordsReports extends EtlSource {
   // Example of queries
-  protected keywordsQuery = `SELECT AccountDescriptiveName, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0 `;
+  protected keywordsQuery = `SELECT AccountDescriptiveName, AccountTimeZone, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0 `;
   protected clicksQuery = `SELECT AccountDescriptiveName, CampaignName, CampaignId, AdGroupName, AdGroupId, CriteriaParameters, CriteriaId, KeywordMatchType, AdFormat, CreativeId, Device, Date, GclId, Clicks, ClickType, ExternalCustomerId, Page, Slot FROM CLICK_PERFORMANCE_REPORT`;
 
   protected account: string;
