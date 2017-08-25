@@ -87,6 +87,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
 
             // Get the suburb / location
             let location = '';
+            let postcode = '';
             switch (adgroupParts.length) {
                 case 5 :
                     location = adgroupParts[2].trim();
@@ -101,6 +102,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                         // else it's the old format e.g. Carpenters:19|Windows:339 > TAS|Hobart|7000|Hobart|[B]
                         location = adgroupParts[4].trim();
                         locationType = 'Suburb';
+                        postcode = adgroupParts[3].trim();
                     }
                     break;
                 case 7:
@@ -108,6 +110,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                     if (adgroupParts[6] !== '') {
                         location = adgroupParts[4].trim();
                         locationType = 'Suburb';
+                        postcode = adgroupParts[3].trim();
                     } else {
                         // Tree Felling:37|Lopping:1091 > NSW|Region|Hawksberry|[B]|Tree Lopping|
                         location = adgroupParts[3].trim();
@@ -119,6 +122,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                     if (adgroupParts[7] !== '') {
                         location = adgroupParts[5].trim();
                         locationType = 'Suburb';
+                        postcode = adgroupParts[4].trim();
                     } else {
                         // "Tree Felling:37|Lopping:1091 > NSW|Hunter|2337|Glenbawn|[B]|Tree Lopping|
                         location = adgroupParts[4].trim();
@@ -131,6 +135,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                     if ((adgroupParts[6].trim().length === 0) && (adgroupParts[8].trim().length === 0)) {
                         location = adgroupParts[4].trim();
                         locationType = 'Suburb';
+                        postcode = adgroupParts[3].trim();
                     }
             }
             const keywordHasPlus = (newRecord.hasOwnProperty('keyword__placement') && newRecord['keyword__placement'].includes('+')) || (newRecord.hasOwnProperty('keyword') && newRecord['keyword'].includes('+'));
@@ -152,6 +157,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
             newRecord['location_type'] = locationType;
             newRecord['adgroup_match'] = adgroupMatch ;
             newRecord['keyword_match'] = keywordHasPlus ? 'BMM' : (newRecord.hasOwnProperty('match_type') ? newRecord['match_type'] : '');
+            newRecord['postcode'] = ((postcode.length > 0) && Number.isInteger(Number.parseInt(postcode))) ? Number.parseInt(postcode) : '';
         }
         // Map the required fields
         Object.keys(this.fieldsRequiringMapping).map((destinationField) => {
