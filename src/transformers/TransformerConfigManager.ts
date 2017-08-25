@@ -28,6 +28,8 @@ export class TransformerConfigManager {
         case 'splitadwordscampaign':
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(SplitAdwordsCampaign, 'EtlTransformer');
+            singletonDefinition.constructorParamByValue(transformersConfig['fixedFields']);
+            singletonDefinition.constructorParamByValue(transformersConfig['fieldsRequiringMapping']);
             context.registerSingletons(singletonDefinition);
         }
             break;
