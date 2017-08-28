@@ -17,7 +17,7 @@
     "prepublishOnly": "npm run clean && tsc && npm test && npm run lint",
     "precommit": "npm run lint && yarn coverage-check",
     "prepush": "node .checkpush.js",
-    "coverage-check": "NODE_ENV=test nyc --check-coverage --lines 58 mocha"
+    "coverage-check": "NODE_ENV=test nyc --check-coverage --lines 62 mocha"
   },
   "repository": {
     "type": "git",
