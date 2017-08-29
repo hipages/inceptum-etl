@@ -23,7 +23,7 @@ export class SourceConfigManager {
         case 'sqlToDw' :
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(SqlToDw, 'EtlSource');
-            singletonDefinition.constructorParamByValue(sourceConfig['dbClient']);
+            singletonDefinition.constructorParamByRef(sourceConfig['dbClient']);
             singletonDefinition.constructorParamByValue(sourceConfig['sqlToDwMig']);
             context.registerSingletons(singletonDefinition);
         }
