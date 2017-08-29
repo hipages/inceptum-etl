@@ -12,12 +12,20 @@ export class SourceConfigManager {
     const sources = context.getConfig('sources');
     Object.keys(sources).forEach((sourceType) => {
         if (context.hasConfig(`sources.${sourceType}.${etlName}`)) {
-            SourceConfigManager.registerSourceSingleton(etlName, sourceType, sources[sourceType][etlName], context);
+            SourceConfigManager.registerSourceSingleton(etlName, sourceType, sources[sourceType][etlName], context, this);
         }
     });
   }
 
-  static registerSourceSingleton(etlName: string, sourceType: string, sourceConfig: object, context: Context) {
+  /**
+   * Register the source in the context
+   * @param etlName
+   * @param sourceType
+   * @param sourceConfig
+   * @param context
+   * @param self
+   */
+  static registerSourceSingleton(etlName: string, sourceType: string, sourceConfig: object, context: Context, self: SourceConfigManager) {
       switch (sourceType) {
         case 'adwordsreports' :
         {
@@ -41,7 +49,20 @@ export class SourceConfigManager {
         }
             break;
         default:
-            throw new Error(`Unknown source type: ${sourceType}`);
+            self['extendedRegisterSingleton'](etlName, sourceType, sourceConfig, context);
     }
   }
+
+  /**
+   * Overload this function to extend the registration of sources in the context
+   *
+   * @param etlName
+   * @param sourceType
+   * @param sourceConfig
+   * @param context
+   */
+  static extendedRegisterSingleton(etlName: string, sourceType: string, sourceConfig: object, context: Context) {
+    throw new Error(`Unknown source type: ${sourceType}`);
+  }
+
 }

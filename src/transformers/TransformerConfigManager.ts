@@ -12,12 +12,20 @@ export class TransformerConfigManager {
     const transformers = context.getConfig('transformers');
     Object.keys(transformers).forEach((transformersType) => {
         if (context.hasConfig(`transformers.${transformersType}.${etlName}`)) {
-            TransformerConfigManager.registerTransformerSingleton(etlName, transformersType, transformers[transformersType][etlName], context);
+            TransformerConfigManager.registerTransformerSingleton(etlName, transformersType, transformers[transformersType][etlName], context, this);
         }
     });
   }
 
-  static registerTransformerSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context) {
+  /**
+   * Register the transformer in the context
+   * @param etlName
+   * @param transformersType
+   * @param transformersConfig
+   * @param context
+   * @param self
+   */
+  static registerTransformerSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context, self: TransformerConfigManager) {
       switch (transformersType) {
         case 'simplecopy' :
         {
@@ -49,7 +57,18 @@ export class TransformerConfigManager {
         }
             break;
         default:
-            throw new Error(`Unknown trasformation type: ${transformersType}`);
+            self['extendedRegisterSingleton'](etlName, transformersType, transformersConfig, context);
     }
+  }
+
+  /**
+   * Overload this function to extend the registration of transformers in the context
+   * @param etlName
+   * @param transformersType
+   * @param transformersConfig
+   * @param context
+   */
+  static extendedRegisterSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context) {
+    throw new Error(`Unknown trasformation type: ${transformersType}`);
   }
 }

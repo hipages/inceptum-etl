@@ -12,12 +12,20 @@ export class DestinationConfigManager {
     const destinations = context.getConfig('destinations');
     Object.keys(destinations).forEach((destinationType) => {
         if (context.hasConfig(`destinations.${destinationType}.${etlName}`)) {
-            DestinationConfigManager.registerDestinationSingleton(etlName, destinationType, destinations[destinationType][etlName], context);
+            DestinationConfigManager.registerDestinationSingleton(etlName, destinationType, destinations[destinationType][etlName], context, this);
         }
     });
   }
 
-  static registerDestinationSingleton(etlName: string, destinationType: string, destinationConfig: object, context: Context) {
+  /**
+   * Register the destination in the context
+   * @param etlName
+   * @param destinationType
+   * @param destinationConfig
+   * @param context
+   * @param self
+   */
+  static registerDestinationSingleton(etlName: string, destinationType: string, destinationConfig: object, context: Context, self: DestinationConfigManager) {
       switch (destinationType) {
         case 'csvfile' :
         {
@@ -62,7 +70,19 @@ export class DestinationConfigManager {
         }
             break;
         default:
-            throw new Error(`Unknown destination type: ${destinationType}`);
+            self['extendedRegisterSingleton'](etlName, destinationType, destinationConfig, context);
     }
+  }
+
+  /**
+   * Overload this function to extend the registration of destination in the context
+   *
+   * @param etlName
+   * @param destinationType
+   * @param destinationConfig
+   * @param context
+   */
+  static extendedRegisterSingleton(etlName: string, destinationType: string, destinationConfig: object, context: Context) {
+    throw new Error(`Unknown destination type: ${destinationType}`);
   }
 }
