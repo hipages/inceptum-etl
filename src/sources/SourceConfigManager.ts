@@ -2,7 +2,7 @@ import { Context, BaseSingletonDefinition } from 'inceptum';
 import { AdwordsReports } from './AdwordsReports';
 import { GoogleAnalyticsJobs } from './GoogleAnalyticsJobs';
 import { GoogleAnalyticsPages } from './GoogleAnalyticsPages';
-import { SqlToDw } from './SqlToDw';
+import { GaLandingPagesHistoricaldata } from './GaLandingPagesHistoricaldata';
 
 
 export class SourceConfigManager {
@@ -20,11 +20,11 @@ export class SourceConfigManager {
 
   static registerSourceSingleton(etlName: string, sourceType: string, sourceConfig: object, context: Context) {
       switch (sourceType) {
-        case 'sqlToDw' :
+        case 'gaLandingPagesHistoricaldata' :
         {
-            const singletonDefinition = new BaseSingletonDefinition<any>(SqlToDw, 'EtlSource');
+            const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlSource');
             singletonDefinition.constructorParamByRef(sourceConfig['dbClient']);
-            singletonDefinition.constructorParamByValue(sourceConfig['sqlToDwMig']);
+            singletonDefinition.constructorParamByValue(sourceConfig['gaLandingPagesHistoricaldataMig']);
             context.registerSingletons(singletonDefinition);
         }
             break;

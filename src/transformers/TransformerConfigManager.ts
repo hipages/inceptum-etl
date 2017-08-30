@@ -3,7 +3,7 @@ import { SimpleCopy } from './SimpleCopy';
 import { SplitAdwordsCampaign } from './SplitAdwordsCampaign';
 import { GALandingPages } from './GALandingPages';
 import { GATransactions } from './GATransactions';
-import { SqlToDw } from './SqlToDw';
+import { GaLandingPagesHistoricaldata } from './GaLandingPagesHistoricaldata';
 
 export class TransformerConfigManager {
   static registerSingletons(etlName: string, context: Context) {
@@ -20,9 +20,11 @@ export class TransformerConfigManager {
 
   static registerTransformerSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context) {
       switch (transformersType) {
-        case 'sqlToDw' :
+        case 'gaLandingPagesHistoricaldata' :
         {
-            const singletonDefinition = new BaseSingletonDefinition<any>(SqlToDw, 'EtlTransformer');
+            const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlTransformer');
+            singletonDefinition.constructorParamByValue(etlName);
+            singletonDefinition.constructorParamByValue(transformersConfig['tempDirectory']);
             singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);
             singletonDefinition.constructorParamByValue(transformersConfig['bucket']);
             singletonDefinition.constructorParamByValue(transformersConfig['fieldsToReplace']);

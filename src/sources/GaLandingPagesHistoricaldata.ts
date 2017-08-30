@@ -10,7 +10,7 @@ import { EtlBatch, EtlState } from '../EtlBatch';
 
 const log = LogManager.getLogger();
 
-export class SqlToDw extends EtlSource {
+export class GaLandingPagesHistoricaldata extends EtlSource {
   protected errorFound = false;
   protected row;
 
