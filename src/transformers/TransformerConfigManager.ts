@@ -28,7 +28,6 @@ export class TransformerConfigManager {
             singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);
             singletonDefinition.constructorParamByValue(transformersConfig['bucket']);
             singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
-            singletonDefinition.constructorParamByValue(transformersConfig['regexMatchAdd']);
             context.registerSingletons(singletonDefinition);
         }
             break;

@@ -20,14 +20,12 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     private regexPath: string;
     private bucket: string;
     private fieldsMapping: object;
-    private regexMatchAdd: object;
 
-    constructor(etlName: string, tempDirectory: string, regexPath: string, bucket: string, fieldsMapping: object, regexMatchAdd: object) {
+    constructor(etlName: string, tempDirectory: string, regexPath: string, bucket: string, fieldsMapping: object) {
         super();
         this.regexPath =  regexPath;
         this.bucket = bucket.trim();
         this.fieldsMapping = {...fieldsMapping};
-        this.regexMatchAdd = {...regexMatchAdd};
         const baseFileName = etlName.replace(/ /g, '');
         const directory = joinPath(tempDirectory, baseFileName);
         if (!fs.existsSync(directory)) {
@@ -75,25 +73,17 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      */
     // tslint:disable-next-line:prefer-function-over-method
     protected transformBatchRecord(record: EtlBatchRecord) {
-        const transformedData = {};
         const input = record.getData();
+        // const transformedData = Object.create(null);
+        const transformedData = {...input};
         // Map the fields
         let errorFound = false;
         try {
-            Object.keys(input).map(
-                (key) => {
-                    if (this.fieldsMapping.hasOwnProperty(key)) {
-                        transformedData[this.fieldsMapping[key]] = input[key];
-                    } else {
-                        transformedData[key] = input[key];
-                    }
-                    // regex Match
-                    if (this.regexMatch && this.regexMatch(key, input[key])) {
-                        Object.assign(transformedData, this.regexMatch(key, input[key]));
-                    }
+            Object.keys(this.fieldsMapping).map(
+                (field) => {
+                    Object.assign(transformedData, this[this.fieldsMapping[field]['action']](transformedData, input, this.fieldsMapping[field], field));
                 },
             );
-
         } catch (e) {
             errorFound = true;
         }
@@ -104,15 +94,28 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
         }
     }
 
-    private regexMatch(key: string, value: string): object {
-        let data;
-        if (this.regexMatchAdd.hasOwnProperty(key)) {
-            data = Object.create(null);
-            data[this.regexMatchAdd[key]] = this.regexReplace(value);
-        } else {
-            data = false;
+    private add(transformedData: object = {}, input: object, fields: object, key: string): object {
+        transformedData[key] = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : null;
+        return transformedData;
+    }
+
+    private replace(transformedData: object = {}, input: object, fields: object, key: string): object {
+        transformedData[key] = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : null;
+        if (transformedData.hasOwnProperty(fields['field'])) {
+            delete transformedData[fields['field']];
         }
-        return data;
+        return transformedData;
+    }
+
+    private regexAdd(transformedData: object = {}, input: object, fields: object, key: string): object {
+        const currentValue = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input).toString() : '';
+        transformedData[key] = this.regexReplace(currentValue);
+        return transformedData;
+    }
+
+
+    private fetchValue(obj: object, input?: object): string | number {
+        return (obj.hasOwnProperty('field')) ?  input[obj['field']] || false : obj['value'] || false;
     }
 
     /**
