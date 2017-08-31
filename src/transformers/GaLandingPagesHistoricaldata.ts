@@ -19,13 +19,15 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     // private properties
     private regexPath: string;
     private bucket: string;
-    private fieldsToReplace: string[];
+    private fieldsMapping: object;
+    private regexMatchAdd: object;
 
-    constructor(etlName: string, tempDirectory: string, regexPath: string, bucket: string, fieldsToReplace: string[]) {
+    constructor(etlName: string, tempDirectory: string, regexPath: string, bucket: string, fieldsMapping: object, regexMatchAdd: object) {
         super();
         this.regexPath =  regexPath;
         this.bucket = bucket.trim();
-        this.fieldsToReplace = (typeof fieldsToReplace === 'string') ? [fieldsToReplace] : fieldsToReplace;
+        this.fieldsMapping = {...fieldsMapping};
+        this.regexMatchAdd = {...regexMatchAdd};
         const baseFileName = etlName.replace(/ /g, '');
         const directory = joinPath(tempDirectory, baseFileName);
         if (!fs.existsSync(directory)) {
@@ -74,16 +76,43 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     // tslint:disable-next-line:prefer-function-over-method
     protected transformBatchRecord(record: EtlBatchRecord) {
         const transformedData = {};
-        const data = record.getData();
+        const input = record.getData();
         // Map the fields
-        this.fieldsToReplace.map(
-            (field) => {
-                if (data.hasOwnProperty(field)) {
-                    data[field] = this.regexReplace(data[field]);
-                }
-            },
-        );
-        record.setTransformedData(data);
+        let errorFound = false;
+        try {
+            Object.keys(input).map(
+                (key) => {
+                    if (this.fieldsMapping.hasOwnProperty(key)) {
+                        transformedData[this.fieldsMapping[key]] = input[key];
+                    } else {
+                        transformedData[key] = input[key];
+                    }
+                    // regex Match
+                    if (this.regexMatch && this.regexMatch(key, input[key])) {
+                        Object.assign(transformedData, this.regexMatch(key, input[key]));
+                    }
+                },
+            );
+
+        } catch (e) {
+            errorFound = true;
+        }
+
+        record.setTransformedData(transformedData);
+        if (errorFound) {
+            record.setState(EtlState.ERROR);
+        }
+    }
+
+    private regexMatch(key: string, value: string): object {
+        let data;
+        if (this.regexMatchAdd.hasOwnProperty(key)) {
+            data = Object.create(null);
+            data[this.regexMatchAdd[key]] = this.regexReplace(value);
+        } else {
+            data = false;
+        }
+        return data;
     }
 
     /**
