@@ -31,6 +31,17 @@ export class TransformerConfigManager {
             context.registerSingletons(singletonDefinition);
         }
             break;
+        case 'gaDataPartnersHistoricaldata' :
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlTransformer');
+            singletonDefinition.constructorParamByValue(etlName);
+            singletonDefinition.constructorParamByValue(transformersConfig['tempDirectory']);
+            singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);
+            singletonDefinition.constructorParamByValue(transformersConfig['bucket']);
+            singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
         case 'simplecopy' :
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(SimpleCopy, 'EtlTransformer');

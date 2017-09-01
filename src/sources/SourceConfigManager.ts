@@ -24,7 +24,15 @@ export class SourceConfigManager {
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlSource');
             singletonDefinition.constructorParamByRef(sourceConfig['dbClient']);
-            singletonDefinition.constructorParamByValue(sourceConfig['gaLandingPagesHistoricaldataMig']);
+            singletonDefinition.constructorParamByValue(sourceConfig['sourceOptions']);
+            context.registerSingletons(singletonDefinition);
+        }
+            break;
+        case 'gaDataPartnersHistoricaldata' :
+        {
+            const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlSource');
+            singletonDefinition.constructorParamByRef(sourceConfig['dbClient']);
+            singletonDefinition.constructorParamByValue(sourceConfig['sourceOptions']);
             context.registerSingletons(singletonDefinition);
         }
             break;

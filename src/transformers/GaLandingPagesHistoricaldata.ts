@@ -1,5 +1,7 @@
+import { Logger } from 'aws-sdk/lib/config';
 import * as fs from 'fs';
 import { join as joinPath } from 'path';
+import * as request from 'request-promise';
 import * as lodash from 'lodash';
 import * as moment from 'moment';
 import { toObject as csvToObject } from 'csvjson';
@@ -49,10 +51,39 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
         return true;
     }
 
+    /**
+     * @static this will determine if input URL came from S3 or not
+     * @param {string} url
+     * @returns {Boolean}
+     * @memberof GaLandingPagesHistoricaldata
+     */
+    static isS3URL(url: string): Boolean {
+        const pattern = new RegExp('(s3-|s3\.)?(.*)\.amazonaws\.com', 'i');
+        if (!pattern.test(url)) {
+            return false;
+        }
+        return true;
+    }
+    /**
+     * @private
+     * @returns {Promise<any>}
+     * @memberof GaLandingPagesHistoricaldata
+     */
     // tslint:disable-next-line
     private async downloadFromS3 (): Promise<any> {
         const currentFile = await this.S3Bucket.fetch(this.regexPath);
-        Promise.resolve(fs.readFileSync(joinPath(currentFile), { encoding : 'utf8'}));
+        return Promise.resolve(fs.readFileSync(joinPath(currentFile), { encoding : 'utf8'}));
+    }
+    /**
+     * @private
+     * @returns {Promise<any>}
+     * @memberof GaLandingPagesHistoricaldata
+     */
+    private  getRegexFromUrl(): Promise<any> {
+        if (GaLandingPagesHistoricaldata.isS3URL(this.regexPath)) {
+            return this.downloadFromS3();
+        }
+        return request({ uri: this.regexPath });
     }
 
     /**
@@ -81,7 +112,9 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
         try {
             Object.keys(this.fieldsMapping).map(
                 (field) => {
-                    Object.assign(transformedData, this[this.fieldsMapping[field]['action']](transformedData, input, this.fieldsMapping[field], field));
+                    if (this.fieldsMapping[field].hasOwnProperty('action') && this.fieldsMapping[field]['action'] && typeof this[this.fieldsMapping[field]['action']] === 'function') {
+                        Object.assign(transformedData, this[this.fieldsMapping[field]['action']](transformedData, input, this.fieldsMapping[field], field));
+                    }
                 },
             );
         } catch (e) {
@@ -93,28 +126,58 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
             record.setState(EtlState.ERROR);
         }
     }
-
-    private add(transformedData: object = {}, input: object, fields: object, key: string): object {
+    /**
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof GaLandingPagesHistoricaldata
+     */
+    protected add(transformedData: object = {}, input: object, fields: object, key: string): object {
         transformedData[key] = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : null;
         return transformedData;
     }
-
-    private replace(transformedData: object = {}, input: object, fields: object, key: string): object {
+    /**
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof GaLandingPagesHistoricaldata
+     */
+    protected replace(transformedData: object = {}, input: object, fields: object, key: string): object {
         transformedData[key] = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : null;
         if (transformedData.hasOwnProperty(fields['field'])) {
             delete transformedData[fields['field']];
         }
         return transformedData;
     }
-
-    private regexAdd(transformedData: object = {}, input: object, fields: object, key: string): object {
+    /**
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof GaLandingPagesHistoricaldata
+     */
+    protected regexAdd(transformedData: object = {}, input: object, fields: object, key: string): object {
         const currentValue = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input).toString() : '';
         transformedData[key] = this.regexReplace(currentValue);
         return transformedData;
     }
-
-
-    private fetchValue(obj: object, input?: object): string | number {
+    /**
+     * @protected
+     * @param {object} obj
+     * @param {object} [input]
+     * @returns {string}
+     * @memberof GaLandingPagesHistoricaldata
+     */
+    // tslint:disable-next-line:prefer-function-over-method
+    protected fetchValue(obj: object, input?: object): string  {
         return (obj.hasOwnProperty('field')) ?  input[obj['field']] || false : obj['value'] || false;
     }
 
@@ -127,12 +190,17 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     protected getRegex(): any {
         // check if URL
         if (GaLandingPagesHistoricaldata.isURL(this.regexPath)) {
-             return this.downloadFromS3();
+             return this.getRegexFromUrl();
         } else {
             return fs.readFileSync(this.regexPath, { encoding : 'utf8'});
         }
     }
-
+    /**
+     * @protected
+     * @param {string} landingPagePath
+     * @returns {string}
+     * @memberof GaLandingPagesHistoricaldata
+     */
     protected regexReplace(landingPagePath: string): string {
         const regexCollection = JSON.parse(this.getRegex());
         for (const key in regexCollection) {
