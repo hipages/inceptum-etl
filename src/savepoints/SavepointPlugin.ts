@@ -9,7 +9,7 @@ export class SavepointPlugin implements Plugin {
   constructor(etlName: string) {
     this.etlName = etlName;
   }
-
+  // why not just use instance.constructor.name??
   getName() {
     return this.name;
   }

@@ -1,14 +1,26 @@
-import { Context, BaseSingletonDefinition } from 'inceptum';
+import { Plugin, InceptumApp, Context, BaseSingletonDefinition } from 'inceptum';
 import { EtlConfig } from './EtlConfig';
 
-export class ConfigConfigManager {
-  static registerSingletons(etlName: string, context: Context) {
+export class ConfigPlugin implements Plugin  {
+  etlName: string;
+  name: 'ConfigPlugin';
+
+  constructor(etlName: string) {
+    this.etlName = etlName;
+  }
+
+  getName() {
+    return this.name;
+  }
+
+  willStart(app: InceptumApp) {
+    const context = app.getContext();
     if (!context.hasConfig(`etlOptions`)) {
         return;
     }
-    if (context.hasConfig(`etlOptions.${etlName}`)) {
-        const configurations = context.getConfig(`etlOptions.${etlName}`);
-        ConfigConfigManager.registerConfigSingleton(etlName, configurations, context);
+    if (context.hasConfig(`etlOptions.${this.etlName}`)) {
+        const configurations = context.getConfig(`etlOptions.${this.etlName}`);
+        ConfigPlugin.registerConfigSingleton(this.etlName, configurations, context);
     }
   }
 

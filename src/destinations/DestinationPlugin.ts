@@ -1,10 +1,34 @@
-import { Context, BaseSingletonDefinition } from 'inceptum';
+import { Plugin, InceptumApp, Context, BaseSingletonDefinition } from 'inceptum';
 import { CsvFile } from './CsvFile';
 import { JsonFile } from './JsonFile';
 import { Redshift } from './Redshift';
 import { S3Bucket } from './S3Bucket';
 
-export class DestinationConfigManager {
+export class DestinationPlugin implements Plugin {
+    etlName: string;
+    name: 'DestinationPlugin';
+
+    constructor(etlName: string) {
+        this.etlName = etlName;
+    }
+
+    getName() {
+        return this.name;
+    }
+
+    willStart(app: InceptumApp) {
+        const context = app.getContext();
+        if (!context.hasConfig(`destinations`)) {
+            return;
+        }
+        const destinations = context.getConfig('destinations');
+        Object.keys(destinations).forEach((destinationType) => {
+            if (context.hasConfig(`destinations.${destinationType}.${this.etlName}`)) {
+                DestinationPlugin.registerDestinationSingleton(this.etlName, destinationType, destinations[destinationType][this.etlName], context);
+            }
+        });
+    }
+
   static registerSingletons(etlName: string, context: Context) {
     if (!context.hasConfig(`destinations`)) {
         return;
@@ -12,7 +36,7 @@ export class DestinationConfigManager {
     const destinations = context.getConfig('destinations');
     Object.keys(destinations).forEach((destinationType) => {
         if (context.hasConfig(`destinations.${destinationType}.${etlName}`)) {
-            DestinationConfigManager.registerDestinationSingleton(etlName, destinationType, destinations[destinationType][etlName], context);
+            DestinationPlugin.registerDestinationSingleton(etlName, destinationType, destinations[destinationType][etlName], context);
         }
     });
   }
