@@ -104,7 +104,7 @@ export class GaLandingPagesHistoricaldata extends EtlSource {
     }
   }
 
-  private async getRecords(): Promise<any> {
+  protected async getRecords(): Promise<any> {
     // return Promise.resolve(csvToObject(fs.readFileSync(joinPath(__dirname, '../../landing_page_path.csv'), { encoding : 'utf8'}), { delimiter : ',', quote: '"' }));
     const query = `SELECT  * FROM ${this.tableName} where ${this.searchColoumn} between ${this.newCurrentBatch} AND ${this.currentBatch} limit ${this.totalBatches}`;
     try {

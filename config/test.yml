@@ -7,6 +7,8 @@ app:
     - test_4
     - test_5
     - test_6
+    - test_7
+    - test_8
 
 etlOptions:
   test_1: &generalOptions
@@ -29,6 +31,10 @@ etlOptions:
   test_5:
     <<: *generalOptions
   test_6:
+    <<: *generalOptions
+  test_7:
+    <<: *generalOptions
+  test_8:
     <<: *generalOptions
 
 sources:
@@ -79,6 +85,26 @@ sources:
       gaViewId: 123456
       clientKey: "-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----\n"
       clientEmail: "the.iam.gserviceaccount.com"
+  gaLandingPagesHistoricaldata:
+    test_7:
+      dbClient: SEO
+      sourceOptions:
+        etlName: gaLandingPagesHistoricaldata
+        tableName: ga_data_state_landing_pages
+        searchColoumn: id  
+        currentBatch: 48172196
+        endBatch: 48172195
+        totalBatches: 1
+  gaDataPartnersHistoricaldata:
+    test_8:
+      dbClient: GA
+      sourceOptions:
+        etlName: gaDataPartnersHistoricaldata
+        tableName: job_ga_data_partners
+        searchColoumn: job_id  
+        currentBatch: 3656975
+        endBatch: 3656974
+        totalBatches: 1    
 
 transformers:
   splitadwordscampaign:
@@ -137,7 +163,57 @@ transformers:
         goal15_completions: goal15Completions
         pageviews: pageviews
         record_created_date: record_created_date
-
+  gaLandingPagesHistoricaldata:
+    test_7:
+      tempDirectory: ./tmp
+      regexPath: './regex.json'
+      bucket: 'bucketName'
+      fieldsMapping:
+        app_code: 
+          action: add
+          field: account
+        source_name:
+          action: add
+          value: Google Analytics
+        source_time_zone:
+          action: add
+          value: null
+        source_account:
+          action: replace
+          field: account
+        record_created_date:
+          action: replace
+          field: created_by_date
+        landing_content_group5:
+          action: regexAdd
+          field: landing_page_path
+  gaDataPartnersHistoricaldata:
+    test_8:
+      tempDirectory: ./tmp
+      regexPath: './regex.json'
+      bucket: 'bucketName'
+      fieldsMapping:
+        app_code: 
+          action: add
+          field: account
+        source_name:
+          action: add
+          value: Google Analytics
+        source_time_zone:
+          action: add
+          value: null
+        report_date:
+          action: add
+          field: created_by_date
+        source_account:
+          action: replace
+          field: account
+        record_created_date:
+          action: replace
+          field: created_by_date
+        landing_content_group5:
+          action: regexAdd
+          field: landing_page_path
 destinations:
   csvfile:
     test_1:
@@ -182,6 +258,10 @@ savepoints:
       savepoint: '{"startDate":"2017-08-10","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
     test_6: 
       savepoint: '{"startDate":"2017-08-11","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+    test_7: 
+      savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
+    test_8: 
+      savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
 
 mysql:
   EtlSavePoint:    
