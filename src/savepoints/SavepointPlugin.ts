@@ -3,38 +3,37 @@ import { MySQLSavepointManager } from './MySQLSavepointManager';
 import { StaticSavepointManager } from './StaticSavepointManager';
 
 export class SavepointPlugin implements Plugin {
-  etlName: string;
-  name: 'SavepointPlugin';
+  public etlName: string;
+  public name = 'SavepointPlugin';
+  private etlObjectName = 'EtlSavepointManager';
 
   constructor(etlName: string) {
     this.etlName = etlName;
   }
-  // why not just use instance.constructor.name??
-  getName() {
-    return this.name;
+
+  public getEtlObjectName() {
+    return this.etlObjectName;
   }
 
   // tslint:disable-next-line:prefer-function-over-method
-  willStart(app: InceptumApp) {
-    if (!app.hasConfig('savepoint')) {
-      throw new Error('PostgresPlugin has been registered but could not find config using key "postgres"');
+  public willStart(app: InceptumApp) {
+    if (!app.hasConfig('savepoints')) {
+      throw new Error('SavepointPlugin has been registered but could not find config using key "savepoints"');
     }
 
-    const context = app.getContext();
-
-    const savepoints = context.getConfig('savepoints');
+    const savepoints = app.getConfig('savepoints', {});
     Object.keys(savepoints).forEach((savepointType) => {
-        if (context.hasConfig(`savepoints.${savepointType}.${this.etlName}`)) {
-          SavepointPlugin.registerSavepointSingleton(this.etlName, savepointType, savepoints[savepointType][this.etlName], context);
+        if (app.hasConfig(`savepoints.${savepointType}.${this.etlName}`)) {
+          this.registerSavepointSingleton(this.etlName, savepointType, savepoints[savepointType][this.etlName], app.getContext());
         }
     });
   }
 
-  static registerSavepointSingleton(etlName: string, savepointType: string, savepointConfig: object, context: Context) {
+  protected registerSavepointSingleton(etlName: string, savepointType: string, savepointConfig: object, context: Context) {
     switch (savepointType) {
       case 'mysql' :
       {
-          const singletonDefinition = new BaseSingletonDefinition<any>(MySQLSavepointManager, 'EtlSavepointManager');
+          const singletonDefinition = new BaseSingletonDefinition<any>(MySQLSavepointManager, this.getEtlObjectName());
           singletonDefinition.constructorParamByRef(savepointConfig['dbClient']);
           singletonDefinition.constructorParamByValue(etlName);
           context.registerSingletons(singletonDefinition);
@@ -42,7 +41,7 @@ export class SavepointPlugin implements Plugin {
           break;
       case 'static' :
       {
-          const singletonDefinition = new BaseSingletonDefinition<any>(StaticSavepointManager, 'EtlSavepointManager');
+          const singletonDefinition = new BaseSingletonDefinition<any>(StaticSavepointManager, this.getEtlObjectName());
           singletonDefinition.constructorParamByValue(savepointConfig['savepoint']);
           context.registerSingletons(singletonDefinition);
       }

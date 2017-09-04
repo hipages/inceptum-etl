@@ -5,47 +5,47 @@ import { GALandingPages } from './GALandingPages';
 import { GATransactions } from './GATransactions';
 
 export class TransformerPlugin implements Plugin {
-    etlName: string;
-    name: 'TransformerPlugin';
+    public etlName: string;
+    public name = 'TransformerPlugin';
+    private etlObjectName = 'EtlTransformer';
 
     constructor(etlName: string) {
         this.etlName = etlName;
     }
 
-    getName() {
-        return this.name;
+    public getEtlObjectName() {
+        return this.etlObjectName;
     }
 
     willStart(app: InceptumApp) {
-        const context = app.getContext();
-        if (!context.hasConfig(`transformers`)) {
-            return;
+        if (!app.hasConfig(`transformers`)) {
+            throw new Error('TransformerPlugin has been registered but could not find config using key "transformers"');
         }
-        const transformers = context.getConfig('transformers');
+        const transformers = app.getConfig('transformers', {});
         Object.keys(transformers).forEach((transformersType) => {
-            if (context.hasConfig(`transformers.${transformersType}.${this.etlName}`)) {
-                TransformerPlugin.registerTransformerSingleton(this.etlName, transformersType, transformers[transformersType][this.etlName], context);
+            if (app.hasConfig(`transformers.${transformersType}.${this.etlName}`)) {
+                this.registerTransformerSingleton(this.etlName, transformersType, transformers[transformersType][this.etlName], app.getContext());
             }
         });
     }
 
-    static registerTransformerSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context) {
+    protected registerTransformerSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context) {
         switch (transformersType) {
             case 'simplecopy':
                 {
-                    const singletonDefinition = new BaseSingletonDefinition<any>(SimpleCopy, 'EtlTransformer');
+                    const singletonDefinition = new BaseSingletonDefinition<any>(SimpleCopy, this.getEtlObjectName());
                     context.registerSingletons(singletonDefinition);
                 }
                 break;
             case 'splitadwordscampaign':
                 {
-                    const singletonDefinition = new BaseSingletonDefinition<any>(SplitAdwordsCampaign, 'EtlTransformer');
+                    const singletonDefinition = new BaseSingletonDefinition<any>(SplitAdwordsCampaign, this.getEtlObjectName());
                     context.registerSingletons(singletonDefinition);
                 }
                 break;
             case 'galandingpages':
                 {
-                    const singletonDefinition = new BaseSingletonDefinition<any>(GALandingPages, 'EtlTransformer');
+                    const singletonDefinition = new BaseSingletonDefinition<any>(GALandingPages, this.getEtlObjectName());
                     singletonDefinition.constructorParamByRef(transformersConfig['dbClient']);
                     singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
                     context.registerSingletons(singletonDefinition);
@@ -53,7 +53,7 @@ export class TransformerPlugin implements Plugin {
                 break;
             case 'gatransactions':
                 {
-                    const singletonDefinition = new BaseSingletonDefinition<any>(GATransactions, 'EtlTransformer');
+                    const singletonDefinition = new BaseSingletonDefinition<any>(GATransactions, this.getEtlObjectName());
                     singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
                     context.registerSingletons(singletonDefinition);
                 }

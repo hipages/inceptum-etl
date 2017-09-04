@@ -5,47 +5,35 @@ import { Redshift } from './Redshift';
 import { S3Bucket } from './S3Bucket';
 
 export class DestinationPlugin implements Plugin {
-    etlName: string;
-    name: 'DestinationPlugin';
+    public etlName: string;
+    public name = 'DestinationPlugin';
+    private etlObjectName = 'EtlDestination';
 
     constructor(etlName: string) {
         this.etlName = etlName;
     }
 
-    getName() {
-        return this.name;
+    public getEtlObjectName() {
+        return this.etlObjectName;
     }
 
     willStart(app: InceptumApp) {
-        const context = app.getContext();
-        if (!context.hasConfig(`destinations`)) {
-            return;
+        if (!app.hasConfig(`destinations`)) {
+            throw new Error('DestinationPlugin has been registered but could not find config using key "destinations"');
         }
-        const destinations = context.getConfig('destinations');
+        const destinations = app.getConfig('destinations', {});
         Object.keys(destinations).forEach((destinationType) => {
-            if (context.hasConfig(`destinations.${destinationType}.${this.etlName}`)) {
-                DestinationPlugin.registerDestinationSingleton(this.etlName, destinationType, destinations[destinationType][this.etlName], context);
+            if (app.hasConfig(`destinations.${destinationType}.${this.etlName}`)) {
+                this.registerDestinationSingleton(this.etlName, destinationType, destinations[destinationType][this.etlName], app.getContext());
             }
         });
     }
 
-  static registerSingletons(etlName: string, context: Context) {
-    if (!context.hasConfig(`destinations`)) {
-        return;
-    }
-    const destinations = context.getConfig('destinations');
-    Object.keys(destinations).forEach((destinationType) => {
-        if (context.hasConfig(`destinations.${destinationType}.${etlName}`)) {
-            DestinationPlugin.registerDestinationSingleton(etlName, destinationType, destinations[destinationType][etlName], context);
-        }
-    });
-  }
-
-  static registerDestinationSingleton(etlName: string, destinationType: string, destinationConfig: object, context: Context) {
+  protected registerDestinationSingleton(etlName: string, destinationType: string, destinationConfig: object, context: Context) {
       switch (destinationType) {
         case 'csvfile' :
         {
-            const singletonDefinition = new BaseSingletonDefinition<any>(CsvFile, 'EtlDestination');
+            const singletonDefinition = new BaseSingletonDefinition<any>(CsvFile, this.getEtlObjectName());
             singletonDefinition.constructorParamByValue(destinationConfig['directory']);
             singletonDefinition.constructorParamByValue(destinationConfig['fileName']);
             singletonDefinition.constructorParamByValue(destinationConfig['cleanUpDirectory']);
@@ -54,7 +42,7 @@ export class DestinationPlugin implements Plugin {
             break;
         case 'jsonfile':
         {
-            const singletonDefinition = new BaseSingletonDefinition<any>(JsonFile, 'EtlDestination');
+            const singletonDefinition = new BaseSingletonDefinition<any>(JsonFile, this.getEtlObjectName());
             singletonDefinition.constructorParamByValue(destinationConfig['directory']);
             singletonDefinition.constructorParamByValue(destinationConfig['fileName']);
             singletonDefinition.constructorParamByValue(destinationConfig['cleanUpDirectory']);
@@ -63,7 +51,7 @@ export class DestinationPlugin implements Plugin {
             break;
         case 's3bucket' :
         {
-            const singletonDefinition = new BaseSingletonDefinition<any>(S3Bucket, 'EtlDestination');
+            const singletonDefinition = new BaseSingletonDefinition<any>(S3Bucket, this.getEtlObjectName());
             singletonDefinition.constructorParamByValue(destinationConfig['fileType']);
             singletonDefinition.constructorParamByValue(destinationConfig['bucket']);
             singletonDefinition.constructorParamByValue(destinationConfig['tempDirectory']);
@@ -73,7 +61,7 @@ export class DestinationPlugin implements Plugin {
             break;
         case 'redshift' :
         {
-            const singletonDefinition = new BaseSingletonDefinition<any>(Redshift, 'EtlDestination');
+            const singletonDefinition = new BaseSingletonDefinition<any>(Redshift, this.getEtlObjectName());
             singletonDefinition.constructorParamByRef(destinationConfig['dbClient']);
             singletonDefinition.constructorParamByValue(etlName);
             singletonDefinition.constructorParamByValue(destinationConfig['bucket']);
