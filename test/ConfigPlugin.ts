@@ -20,11 +20,12 @@ context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlTran
 context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlSource'));
 context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlRunner'));
 const confPlugin = new ConfigPlugin(etlName);
-confPlugin.willStart(app);
+app.use(confPlugin);
 
 suite('EtlConfig', () => {
   suite('Etl config test', () => {
     test('Basic Getters and setters', async () => {
+      await app.start();
       const config = await context.getObjectByName('EtlConfig');
       config.getName().must.be.equal('test_1');
       config.getMaxEtlSourceRetries().must.be.equal(3);

@@ -2,30 +2,30 @@ import { Plugin, InceptumApp, Context, BaseSingletonDefinition } from 'inceptum'
 import { EtlConfig } from './EtlConfig';
 
 export class ConfigPlugin implements Plugin  {
-  etlName: string;
-  name: 'ConfigPlugin';
+  public etlName: string;
+  public name = 'ConfigPlugin';
+  private etlObjectName = 'EtlConfig';
 
   constructor(etlName: string) {
     this.etlName = etlName;
   }
 
-  getName() {
-    return this.name;
+  public getEtlObjectName() {
+      return this.etlObjectName;
   }
 
   willStart(app: InceptumApp) {
-    const context = app.getContext();
-    if (!context.hasConfig(`etlOptions`)) {
-        return;
+    if (!app.hasConfig(`etlOptions`)) {
+        throw new Error('ConfigPlugin has been registered but could not find config using key "etlOptions"');
     }
-    if (context.hasConfig(`etlOptions.${this.etlName}`)) {
-        const configurations = context.getConfig(`etlOptions.${this.etlName}`);
-        ConfigPlugin.registerConfigSingleton(this.etlName, configurations, context);
+    if (app.hasConfig(`etlOptions.${this.etlName}`)) {
+        const configurations = app.getConfig(`etlOptions.${this.etlName}`, {});
+        this.registerConfigSingleton(this.etlName, configurations, app.getContext());
     }
   }
 
-  static registerConfigSingleton(etlName: string, configurationConfig: object, context: Context) {
-        const singletonDefinition = new BaseSingletonDefinition<any>(EtlConfig, 'EtlConfig');
+  protected registerConfigSingleton(etlName: string, configurationConfig: object, context: Context) {
+        const singletonDefinition = new BaseSingletonDefinition<any>(EtlConfig, this.getEtlObjectName());
         singletonDefinition.setPropertyByValue('name', etlName);
         singletonDefinition.setPropertyByRef('etlSource', 'EtlSource');
         singletonDefinition.setPropertyByRef('etlTransformer', 'EtlTransformer');
