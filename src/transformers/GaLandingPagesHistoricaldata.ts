@@ -118,6 +118,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
                 },
             );
         } catch (e) {
+            log.debug(e);
             errorFound = true;
         }
 
