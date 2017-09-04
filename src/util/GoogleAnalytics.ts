@@ -76,7 +76,7 @@ export class GoogleAnalytics  {
                     .metric(params.metrics)
                     .dateRanges(params.dateRanges.startDate, params.dateRanges.endDate)
                     .filtersExpression(params.filters)
-                    .pageToken(params.nextPageToken || this.nextPageToken)
+                    .pageToken(Number.parseInt(params.nextPageToken || this.nextPageToken))
                     .pageSize(params.maxResults)
                     .includeEmptyRows(params.includeEmptyRows || true)
                     .orderBys(params.orderBys || '', 'ASCENDING')

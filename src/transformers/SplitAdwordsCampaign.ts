@@ -1,15 +1,55 @@
+import { LogManager } from 'inceptum';
+import * as moment from 'moment';
 import { EtlBatch } from '../EtlBatch';
 import { EtlTransformer } from '../EtlTransformer';
 
+const log = LogManager.getLogger();
+
 export class SplitAdwordsCampaign extends EtlTransformer {
+  private adgroupMatchList = ['[UB]', '(UB)', '(BROAD)', '[OB]', '[B]', '(B)', '[BMM]', '(BMM)', '|BMM|', '[E]', '(E)', '[EXA]', '(EXA)', '|E|', '[P]', '(P)', '|P|'];
+  private fixedFields: object;
+  private fieldsRequiringMapping: object;
+
+  constructor(fixedFields: object, fieldsRequiringMapping: object) {
+      super();
+      this.fixedFields = fixedFields || {};
+      this.fieldsRequiringMapping = fieldsRequiringMapping || {};
+  }
+
+  public getFixedFields(): object {
+    return this.fixedFields;
+  }
+
+  public getFieldsRequiringMapping(): object {
+    return this.fieldsRequiringMapping;
+  }
+
   /**
    * Copy batch records to transform data
    * @param batch
    */
   // tslint:disable-next-line:prefer-function-over-method
   public async transform(batch: EtlBatch): Promise<void> {
+    // Replace date in fixed fields
+    let fixedFields = {};
+    if (this.fixedFields) {
+        fixedFields = {...this.fixedFields};
+        Object.keys(fixedFields).map((key) => {
+            switch (fixedFields[key]) {
+                case 'UTC_TIMESTAMP' :   fixedFields[key] = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+                                    break;
+                case 'UTC_DATE' :   fixedFields[key] = moment.utc().format('YYYY-MM-DD');
+                                    break;
+                case 'LOCAL_TIMESTAMP': fixedFields[key] = moment().format('YYYY-MM-DD HH:mm:ss');
+                                        break;
+                case 'LOCAL_DATE':  fixedFields[key] = moment().format('YYYY-MM-DD');
+            }
+        });
+    }
+
     batch.getRecords().map( (record, index) => {
-        const newRecord = {...{ line_number: index }, ...record.getData()};
+        const newRecord = {...fixedFields, ...{ line_number: index }, ...record.getData()};
+
         if (newRecord.hasOwnProperty('ad_group')) {
             const adgroupParts = newRecord['ad_group'].split('|');
             // Get category
@@ -47,6 +87,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
 
             // Get the suburb / location
             let location = '';
+            let postcode = '';
             switch (adgroupParts.length) {
                 case 5 :
                     location = adgroupParts[2].trim();
@@ -61,6 +102,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                         // else it's the old format e.g. Carpenters:19|Windows:339 > TAS|Hobart|7000|Hobart|[B]
                         location = adgroupParts[4].trim();
                         locationType = 'Suburb';
+                        postcode = adgroupParts[3].trim();
                     }
                     break;
                 case 7:
@@ -68,6 +110,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                     if (adgroupParts[6] !== '') {
                         location = adgroupParts[4].trim();
                         locationType = 'Suburb';
+                        postcode = adgroupParts[3].trim();
                     } else {
                         // Tree Felling:37|Lopping:1091 > NSW|Region|Hawksberry|[B]|Tree Lopping|
                         location = adgroupParts[3].trim();
@@ -79,6 +122,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                     if (adgroupParts[7] !== '') {
                         location = adgroupParts[5].trim();
                         locationType = 'Suburb';
+                        postcode = adgroupParts[4].trim();
                     } else {
                         // "Tree Felling:37|Lopping:1091 > NSW|Hunter|2337|Glenbawn|[B]|Tree Lopping|
                         location = adgroupParts[4].trim();
@@ -91,9 +135,19 @@ export class SplitAdwordsCampaign extends EtlTransformer {
                     if ((adgroupParts[6].trim().length === 0) && (adgroupParts[8].trim().length === 0)) {
                         location = adgroupParts[4].trim();
                         locationType = 'Suburb';
+                        postcode = adgroupParts[3].trim();
                     }
             }
+            const keywordHasPlus = (newRecord.hasOwnProperty('keyword__placement') && newRecord['keyword__placement'].includes('+')) || (newRecord.hasOwnProperty('keyword') && newRecord['keyword'].includes('+'));
 
+            let adgroupMatch = '';
+            let foundMatch = false;
+            this.adgroupMatchList.map((match) => {
+                if (!foundMatch && newRecord['ad_group'].includes(match)) {
+                    adgroupMatch = match;
+                    foundMatch = true;
+                }
+            });
             newRecord['category'] = category;
             newRecord['category_id'] = categoryId;
             newRecord['sub_category'] = subCategory;
@@ -101,7 +155,20 @@ export class SplitAdwordsCampaign extends EtlTransformer {
             newRecord['state'] = recordState;
             newRecord['location'] = location;
             newRecord['location_type'] = locationType;
+            newRecord['adgroup_match'] = adgroupMatch ;
+            newRecord['keyword_match'] = keywordHasPlus ? 'BMM' : (newRecord.hasOwnProperty('match_type') ? newRecord['match_type'] : '');
+            newRecord['postcode'] = ((postcode.length > 0) && Number.isInteger(Number.parseInt(postcode))) ? Number.parseInt(postcode) : '';
         }
+        // Map the required fields
+        Object.keys(this.fieldsRequiringMapping).map((destinationField) => {
+            const sourceField = this.fieldsRequiringMapping[destinationField];
+            if ((destinationField !== sourceField) && newRecord.hasOwnProperty(sourceField)) {
+                newRecord[destinationField] = newRecord[sourceField];
+                delete newRecord[sourceField];
+            } else {
+                log.info(`Field not transformed: ${sourceField} to ${destinationField}`);
+            }
+        });
         record.setTransformedData(newRecord);
     } );
   }
