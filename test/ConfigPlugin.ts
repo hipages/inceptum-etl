@@ -1,7 +1,7 @@
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import { InceptumApp, BaseSingletonDefinition } from 'inceptum';
-import { ConfigConfigManager } from '../src/ConfigConfigManager';
+import { ConfigPlugin } from '../src/ConfigPlugin';
 
 class EmptyClass {
     public value: boolean;
@@ -19,11 +19,13 @@ context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlDest
 context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlTransformer'));
 context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlSource'));
 context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlRunner'));
-ConfigConfigManager.registerSingletons(etlName, context);
+const confPlugin = new ConfigPlugin(etlName);
+app.use(confPlugin);
 
 suite('EtlConfig', () => {
   suite('Etl config test', () => {
     test('Basic Getters and setters', async () => {
+      await app.start();
       const config = await context.getObjectByName('EtlConfig');
       config.getName().must.be.equal('test_1');
       config.getMaxEtlSourceRetries().must.be.equal(3);
