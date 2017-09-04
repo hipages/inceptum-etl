@@ -271,13 +271,13 @@ savepoints:
       savepoint: '{"startDate":"2017-08-10","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
     test_6: 
       savepoint: '{"startDate":"2017-08-11","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
-  extendedsavepoint:
-    test_7:
-      param: value_savepoint
     test_8: 
       savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
     test_9: 
       savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
+  extendedsavepoint:
+    test_7:
+      param: value_savepoint
 
 mysql:
   EtlSavePoint:    
