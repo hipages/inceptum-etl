@@ -13,15 +13,12 @@ import { S3Bucket } from '../destinations/S3Bucket';
 const log = LogManager.getLogger();
 
 export class GaLandingPagesHistoricaldata extends EtlTransformer {
-    private thisCSV: any; // TODO: need to remove this at some stage
-    // protected properties
     protected fileType = 'json';
     protected S3Bucket: S3Bucket;
     protected etlName: string;
-    // private properties
-    private regexPath: string;
-    private bucket: string;
-    private fieldsMapping: object;
+    protected regexPath: string;
+    protected bucket: string;
+    protected fieldsMapping: object;
 
     constructor(etlName: string, tempDirectory: string, regexPath: string, bucket: string, fieldsMapping: object) {
         super();
@@ -65,21 +62,21 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
         return true;
     }
     /**
-     * @private
+     * @protected
      * @returns {Promise<any>}
      * @memberof GaLandingPagesHistoricaldata
      */
     // tslint:disable-next-line
-    private async downloadFromS3 (): Promise<any> {
+    protected async downloadFromS3 (): Promise<any> {
         const currentFile = await this.S3Bucket.fetch(this.regexPath);
         return Promise.resolve(fs.readFileSync(joinPath(currentFile), { encoding : 'utf8'}));
     }
     /**
-     * @private
+     * @protected
      * @returns {Promise<any>}
      * @memberof GaLandingPagesHistoricaldata
      */
-    private  getRegexFromUrl(): Promise<any> {
+    protected  getRegexFromUrl(): Promise<any> {
         if (GaLandingPagesHistoricaldata.isS3URL(this.regexPath)) {
             return this.downloadFromS3();
         }
@@ -103,7 +100,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @memberof GaLandingPagesHistoricaldata
      */
     // tslint:disable-next-line:prefer-function-over-method
-    protected transformBatchRecord(record: EtlBatchRecord) {
+    public transformBatchRecord(record: EtlBatchRecord) {
         const input = record.getData();
         // const transformedData = Object.create(null);
         const transformedData = {...input};
@@ -183,7 +180,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     }
 
     /**
-     * @private get regex object from file or from url
+     * @protected get regex object from file or from url
      * @param {any} path
      * @returns
      * @memberof ValueMapping

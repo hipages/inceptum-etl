@@ -177,7 +177,7 @@ transformers:
           value: Google Analytics
         source_time_zone:
           action: add
-          value: null
+          value: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
         source_account:
           action: replace
           field: account
