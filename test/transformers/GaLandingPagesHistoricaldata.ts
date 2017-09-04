@@ -8,7 +8,7 @@ import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import { EtlBatch, EtlState, EtlBatchRecord } from '../../src/EtlBatch';
 import { GaLandingPagesHistoricaldata } from '../../src/transformers/GaLandingPagesHistoricaldata';
 // Test Config
-const gaConfig = utilConfig.get('transformers.gaLandingPagesHistoricaldata.test_7');
+const gaConfig = utilConfig.get('transformers.gaLandingPagesHistoricaldata.test_8');
 
 export interface GaLandingPageInputData {
   id: number,
@@ -90,6 +90,12 @@ class HelperGaLandingPagesHistoricaldata extends GaLandingPagesHistoricaldata {
         }
         public exposeRegexReplace(landingPagePath: string): string {
             return this.regexReplace(landingPagePath);
+        }
+        public getRegex(): any {
+          return JSON.stringify({
+            '^\/account': 'Login Area',
+            '/login': 'Login',
+          });
         }
 }
 
@@ -176,6 +182,16 @@ class HelperGaLandingPagesHistoricaldata extends GaLandingPagesHistoricaldata {
         this.GaLandingPagesHistoricaldata.transformBatchRecord(bRec);
           bRec.getTransformedData().must.be.eql(this.outputData[i]);
     });
+  }
+
+  @test isURL() {
+    const urlCheck = HelperGaLandingPagesHistoricaldata.isURL('http://www.google.com');
+    urlCheck.must.be.true();
+  }
+
+  @test isS3URL() {
+    const urlCheck = HelperGaLandingPagesHistoricaldata.isS3URL('http://s3-us-west-2.amazonaws.com/bucketName');
+    urlCheck.must.be.true();
   }
 
 }

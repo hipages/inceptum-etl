@@ -118,7 +118,6 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
             log.debug(e);
             errorFound = true;
         }
-
         record.setTransformedData(transformedData);
         if (errorFound) {
             record.setState(EtlState.ERROR);
