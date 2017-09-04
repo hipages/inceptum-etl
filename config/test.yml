@@ -9,6 +9,7 @@ app:
     - test_6
     - test_7
     - test_8
+    - test_9
 
 etlOptions:
   test_1: &generalOptions
@@ -35,6 +36,8 @@ etlOptions:
   test_7:
     <<: *generalOptions
   test_8:
+    <<: *generalOptions
+  test_9:
     <<: *generalOptions
 
 sources:
@@ -85,8 +88,11 @@ sources:
       gaViewId: 123456
       clientKey: "-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----\n"
       clientEmail: "the.iam.gserviceaccount.com"
-  gaLandingPagesHistoricaldata:
+  extendedsource:
     test_7:
+      param: value_source
+  gaLandingPagesHistoricaldata:
+    test_8:
       dbClient: SEO
       sourceOptions:
         etlName: gaLandingPagesHistoricaldata
@@ -96,7 +102,7 @@ sources:
         endBatch: 48172195
         totalBatches: 1
   gaDataPartnersHistoricaldata:
-    test_8:
+    test_9:
       dbClient: GA
       sourceOptions:
         etlName: gaDataPartnersHistoricaldata
@@ -163,8 +169,11 @@ transformers:
         goal15_completions: goal15Completions
         pageviews: pageviews
         record_created_date: record_created_date
+  extendedtransformer:
+      test_7:
+        param: value_transformer
   gaLandingPagesHistoricaldata:
-    test_7:
+    test_8:
       tempDirectory: ./tmp
       regexPath: './regex.json'
       bucket: 'bucketName'
@@ -188,7 +197,7 @@ transformers:
           action: regexAdd
           field: landing_page_path
   gaDataPartnersHistoricaldata:
-    test_8:
+    test_9:
       tempDirectory: ./tmp
       regexPath: './regex.json'
       bucket: 'bucketName'
@@ -214,22 +223,23 @@ transformers:
         landing_content_group5:
           action: regexAdd
           field: landing_page_path
+
 destinations:
   csvfile:
     test_1:
-      directory: /temp
+      directory: .
       fileName: akp
       cleanUpDirectory : false
   jsonfile:
     test_3:
-      directory: /temp
+      directory: .
       fileName: akp
       cleanUpDirectory : false
   redshift:
     test_4: 
       dbClient: dwRedshift
       bucket: bucket/path
-      tempDirectory: /temp
+      tempDirectory: .
       tableCopyName: copy.fact_keywords_performance
       tableName: dwh.fact_keywords_performance
       bulkDeleteMatchFields: 
@@ -240,8 +250,11 @@ destinations:
     test_2: 
       fileType: json
       bucket: bucket/path
-      tempDirectory: /temp
+      tempDirectory: .
       fileName: akp
+  extendeddestination:
+    test_7:
+      param: value_destination
 
 savepoints:
   mysql:
@@ -258,10 +271,13 @@ savepoints:
       savepoint: '{"startDate":"2017-08-10","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
     test_6: 
       savepoint: '{"startDate":"2017-08-11","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
-    test_7: 
-      savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
     test_8: 
       savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
+    test_9: 
+      savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
+  extendedsavepoint:
+    test_7:
+      param: value_savepoint
 
 mysql:
   EtlSavePoint:    
