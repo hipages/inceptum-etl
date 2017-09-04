@@ -24,12 +24,16 @@ context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlDest
 context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlTransformer'));
 context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlSource'));
 context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlConfig'));
-RunnerPlugin.willStart(app);
+const pluginObj = new RunnerPlugin(etlName);
+app.use(pluginObj);
 
 suite('EtlConfig', () => {
   suite('Etl config test', () => {
     test('Basic Getters and setters', async () => {
-      const config = await context.getObjectByName('EtlRunner');
+      await app.start();
+      const runner = await context.getObjectByName('EtlRunner');
+      const theType = runner.constructor.name;
+      theType.must.be.equal('EtlRunner');
     });
   });
 });
