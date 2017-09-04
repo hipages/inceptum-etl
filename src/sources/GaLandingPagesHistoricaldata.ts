@@ -15,10 +15,11 @@ export class GaLandingPagesHistoricaldata extends EtlSource {
   protected row;
 
   protected mysqlClient: DBClient;
-  protected configMySql: object;
+  protected etlConfig: object;
   // etl and table name
   protected etlName: string;
   protected tableName: string;
+  protected searchColoumn: string;
   // bactch details
   protected currentBatch: number;
   protected endBatch: number;
@@ -26,16 +27,17 @@ export class GaLandingPagesHistoricaldata extends EtlSource {
   protected newCurrentBatch: number;
 
 
-  constructor(mysqlClient: DBClient, configMySql: object) {
+  constructor(mysqlClient: DBClient, etlConfig: object) {
     super();
     // Mysql object to perform ation of Mysql database
     this.mysqlClient = mysqlClient;
     // stl and table name
-    this.etlName = configMySql['etlName'].trim();
-    this.tableName = configMySql['tableName'].trim();
-    this.currentBatch = configMySql['currentBatch'];
-    this.endBatch = Number(configMySql['endBatch']) || 0;
-    this.totalBatches = configMySql['totalBatches'] || 10000;
+    this.etlName = etlConfig['etlName'].trim();
+    this.tableName = etlConfig['tableName'].trim();
+    this.searchColoumn = etlConfig['searchColoumn'].trim();
+    this.currentBatch = etlConfig['currentBatch'];
+    this.endBatch = Number(etlConfig['endBatch']) || 0;
+    this.totalBatches = etlConfig['totalBatches'] || 10000;
   }
 
   public getErrorFound(): boolean {
@@ -102,9 +104,9 @@ export class GaLandingPagesHistoricaldata extends EtlSource {
     }
   }
 
-  private async getRecords(): Promise<any> {
+  protected async getRecords(): Promise<any> {
     // return Promise.resolve(csvToObject(fs.readFileSync(joinPath(__dirname, '../../landing_page_path.csv'), { encoding : 'utf8'}), { delimiter : ',', quote: '"' }));
-    const query = `SELECT  * FROM ${this.tableName} where id between ${this.newCurrentBatch} AND ${this.currentBatch} limit ${this.totalBatches}`;
+    const query = `SELECT  * FROM ${this.tableName} where ${this.searchColoumn} between ${this.newCurrentBatch} AND ${this.currentBatch} limit ${this.totalBatches}`;
     try {
       const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query));
       if ((results !== null && results.length > 0)) {
