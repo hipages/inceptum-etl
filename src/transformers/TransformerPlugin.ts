@@ -3,6 +3,7 @@ import { SimpleCopy } from './SimpleCopy';
 import { SplitAdwordsCampaign } from './SplitAdwordsCampaign';
 import { GALandingPages } from './GALandingPages';
 import { GATransactions } from './GATransactions';
+import { GaLandingPagesHistoricaldata } from './GaLandingPagesHistoricaldata';
 
 export class TransformerPlugin implements Plugin {
     public etlName: string;
@@ -31,6 +32,28 @@ export class TransformerPlugin implements Plugin {
 
     protected registerTransformerSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context) {
         switch (transformersType) {
+            case 'gaLandingPagesHistoricaldata' :
+            {
+                const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlTransformer');
+                singletonDefinition.constructorParamByValue(etlName);
+                singletonDefinition.constructorParamByValue(transformersConfig['tempDirectory']);
+                singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);
+                singletonDefinition.constructorParamByValue(transformersConfig['bucket']);
+                singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
+                context.registerSingletons(singletonDefinition);
+            }
+                break;
+            case 'gaDataPartnersHistoricaldata' :
+            {
+                const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlTransformer');
+                singletonDefinition.constructorParamByValue(etlName);
+                singletonDefinition.constructorParamByValue(transformersConfig['tempDirectory']);
+                singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);
+                singletonDefinition.constructorParamByValue(transformersConfig['bucket']);
+                singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
+                context.registerSingletons(singletonDefinition);
+            }
+                break;
             case 'simplecopy':
                 {
                     const singletonDefinition = new BaseSingletonDefinition<any>(SimpleCopy, this.getEtlObjectName());

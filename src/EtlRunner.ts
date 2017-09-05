@@ -26,17 +26,21 @@ export class EtlRunner {
   public async executeEtl(): Promise<void> {
     const source = this.config.getEtlSource();
     const etlSavepointManager = this.config.getEtlSavepointManager();
-    await source.initSavePoint(etlSavepointManager);
-    while (source.hasNextBatch()) {
-      const batch: EtlBatch = await source.getNextBatch();
-      batch.setEtlName(this.config.getName());
-      await this.transformBatch(batch);
-      if (batch.getState() !== EtlState.ERROR) {
-        await this.storeBatch(batch);
-      } else {
-        // Log the error
-        log.error(`Error transforming the batch:${batch.getBatchFullIdentifcation()}`);
+    try {
+      await source.initSavePoint(etlSavepointManager);
+      while (source.hasNextBatch()) {
+        const batch: EtlBatch = await source.getNextBatch();
+        batch.setEtlName(this.config.getName());
+        await this.transformBatch(batch);
+        if (batch.getState() !== EtlState.ERROR) {
+          await this.storeBatch(batch);
+        } else {
+          // Log the error
+          log.error(`Error transforming the batch:${batch.getBatchFullIdentifcation()}`);
+        }
       }
+    } catch (e) {
+      log.debug(e);
     }
   }
 

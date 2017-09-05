@@ -1,5 +1,8 @@
 import * as fs from 'fs';
+// import individual service
 import * as S3 from 's3';
+// import * as S3 from'aws-sdk/clients/s3';
+import * as lodash from 'lodash';
 import { join as joinPath } from 'path';
 import { basename } from 'path';
 import { LogManager } from 'inceptum';
@@ -18,6 +21,16 @@ const uploadToS3 = (client: any, loadParams: object): Promise<any> => new Promis
     uploader.on('error', reject);
     uploader.on('progress', function() {
         log.debug(`uploading to S3 progress:, ${uploader.progressMd5Amount}, ${uploader.progressAmount}, ${uploader.progressTotal}`);
+    });
+});
+
+// tslint:disable-next-line
+const downloadFromS3 = (client: any, loadParams: object): Promise<any> => new Promise((resolve, reject) => {
+    const downloader = client.downloadFile(loadParams);
+    downloader.on('error', Promise.reject);
+    downloader.on('end', Promise.resolve);
+    downloader.on('progress', () => {
+      log.debug(`downloading from S3 progress:, ${downloader.progressAmount}, ${downloader.progressTotal}`);
     });
 });
 
@@ -89,6 +102,20 @@ export class S3Bucket extends EtlDestination {
         log.error(`Error saving batch in file. No uploaded: ${batch.getBatchFullIdentifcation()}`);
     }
     return key;
+  }
+
+  public async fetch(filePath: string): Promise<string> {
+    const tempFile = joinPath(__dirname, `../../${lodash.uniqueId()}.json`);
+    const loadParams = {
+      tempFile,
+      s3Params: {
+        Bucket: this.bucket,
+        Key: filePath,
+      },
+    };
+    const downloader = await downloadFromS3(this.s3Client, loadParams);
+    log.debug(`finish downloading: ${tempFile}`);
+    return tempFile;
   }
 
   /**

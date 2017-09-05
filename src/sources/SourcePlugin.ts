@@ -2,7 +2,7 @@ import { Plugin, InceptumApp, Context, BaseSingletonDefinition } from 'inceptum'
 import { AdwordsReports } from './AdwordsReports';
 import { GoogleAnalyticsJobs } from './GoogleAnalyticsJobs';
 import { GoogleAnalyticsPages } from './GoogleAnalyticsPages';
-
+import { GaLandingPagesHistoricaldata } from './GaLandingPagesHistoricaldata';
 
 export class SourcePlugin implements Plugin {
     public etlName: string;
@@ -31,29 +31,45 @@ export class SourcePlugin implements Plugin {
 
     protected registerSourceSingleton(etlName: string, sourceType: string, sourceConfig: object, context: Context) {
         switch (sourceType) {
-         case 'adwordsreports' :
-        {
-            const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsReports, this.getEtlObjectName());
-            singletonDefinition.constructorParamByValue(sourceConfig);
-            context.registerSingletons(singletonDefinition);
-        }
-            break;
-        case 'googleanalyticsjobs':
-        {
-            const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsJobs, this.getEtlObjectName());
-            singletonDefinition.constructorParamByValue(sourceConfig);
-            context.registerSingletons(singletonDefinition);
-        }
-            break;
-        case 'googleanalyticspages':
-        {
-            const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsPages, this.getEtlObjectName());
-            singletonDefinition.constructorParamByValue(sourceConfig);
-            context.registerSingletons(singletonDefinition);
-        }
-            break;
-        default:
-            throw new Error(`Unknown source type: ${sourceType}`);
-        }
+            case 'gaLandingPagesHistoricaldata' :
+            {
+                const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlSource');
+                singletonDefinition.constructorParamByRef(sourceConfig['dbClient']);
+                singletonDefinition.constructorParamByValue(sourceConfig['sourceOptions']);
+                context.registerSingletons(singletonDefinition);
+            }
+                break;
+            case 'gaDataPartnersHistoricaldata' :
+            {
+                const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlSource');
+                singletonDefinition.constructorParamByRef(sourceConfig['dbClient']);
+                singletonDefinition.constructorParamByValue(sourceConfig['sourceOptions']);
+                context.registerSingletons(singletonDefinition);
+            }
+                break;
+            case 'adwordsreports' :
+            {
+                const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsReports, this.getEtlObjectName());
+                singletonDefinition.constructorParamByValue(sourceConfig);
+                context.registerSingletons(singletonDefinition);
+            }
+                break;
+            case 'googleanalyticsjobs':
+            {
+                const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsJobs, this.getEtlObjectName());
+                singletonDefinition.constructorParamByValue(sourceConfig);
+                context.registerSingletons(singletonDefinition);
+            }
+                break;
+            case 'googleanalyticspages':
+            {
+                const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsPages, this.getEtlObjectName());
+                singletonDefinition.constructorParamByValue(sourceConfig);
+                context.registerSingletons(singletonDefinition);
+            }
+                break;
+            default:
+                throw new Error(`Unknown source type: ${sourceType}`);
+            }
     }
 }

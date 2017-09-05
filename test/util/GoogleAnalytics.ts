@@ -115,7 +115,183 @@ const testObject = {
         },
     ],
 };
-
+const testObject1 = {
+    reports: [
+        {
+            columnHeader: {
+                dimensions: [
+                    'ga:transactionId',
+                    'ga:campaign',
+                    'ga:adGroup',
+                    'ga:source',
+                    'ga:medium',
+                    'ga:keyword',
+                ],
+                metricHeader: {
+                    metricHeaderEntries: [
+                        {
+                            name: 'ga:transactions',
+                            type: 'INTEGER',
+                        },
+                    ],
+                },
+            },
+            data: {
+                rows: [
+                    {
+                        dimensions: [
+                            'JOB3649837',
+                            'Campaign1',
+                            'adGroup1',
+                            'Adclick',
+                            'website',
+                            'tradie',
+                        ],
+                        metrics: [
+                            {
+                                values: [
+                                    '1',
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        dimensions: [
+                            'JOB3664260',
+                            'Campaign1',
+                            'adGroup1',
+                            'Adclick',
+                            'website',
+                            'tradie',
+                        ],
+                        metrics: [
+                            {
+                                values: [
+                                    '1',
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        dimensions: [
+                            'JOB3670766',
+                            'Campaign1',
+                            'adGroup1',
+                            'Adclick',
+                            'website',
+                            'tradie',
+                        ],
+                        metrics: [
+                            {
+                                values: [
+                                    '1',
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                totals: [
+                    {
+                        values: [
+                            '3882',
+                        ],
+                    },
+                ],
+                rowCount: 3849,
+                minimums: [
+                    {
+                        values: [
+                            '1',
+                        ],
+                    },
+                ],
+                maximums: [
+                    {
+                        values: [
+                            '5',
+                        ],
+                    },
+                ],
+                isDataGolden: true,
+            },
+            nextPageToken: 1000,
+        },
+    ],
+};
+const testObject2 = {
+    reports: [
+        {
+            columnHeader: {
+                dimensions: [
+                    'ga:transactionId',
+                    'ga:dimension15',
+                ],
+                metricHeader: {
+                    metricHeaderEntries: [
+                        {
+                            name: 'ga:transactions',
+                            type: 'INTEGER',
+                        },
+                    ],
+                },
+            },
+            data: {
+                rows: [
+                    {
+                        dimensions: [
+                            'JOB3649837',
+                            'cjkanva39814639251fnkdscwwikr1nkdc23ufn',
+                        ],
+                        metrics: [
+                            {
+                                values: [
+                                    '1',
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        dimensions: [
+                            'JOB3664260',
+                            'Ch131jfajc1yur2y12qjccmnasc',
+                        ],
+                        metrics: [
+                            {
+                                values: [
+                                    '1',
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                totals: [
+                    {
+                        values: [
+                            '3882',
+                        ],
+                    },
+                ],
+                rowCount: 3849,
+                minimums: [
+                    {
+                        values: [
+                            '1',
+                        ],
+                    },
+                ],
+                maximums: [
+                    {
+                        values: [
+                            '5',
+                        ],
+                    },
+                ],
+                isDataGolden: true,
+            },
+            nextPageToken: 1000,
+        },
+    ],
+};
 const dataMix = [
                 {
                     transactionId: 'JOB3649837',
@@ -142,7 +318,9 @@ const dataMix = [
                     adMatchedQuery: 'hipages',
                 },
             ];
-
+const metricHeaderEntries = {
+    transactions: '1'
+};
 const injectedFields = [ {firstValue: 'value'}, {secondValue: 'second'} ];
 
 suite('GoogleAnalytics', () => {
@@ -163,6 +341,17 @@ suite('GoogleAnalytics', () => {
         test('Test request jwt token', async () => {
             const analytics = await gaClient.testAuth();
             analytics.must.have.property('reports');
+        });
+        test('Test request error when generating jwt token using wrong key', async () => {
+            const wrongConfig = gaConfig;
+            wrongConfig.client_email = 'da@test.gserviceaccount.com';
+            wrongConfig.private_key = '--VATE KEY-----MIICXQIBAAKBgQCfG5ULYFU5EfJyoUKsU/3MGj1VuBqgohUP1A4xb/\n-----END RSA PRIVATE KEY-----\n';
+            const wrongGaClient = new GoogleAnalytics(wrongConfig, 1000);
+            try {
+                await wrongGaClient.testAuth();
+            } catch (e) {
+                e.must.throw();
+            }
         });
     });
     suite('GoogleAnalytics test public methods', () => {
@@ -226,6 +415,95 @@ suite('GoogleAnalytics', () => {
             const [a, b, c] = dataMix;
             const [x, y] = injectedFields;
             data.must.be.eql([{...x, ...y, ...a}, {...x, ...y, ...b}, {...x, ...y, ...c}]);
+        });
+        test('Test mergeHeadersRows and injectedFields with object as value', async () => {
+            const t = {
+                reports: [
+                    {
+                        columnHeader: {
+                            dimensions: [
+                                'ga:transactionId',
+                                'ga:browser',
+                                'ga:deviceCategory',
+                                'ga:browserVersion',
+                                'ga:browserSize',
+                                'ga:adMatchedQuery',
+                            ],
+                            metricHeader: {
+                                metricHeaderEntries: [
+                                    {
+                                        name: 'ga:transactions',
+                                        type: 'INTEGER',
+                                    },
+                                ],
+                            },
+                        },
+                        data: {
+                            rows: [
+                                {
+                                    dimensions: [{
+                                        dimensions: [
+                                            'JOB3649837',
+                                            'Chrome',
+                                            'tablet',
+                                            '59.0.3071.125',
+                                            '1100x1290',
+                                            '(not set)',
+                                        ],
+                                    }],
+                                    metrics: [
+                                        {
+                                            values: [
+                                                '1',
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                            totals: [
+                                {
+                                    values: [
+                                        '3882',
+                                    ],
+                                },
+                            ],
+                            rowCount: 3849,
+                            minimums: [
+                                {
+                                    values: [
+                                        '1',
+                                    ],
+                                },
+                            ],
+                            maximums: [
+                                {
+                                    values: [
+                                        '5',
+                                    ],
+                                },
+                            ],
+                            isDataGolden: true,
+                        },
+                        nextPageToken: 1000,
+                    },
+                ],
+            };
+            const data = gaClient.mergeHeadersRows(gaClient.getObject(t, 'columnHeader')['dimensions'], gaClient.getObject(t, 'rows'), injectedFields, 'dimensions');
+            const [a, b, c] = dataMix;
+            const [x, y] = injectedFields;
+            data.must.be.eql([{...x, ...y, ...a}]);
+        });
+        test('Test mergeDimensionsRows1', async () => {
+            const results = [testObject, testObject1, testObject2];
+            const data = gaClient.mergeDimensionsRows1(results, injectedFields);
+            data.must.be.an.array();
+            data.must.have.length(3);
+        });
+        test('Test mergeDimMetricsRows and injectedFields', async () => {
+            const data = gaClient.mergeDimMetricsRows(testObject, injectedFields);
+            const [a, b, c] = dataMix;
+            const [x, y] = injectedFields;
+            data.must.be.eql([{...x, ...y, ...a, ...metricHeaderEntries}, {...x, ...y, ...b, ...metricHeaderEntries}, {...x, ...y, ...c, ...metricHeaderEntries}]);
         });
     });
 });
