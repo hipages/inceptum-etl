@@ -11,6 +11,7 @@ export { AdwordsReports} from './sources/AdwordsReports';
 export { SourcePlugin } from './sources/SourcePlugin';
 export { SimpleCopy } from './transformers/SimpleCopy';
 export { SplitAdwordsCampaign } from './transformers/SplitAdwordsCampaign';
+export { FieldsMapping } from './transformers/FieldsMapping';
 export { TransformerPlugin } from './transformers/TransformerPlugin';
 export { CsvFile } from './destinations/CsvFile';
 export { JsonFile } from './destinations/JsonFile';
