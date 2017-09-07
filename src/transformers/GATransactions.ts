@@ -19,7 +19,7 @@ export class GATransactions extends EtlTransformer {
         });
     }
     // tslint:disable-next-line:prefer-function-over-method
-    public async transformBatchRecord(record: EtlBatchRecord) {
+    public transformBatchRecord(record: EtlBatchRecord) {
         const transformedData = {};
         const data = record.getData();
         const transId = data['transactionId'];
