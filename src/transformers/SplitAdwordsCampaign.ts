@@ -159,6 +159,17 @@ export class SplitAdwordsCampaign extends EtlTransformer {
             newRecord['keyword_match'] = keywordHasPlus ? 'BMM' : (newRecord.hasOwnProperty('match_type') ? newRecord['match_type'] : '');
             newRecord['postcode'] = ((postcode.length > 0) && Number.isInteger(Number.parseInt(postcode))) ? Number.parseInt(postcode) : '';
         }
+
+        if (newRecord['report_cost'] && newRecord['avg_cpc'] && newRecord['max_cpc'] && newRecord['first_page_cpc'] && newRecord['first_position_cpc'] && newRecord['top_of_page_cpc'] && newRecord['currency']) {
+            newRecord['report_cost'] = SplitAdwordsCampaign.stringToCurrency(newRecord['report_cost']);
+            newRecord['avg_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['avg_cpc']);
+            newRecord['max_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['max_cpc']);
+            newRecord['first_page_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['first_page_cpc']);
+            newRecord['first_position_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['first_position_cpc']);
+            newRecord['top_of_page_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['top_of_page_cpc']);
+            newRecord['currency'] = SplitAdwordsCampaign.stringToCurrency(newRecord['currency']);
+        }
+
         // Map the required fields
         Object.keys(this.fieldsRequiringMapping).map((destinationField) => {
             const sourceField = this.fieldsRequiringMapping[destinationField];
@@ -171,5 +182,23 @@ export class SplitAdwordsCampaign extends EtlTransformer {
         });
         record.setTransformedData(newRecord);
     } );
+  }
+
+  /**
+   * Transforming the string currency to decimal format.
+   * THe data needs to be in 6 decimal places - divide by 1000000
+   * @param input string format of the value
+   */
+  private static stringToCurrency(input) {
+    try {
+        const intInput = parseInt(input, 10);
+        if (input === intInput && intInput !== 0) {
+            return intInput / 1000000;
+        }else {
+            return input;
+        }
+    }catch (exp) {
+        return input;
+    }
   }
 }
