@@ -160,14 +160,23 @@ export class SplitAdwordsCampaign extends EtlTransformer {
             newRecord['postcode'] = ((postcode.length > 0) && Number.isInteger(Number.parseInt(postcode))) ? Number.parseInt(postcode) : '';
         }
 
-        if (newRecord['report_cost'] && newRecord['avg_cpc'] && newRecord['max_cpc'] && newRecord['first_page_cpc'] && newRecord['first_position_cpc'] && newRecord['top_of_page_cpc'] && newRecord['currency']) {
+        if (newRecord['report_cost']) {
             newRecord['report_cost'] = SplitAdwordsCampaign.stringToCurrency(newRecord['report_cost']);
+        }
+        if (newRecord['avg_cpc']) {
             newRecord['avg_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['avg_cpc']);
+        }
+        if (newRecord['max_cpc']) {
             newRecord['max_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['max_cpc']);
+        }
+        if (newRecord['first_page_cpc']) {
             newRecord['first_page_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['first_page_cpc']);
+        }
+        if (newRecord['first_position_cpc']) {
             newRecord['first_position_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['first_position_cpc']);
+        }
+        if (newRecord['top_of_page_cpc']) {
             newRecord['top_of_page_cpc'] = SplitAdwordsCampaign.stringToCurrency(newRecord['top_of_page_cpc']);
-            newRecord['currency'] = SplitAdwordsCampaign.stringToCurrency(newRecord['currency']);
         }
 
         // Map the required fields
@@ -192,12 +201,12 @@ export class SplitAdwordsCampaign extends EtlTransformer {
   private static stringToCurrency(input) {
     try {
         const intInput = parseInt(input, 10);
-        if (input === intInput && intInput !== 0) {
+        if (intInput !== 0) {
             return intInput / 1000000;
-        }else {
+        } else {
             return input;
         }
-    }catch (exp) {
+    } catch (exp) {
         return input;
     }
   }
