@@ -178,7 +178,7 @@ transformers:
 
   gaLandingPagesHistoricaldata:
     test_8:
-      tempDirectory: ./tmp
+      tempDirectory: .
       regexPath: './regex.json'
       bucket: 'bucketName'
       fieldsMapping:
@@ -203,7 +203,7 @@ transformers:
 
   gaDataPartnersHistoricaldata:
     test_9:
-      tempDirectory: ./tmp
+      tempDirectory: .
       regexPath: './regex.json'
       bucket: 'bucketName'
       fieldsMapping:
