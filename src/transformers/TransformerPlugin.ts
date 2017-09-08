@@ -64,7 +64,8 @@ export class TransformerPlugin implements Plugin {
             case 'splitadwordscampaign':
                 {
                     const singletonDefinition = new BaseSingletonDefinition<any>(SplitAdwordsCampaign, this.getEtlObjectName());
-                    context.registerSingletons(singletonDefinition);
+                    singletonDefinition.constructorParamByValue(transformersConfig['fixedFields']);
+                    singletonDefinition.constructorParamByValue(transformersConfig['fieldsRequiringMapping']);                    context.registerSingletons(singletonDefinition);
                 }
                 break;
             case 'galandingpages':
