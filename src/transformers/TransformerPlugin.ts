@@ -4,6 +4,7 @@ import { SplitAdwordsCampaign } from './SplitAdwordsCampaign';
 import { GALandingPages } from './GALandingPages';
 import { GATransactions } from './GATransactions';
 import { GaLandingPagesHistoricaldata } from './GaLandingPagesHistoricaldata';
+import { FieldsMapping } from './FieldsMapping';
 
 export class TransformerPlugin implements Plugin {
     public etlName: string;
@@ -78,6 +79,14 @@ export class TransformerPlugin implements Plugin {
                 {
                     const singletonDefinition = new BaseSingletonDefinition<any>(GATransactions, this.getEtlObjectName());
                     singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
+                    context.registerSingletons(singletonDefinition);
+                }
+                break;
+            case 'fieldsmapping':
+                {
+                    const singletonDefinition = new BaseSingletonDefinition<any>(FieldsMapping, this.getEtlObjectName());
+                    singletonDefinition.constructorParamByValue(transformersConfig['fixedFields']);
+                    singletonDefinition.constructorParamByValue(transformersConfig['mappedFields']);
                     context.registerSingletons(singletonDefinition);
                 }
                 break;

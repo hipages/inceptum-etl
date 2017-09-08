@@ -142,7 +142,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
 
             let adgroupMatch = '';
             let foundMatch = false;
-            this.adgroupMatchList.map((match) => {
+            this.adgroupMatchList.forEach((match) => {
                 if (!foundMatch && newRecord['ad_group'].includes(match)) {
                     adgroupMatch = match;
                     foundMatch = true;

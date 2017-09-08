@@ -39,8 +39,9 @@ export class EtlRunner {
           log.error(`Error transforming the batch:${batch.getBatchFullIdentifcation()}`);
         }
       }
-    } catch (e) {
-      log.debug(e);
+    } catch (err) {
+      log.fatal(`Error caught in EtlRunner:${err.message}`);
+      throw(err);
     }
   }
 

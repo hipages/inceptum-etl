@@ -92,14 +92,17 @@ export default class  RequestGenerator {
         return this;
     }
 
-    public orderBys(fieldName, sortOrder) {
+    public orderBys(fieldNames: string | string[], sortOrder) {
         if (!this.reportRequests[this.currentIndex]['orderBys']) {
             this.reportRequests[this.currentIndex]['orderBys'] = [];
         }
-        if (fieldName.length > 0) {
+        if (typeof fieldNames === 'string') {
+            fieldNames = [ fieldNames ];
+        }
+        fieldNames.map( (fieldName) => {
             const orderObject = {fieldName, sortOrder};
             this.reportRequests[this.currentIndex]['orderBys'].push(orderObject);
-        }
+        });
         return this;
     }
 

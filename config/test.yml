@@ -127,6 +127,7 @@ transformers:
   simplecopy:
     test_2:
       available: true
+
   gatransactions:
     test_3:
       fieldsMapping: 
@@ -144,6 +145,7 @@ transformers:
         browser: browser
         browser_version: browserVersion
         browser_size: browserSize
+
   galandingpages:
     test_4:
       dbClient: EtlSavePoint
@@ -169,9 +171,11 @@ transformers:
         goal15_completions: goal15Completions
         pageviews: pageviews
         record_created_date: record_created_date
+
   extendedtransformer:
       test_7:
         param: value_transformer
+
   gaLandingPagesHistoricaldata:
     test_8:
       tempDirectory: ./tmp
@@ -196,6 +200,7 @@ transformers:
         landing_content_group5:
           action: regexAdd
           field: landing_page_path
+
   gaDataPartnersHistoricaldata:
     test_9:
       tempDirectory: ./tmp
@@ -223,6 +228,50 @@ transformers:
         landing_content_group5:
           action: regexAdd
           field: landing_page_path
+
+  fieldsmapping:
+    test_10:
+      fixedFields:
+        app_code: HIP
+        source_name: Adwords
+        source_account: hip
+        record_created_date: '2017-08-23 10:30:45'
+        source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
+      mappedFields:
+        report_date: report_date
+        medium: medium
+        source: source
+        landing_page_path: landingPagePath
+        device_category: deviceCategory
+        region: region
+        campaign: campaign
+        ad_group: adGroup
+        landing_content_group: landingContentGroup5
+        sessions: sessions
+        percent_new_sessions: percentNewSessions
+        organic_searches: organicSearches
+        goal_1_completions: goal1Completions
+        goal_15_completions: goal15Completions
+        pageviews: pageviews
+
+    test_11:
+      fixedFields:
+      mappedFields:
+        report_date: report_date
+        medium: medium
+        source: source
+        landing_page_path: landingPagePath
+        device_category: deviceCategory
+        region: region
+        campaign: campaign
+        ad_group: adGroup
+        landing_content_group: landingContentGroup5
+        sessions: sessions
+        percent_new_sessions: percentNewSessions
+        organic_searches: organicSearches
+        goal_1_completions: goal1Completions
+        goal_15_completions: goal15Completions
+        pageviews: pageviews
 
 destinations:
   csvfile:

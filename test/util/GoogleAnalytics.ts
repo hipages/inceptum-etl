@@ -292,6 +292,7 @@ const testObject2 = {
         },
     ],
 };
+
 const dataMix = [
                 {
                     transactionId: 'JOB3649837',
@@ -319,7 +320,7 @@ const dataMix = [
                 },
             ];
 const metricHeaderEntries = {
-    transactions: '1'
+    transactions: '1',
 };
 const injectedFields = [ {firstValue: 'value'}, {secondValue: 'second'} ];
 
@@ -493,17 +494,31 @@ suite('GoogleAnalytics', () => {
             const [x, y] = injectedFields;
             data.must.be.eql([{...x, ...y, ...a}]);
         });
-        test('Test mergeDimensionsRows1', async () => {
+        test('Test mergeDimensionsRows', async () => {
             const results = [testObject, testObject1, testObject2];
-            const data = gaClient.mergeDimensionsRows1(results, injectedFields);
+            const data = gaClient.mergeDimensionsRows(results, injectedFields);
             data.must.be.an.array();
             data.must.have.length(3);
         });
-        test('Test mergeDimMetricsRows and injectedFields', async () => {
-            const data = gaClient.mergeDimMetricsRows(testObject, injectedFields);
+        test('Test mergeHeadersDimensions', async () => {
+            const data = gaClient.mergeHeadersDimensions(testObject);
             const [a, b, c] = dataMix;
-            const [x, y] = injectedFields;
-            data.must.be.eql([{...x, ...y, ...a, ...metricHeaderEntries}, {...x, ...y, ...b, ...metricHeaderEntries}, {...x, ...y, ...c, ...metricHeaderEntries}]);
+            data.must.be.eql(dataMix);
+        });
+        test('Test getFindDimensionKey', async () => {
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB3649837', 3).must.be.equal(1);
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB3664260', 3).must.be.equal(2);
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB3670766', 3).must.be.equal(3);
+        });
+        test('Test getFindDimensionKey not existing transaction', async () => {
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB700000', 3).must.be.equal(0);
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB3649836', 3).must.be.equal(0);
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB3649838', 3).must.be.equal(1);
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB3664261', 3).must.be.equal(2);
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB3665000', 3).must.be.equal(2);
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB3670767', 3).must.be.equal(-1);
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB4000000', 3).must.be.equal(-1);
+            gaClient.findDimensionKeyRowIndex(testObject, 'ga:transactionId', 'JOB20000000', 3).must.be.equal(-1);
         });
     });
 });

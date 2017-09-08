@@ -101,13 +101,13 @@ export class GoogleAnalytics  {
     public getObject(theObject, key): any {
         let result = false;
         if (theObject instanceof Array) {
-            theObject.map( (item) => {
+            theObject.forEach( (item) => {
                 if (!result) {
                     result = this.getObject(item, key);
                 }
             });
         } else {
-            Object.keys(theObject).map((prop) => {
+            Object.keys(theObject).forEach((prop) => {
                 if (!result) {
                     if (prop === key) {
                         result = theObject[prop];
@@ -121,7 +121,7 @@ export class GoogleAnalytics  {
     }
 
     // tslint:disable-next-line:prefer-function-over-method
-    public mergeHeadersRows = (headers: Array<string>, data: Array<object>, injectedFields: any, rowKey: string) => {
+    public mergeHeadersRows(headers: Array<string>, data: Array<object>, injectedFields: any, rowKey: string) {
         const mixed = data.map((item) => {
             let newObject = Object.create(null);
             if (injectedFields) {
@@ -146,27 +146,24 @@ export class GoogleAnalytics  {
         return mixed;
     }
 
-    public mergeDimensionsRows(results, results2, results3, injectedFields: any= false) {
+    public mergeHeadersDimensions(results) {
         const rows = this.getObject(results, 'rows');
-        const rows2 = this.getObject(results2, 'rows');
-        const rows3 = this.getObject(results3, 'rows');
 
-        if (Array.isArray(rows) && (rows.length > 0) && Array.isArray(rows2) && (rows2.length > 0) && Array.isArray(rows3) && (rows3.length > 0)) {
-            const data1 = this.mergeHeadersRows(this.getObject(results, 'columnHeader')['dimensions'], rows, injectedFields, 'dimensions');
-            const data2 = this.mergeHeadersRows(this.getObject(results2, 'columnHeader')['dimensions'], rows2, false, 'dimensions');
-            const data3 = this.mergeHeadersRows(this.getObject(results3, 'columnHeader')['dimensions'], rows3, false, 'dimensions');
-            return data1; // lodash.merge(lodash.merge(data1, data2, data3));
+        if (Array.isArray(rows) && (rows.length > 0)) {
+            const data = this.mergeHeadersRows(this.getObject(results, 'columnHeader')['dimensions'], rows, [], 'dimensions');
+            return data;
         } else {
             log.error(`No records to merge in dimensions and metrics found`);
             return [];
         }
     }
+
     /**
      *
      * @param results
      * @param injectedFields
      */
-    public mergeDimensionsRows1(results, injectedFields: any= false) {
+    public mergeDimensionsRows(results, injectedFields: any= false) {
         let data = [];
         results.map(
             (recordSet, index) => {
@@ -178,12 +175,12 @@ export class GoogleAnalytics  {
                         rows,
                         injectedFields,
                         'dimensions',
-                    ).sort((currnetObj, nexObj) => {
+                    ).sort((currentObj, nexObj) => {
                         // Compare by transactionId
-                        if (currnetObj.transactionId < nexObj.transactionId) {
+                        if (currentObj.transactionId < nexObj.transactionId) {
                             return -1;
                         }
-                        if (currnetObj.transactionId > nexObj.transactionId) {
+                        if (currentObj.transactionId > nexObj.transactionId) {
                             return 1;
                         }
                         return 0;
@@ -191,13 +188,19 @@ export class GoogleAnalytics  {
                     // Merge with data based on transactionId. if not present then add new object to array else merge with he object found
                     if (data.length === 0) {
                         data = recordSetWithHeaders;
+                        recordSetWithHeaders.map((obj) => {
+                            const idIndex = lodash.findIndex(data, (o) => o.transactionId === obj.transactionId);
+                            // Only load the first transaction
+                            if ( idIndex === -1) {
+                                data.push(obj);
+                            }
+                        });
                     } else {
                         recordSetWithHeaders.map((obj) => {
                             const idIndex = lodash.findIndex(data, (o) => o.transactionId === obj.transactionId);
+                            // Only include data for existing record
                             if ( idIndex !== -1) {
                                 lodash.assign(data[idIndex], obj);
-                            } else {
-                                data.push(obj);
                             }
                         });
                     }
@@ -226,5 +229,37 @@ export class GoogleAnalytics  {
             log.error(`No records to merge found`);
             return [];
         }
+    }
+
+    /**
+     * Returns the index in the results where the dimensionKey has the value searchValue
+     * or the highest value < searchValue
+     *
+     * returns the row number where the searchValue or the highest value < searchValue was found
+     * returns -1 if the searchValue is bigger than all the values
+     * returns 0 if the searchValue is smaller than all the values
+     * returns false if the dimensionKey does not exist in the response 'columnHeader'
+     */
+    public findDimensionKeyRowIndex(results, dimensionKey: string, searchValue: string, substringToNumber = -1): any {
+        const data = this.getObject(results, 'rows');
+        const headers = this.getObject(results, 'columnHeader')['dimensions'];
+        const keyIndex = headers.indexOf(dimensionKey);
+        let index = false;
+        if ((keyIndex >= 0) && data) {
+            const dataIndex = data.findIndex((item) => {
+                let isBigger = false;
+                if (substringToNumber > -1) {
+                    const itemNumber = Number(item['dimensions'][keyIndex].substring(substringToNumber));
+                    const searchNumber = Number(searchValue.substring(substringToNumber));
+                    isBigger = itemNumber > searchNumber;
+                } else {
+                    isBigger = (item['dimensions'][keyIndex] > searchValue);
+                }
+                return (item['dimensions'][keyIndex] === searchValue) || isBigger;
+            });
+            // dataIndex === -1 if the searchValue is bigger than all the values.
+            index = (dataIndex === -1) ? dataIndex : ((data[dataIndex]['dimensions'][keyIndex] === searchValue) ? Number(dataIndex) + 1 : dataIndex);
+        }
+        return index;
     }
 }
