@@ -2,8 +2,10 @@ import { must } from 'must';
 import * as nock from 'nock';
 import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
+import { InceptumApp } from 'inceptum';
 import { EtlBatch } from '../../src/EtlBatch';
 import { SplitAdwordsCampaign } from '../../src/transformers/SplitAdwordsCampaign';
+import { TransformerPlugin } from '../../src/transformers/TransformerPlugin';
 
 
 const testObjectClicks = [
@@ -240,8 +242,8 @@ const testObjectClicksResults = [
 const adwordsClicksConfig = utilConfig.get('transformers.splitadwordscampaign.test_1');
 const batch =  new EtlBatch(testObjectClicks, 1, 1, 'test_clicks');
 
-
 suite('SplitAdwordsCampaign', () => {
+  suite('Simple test:', () => {
     const transf = new SplitAdwordsCampaign(adwordsClicksConfig.fixedFields, adwordsClicksConfig.fieldsRequiringMapping);
     test('Test configuration: fixedFields', async () => {
       const fixedFields = transf.getFixedFields();
@@ -267,4 +269,38 @@ suite('SplitAdwordsCampaign', () => {
         batchList[2].getTransformedData().must.be.eql(testObjectClicksResults[2]);
         batchList[3].getTransformedData().must.be.eql(testObjectClicksResults[3]);
     });
+  });
+  suite('Test using the plugin to ensure the parameters are passed:', async () => {
+    const app = new InceptumApp();
+    const context = app.getContext();
+    const pluginObj = new TransformerPlugin('test_1');
+    app.use(pluginObj);
+    await app.start();
+    const transf = await context.getObjectByName('EtlTransformer');
+
+    test('Test configuration: fixedFields', async () => {
+      const fixedFields = transf.getFixedFields();
+      fixedFields.must.be.eql({
+        app_code: 'HIP',
+        source_name: 'Adwords',
+        source_account: 'hip',
+        record_created_date: '2017-08-23 10:30:45',
+        source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney',
+      });
+    });
+    test('Test configuration: fieldsRequiringMapping', async () => {
+        const fixedFields = transf.getFieldsRequiringMapping();
+        fixedFields.must.be.eql({
+            keyword_placement: 'keyword__placement',
+        });
+    });
+    test('Test transformation', async () => {
+        await transf.transform(batch);
+        const batchList = batch.getTransformedRecords();
+        batchList[0].getTransformedData().must.be.eql(testObjectClicksResults[0]);
+        batchList[1].getTransformedData().must.be.eql(testObjectClicksResults[1]);
+        batchList[2].getTransformedData().must.be.eql(testObjectClicksResults[2]);
+        batchList[3].getTransformedData().must.be.eql(testObjectClicksResults[3]);
+    });
+  });
 });
