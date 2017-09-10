@@ -1,4 +1,4 @@
-export { EtlBatch, EtlState } from './EtlBatch';
+export { EtlBatch, EtlState, EtlBatchRecord } from './EtlBatch';
 export { EtlConfig } from './EtlConfig';
 export { EtlRunner } from './EtlRunner';
 export { EtlSavepointManager } from './EtlSavepointManager';
@@ -18,3 +18,5 @@ export { S3Bucket } from './destinations/S3Bucket';
 export { Redshift } from './destinations/Redshift';
 export { DestinationPlugin } from './destinations/DestinationPlugin';
 export { SavepointPlugin } from './savepoints/SavepointPlugin';
+export { GoogleAnalytics } from './util/GoogleAnalytics';
+export { mapRecord } from './util/FieldMapper';
