@@ -3,6 +3,7 @@ import { AdwordsReports } from './AdwordsReports';
 import { GoogleAnalyticsJobs } from './GoogleAnalyticsJobs';
 import { GoogleAnalyticsPages } from './GoogleAnalyticsPages';
 import { GaLandingPagesHistoricaldata } from './GaLandingPagesHistoricaldata';
+import { AdwordsReportsHistoricalData } from './AdwordsReportsHistoricalData';
 
 export class SourcePlugin implements Plugin {
     public etlName: string;
@@ -50,6 +51,13 @@ export class SourcePlugin implements Plugin {
             case 'adwordsreports' :
             {
                 const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsReports, this.getEtlObjectName());
+                singletonDefinition.constructorParamByValue(sourceConfig);
+                context.registerSingletons(singletonDefinition);
+            }
+                break;
+            case 'adwordsreportshistoricaldata' :
+            {
+                const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsReportsHistoricalData, this.getEtlObjectName());
                 singletonDefinition.constructorParamByValue(sourceConfig);
                 context.registerSingletons(singletonDefinition);
             }
