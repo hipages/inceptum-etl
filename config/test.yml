@@ -10,6 +10,9 @@ app:
     - test_7
     - test_8
     - test_9
+    - test_10
+    - test_11
+    - test_12
 
 etlOptions:
   test_1: &generalOptions
@@ -111,6 +114,24 @@ sources:
         currentBatch: 3656975
         endBatch: 3656974
         totalBatches: 1    
+  adwordsreportshistoricaldata:
+    test_12: &adwords
+      maxRetries: 5000
+      timeoutMillis: 1
+      account: THE_ACCOUNT_NAME
+      token: DEVELOPER_TOKEN
+      userAgent: YOUR_PROJECT_NAME
+      clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
+      clientId: ADWORDS_API_CLIENT_ID
+      clientSecret: ADWORDS_API_CLIENT_SECRET
+      refreshToken: ADWORDS_API_REFRESHTOKEN
+      version: v201705
+      accountsList:
+        - name: ADWORDS_ACOUNT_NAME_1
+          id: ADWORDS_ACOUNT_ID_1
+        - name: ADWORDS_ACOUNT_NAME_2
+          id: ADWORDS_ACOUNT_ID_2
+      reportQuery: "SELECT AccountDescriptiveName, AccountTimeZone, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM   KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0"
 
 transformers:
   splitadwordscampaign:
@@ -324,6 +345,8 @@ savepoints:
       savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
     test_9: 
       savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
+    test_12: 
+      savepoint: '{"startDate":"20170901","endDate":"20170910","paceAmount":1,"paceTime":"months","finalDate":"20170701","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
   extendedsavepoint:
     test_7:
       param: value_savepoint
