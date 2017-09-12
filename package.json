@@ -40,6 +40,7 @@
     "commander": "^2.11.0",
     "config": "1.25.1",
     "csvjson": "^4.3.3",
+    "csvtojson": "^1.1.7",
     "inceptum": "^0.5.7",
     "lodash": "^4.17.4",
     "moment": "^2.18.1",

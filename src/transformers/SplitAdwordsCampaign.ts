@@ -150,6 +150,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
             });
             newRecord['category'] = category;
             newRecord['category_id'] = categoryId;
+            newRecord['category_dim_key'] = categoryId;
             newRecord['sub_category'] = subCategory;
             newRecord['sub_category_id'] = subCategoryId;
             newRecord['state'] = recordState;
