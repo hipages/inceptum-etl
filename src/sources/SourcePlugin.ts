@@ -62,6 +62,7 @@ export class SourcePlugin implements Plugin {
                     singletonDefinition.constructorParamByValue(sourceConfig);
                     context.registerSingletons(singletonDefinition);
                 }
+                break;
             case 'adwordsreportshistoricaldata' :
             {
                 const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsReportsHistoricalData, this.getEtlObjectName());
