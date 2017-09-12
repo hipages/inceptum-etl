@@ -100,8 +100,10 @@ export default class  RequestGenerator {
             fieldNames = [ fieldNames ];
         }
         fieldNames.map( (fieldName) => {
-            const orderObject = {fieldName, sortOrder};
-            this.reportRequests[this.currentIndex]['orderBys'].push(orderObject);
+            if (fieldName.length > 0) {
+                const orderObject = {fieldName, sortOrder};
+                this.reportRequests[this.currentIndex]['orderBys'].push(orderObject);
+            }
         });
         return this;
     }

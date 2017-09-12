@@ -6,6 +6,12 @@ import { EtlSavepointManager } from '../src/EtlSavepointManager';
 import { EtlSource } from '../src/EtlSource';
 
 class TestSource extends EtlSource {
+
+  constructor() {
+    super();
+    this.totalBatches = 10;
+  }
+
   // tslint:disable-next-line:prefer-function-over-method
   protected savePointToString(savePoint: object) {
     return savePoint['value'];
@@ -88,6 +94,10 @@ suite('EtlSource', () => {
       await source.stateChanged(EtlState.SAVE_ENDED);
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal('New stored point');
+    });
+    test('Test get totalBatches', async () => {
+      const source = new TestSource();
+      source.getTotalBatches().must.be.equal(10);
     });
   });
 });
