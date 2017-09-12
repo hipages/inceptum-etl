@@ -21,6 +21,13 @@ export abstract class EtlSource implements EtlStateListener {
   protected etlSavepointManager: EtlSavepointManager;
 
   /**
+   * Get the value stored in totalBatches
+   */
+  public getTotalBatches(): number {
+    return this.totalBatches;
+  }
+
+  /**
    * Convert the savePoint object to string
    * @param savePoint Convers a save point object to string to be stored
    */

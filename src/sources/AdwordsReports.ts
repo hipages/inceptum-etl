@@ -4,7 +4,6 @@ import * as moment from 'moment';
 import { toObject as csvToObject } from 'csvjson';
 import { LogManager } from 'inceptum';
 import { EtlSource } from '../EtlSource';
-import { EtlConfig } from '../EtlConfig';
 import { EtlBatch, EtlState } from '../EtlBatch';
 
 promisifyAll(nodeAdwords);
@@ -43,8 +42,20 @@ export class AdwordsReports extends EtlSource {
     return this.errorFound;
   }
 
+  public getAccount(): string {
+    return this.account;
+  }
+
+  public getAccountList(): string {
+    return this.accountList;
+  }
+
   public getQuery(): string {
     return this.query;
+  }
+
+  public getConfigAdwords(): object {
+    return this.configAdwords;
   }
 
   /**
@@ -116,6 +127,24 @@ export class AdwordsReports extends EtlSource {
     return savePoint;
   }
 
+  public getCurrentBatchIdentifier(): string {
+    return this.currentSavePoint['startDate'];
+  }
+
+  protected async getAdwordsReport(config: object) {
+    const currentBatch = this.currentSavePoint['currentBatch'] - 1;
+    config['clientCustomerId'] = this.accountList[currentBatch]['id'];
+    const report = new nodeAdwords.AdwordsReport(config);
+    return await report.getReportAsync(config['version'], {
+        query: `${this.query} DURING ${this.currentSavePoint['startDate']},${this.currentSavePoint['startDate']}`,
+        format: 'CSV',
+        additionalHeaders: {
+          skipReportHeader: true,
+          skipReportSummary: true,
+        },
+    });
+  }
+
   /**
    * Get's the next batch of objects. It should add this object as listener to the batch
    * to know when it finished and make the relevant updates to the savePoint in
@@ -126,26 +155,15 @@ export class AdwordsReports extends EtlSource {
     if (this.hasNextBatch()) {
       this.currentSavePoint = this.getNextSavePoint();
       const config = {...this.configAdwords};
-      const currentBatch = this.currentSavePoint['currentBatch'] - 1;
-      const startDate = this.currentSavePoint['startDate'];
-      config['clientCustomerId'] = this.accountList[currentBatch]['id'];
-      const report = new nodeAdwords.AdwordsReport(config);
-      const csv = await report.getReportAsync(config['version'], {
-          query: `${this.query} DURING ${startDate},${startDate}`,
-          format: 'CSV',
-          additionalHeaders: {
-            skipReportHeader: true,
-            skipReportSummary: true,
-          },
-      });
+      const csv = await this.getAdwordsReport(config);
       // Replace spaces in the header row
       const header = csv.slice(0, csv.search(/[\n\r]+/i));
       const newHeader = header.toLowerCase().replace(/ /g, '_').replace(/[\.|\/|\(|\)|-]+/g, '')
       .replace(/day/i, 'report_date').replace(/cost/i, 'report_cost');
       data = csvToObject(csv.replace(header, newHeader).replace(/--/g, '').replace(/%/g, ''), { delimiter : ',', quote: '"' });
-      log.debug(`read adwords report for: ${startDate}`);
+      log.debug(`read adwords report for: ${this.getCurrentBatchIdentifier()}`);
     }
-    const batch =  new EtlBatch(data, this.currentSavePoint['currentBatch'], this.totalBatches, this.currentSavePoint['startDate']);
+    const batch =  new EtlBatch(data, this.currentSavePoint['currentBatch'], this.totalBatches, this.getCurrentBatchIdentifier());
     batch.registerStateListener(this);
     return batch;
   }
