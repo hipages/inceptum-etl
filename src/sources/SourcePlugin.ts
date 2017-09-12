@@ -1,5 +1,6 @@
 import { Plugin, InceptumApp, Context, BaseSingletonDefinition } from 'inceptum';
 import { AdwordsReports } from './AdwordsReports';
+import { AdwordsReportsFromCSV } from './AdwordsReportsFromCSV';
 import { GoogleAnalyticsJobs } from './GoogleAnalyticsJobs';
 import { GoogleAnalyticsPages } from './GoogleAnalyticsPages';
 import { GaLandingPagesHistoricaldata } from './GaLandingPagesHistoricaldata';
@@ -53,6 +54,13 @@ export class SourcePlugin implements Plugin {
                 singletonDefinition.constructorParamByValue(sourceConfig);
                 context.registerSingletons(singletonDefinition);
             }
+                break;
+            case 'adwordsreportsfromcsv':
+                {
+                    const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsReportsFromCSV, this.getEtlObjectName());
+                    singletonDefinition.constructorParamByValue(sourceConfig);
+                    context.registerSingletons(singletonDefinition);
+                }
                 break;
             case 'googleanalyticsjobs':
             {
