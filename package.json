@@ -15,7 +15,7 @@
     "docsserve": "jekyll serve -s docs-src -p docs-src/_plugins --layouts docs-src/_layouts -d docs",
     "docs": "npm run docssite && npm run docsapi",
     "prepublishOnly": "npm run clean && tsc && npm test && npm run lint",
-    "precommit": "npm run lint && yarn coverage-check",
+    "precommit": "yarn install && npm run lint && yarn coverage-check",
     "prepush": "node .checkpush.js",
     "coverage-check": "NODE_ENV=test nyc --check-coverage --lines 62 mocha"
   },
