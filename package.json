@@ -15,7 +15,7 @@
     "docsserve": "jekyll serve -s docs-src -p docs-src/_plugins --layouts docs-src/_layouts -d docs",
     "docs": "npm run docssite && npm run docsapi",
     "prepublishOnly": "npm run clean && tsc && npm test && npm run lint",
-    "precommit": "npm run lint && yarn coverage-check",
+    "precommit": "yarn install && npm run lint && yarn coverage-check",
     "prepush": "node .checkpush.js",
     "coverage-check": "NODE_ENV=test nyc --check-coverage --lines 62 mocha"
   },
@@ -41,7 +41,7 @@
     "config": "1.25.1",
     "csvjson": "^4.3.3",
     "csvtojson": "^1.1.7",
-    "inceptum": "^0.5.7",
+    "inceptum": "^0.5.10",
     "lodash": "^4.17.4",
     "moment": "^2.18.1",
     "node-adwords": "201705.1.0",
