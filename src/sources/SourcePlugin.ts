@@ -3,7 +3,7 @@ import { AdwordsReports } from './AdwordsReports';
 import { AdwordsReportsFromCSV } from './AdwordsReportsFromCSV';
 import { GoogleAnalyticsJobs } from './GoogleAnalyticsJobs';
 import { GoogleAnalyticsPages } from './GoogleAnalyticsPages';
-import { GaLandingPagesHistoricaldata } from './GaLandingPagesHistoricaldata';
+import { MySQLDataByKey } from './MySQLDataByKey';
 import { AdwordsReportsHistoricalData } from './AdwordsReportsHistoricalData';
 
 export class SourcePlugin implements Plugin {
@@ -33,17 +33,9 @@ export class SourcePlugin implements Plugin {
 
     protected registerSourceSingleton(etlName: string, sourceType: string, sourceConfig: object, context: Context) {
         switch (sourceType) {
-            case 'gaLandingPagesHistoricaldata' :
+            case 'mysqldatabykey' :
             {
-                const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlSource');
-                singletonDefinition.constructorParamByRef(sourceConfig['dbClient']);
-                singletonDefinition.constructorParamByValue(sourceConfig['sourceOptions']);
-                context.registerSingletons(singletonDefinition);
-            }
-                break;
-            case 'gaDataPartnersHistoricaldata' :
-            {
-                const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlSource');
+                const singletonDefinition = new BaseSingletonDefinition<any>(MySQLDataByKey, 'EtlSource');
                 singletonDefinition.constructorParamByRef(sourceConfig['dbClient']);
                 singletonDefinition.constructorParamByValue(sourceConfig['sourceOptions']);
                 context.registerSingletons(singletonDefinition);
