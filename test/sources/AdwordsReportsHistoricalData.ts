@@ -197,34 +197,40 @@ suite('AdwordsReportsHistoricalData', () => {
       sourceSave['totalBatches'].must.be.equal(2);
     });
   });
-  suite('Test using the plugin to ensure the parameters are passed:', async () => {
+
+  suite('Test using the plugin to ensure the parameters are passed:', () => {
     const app = new InceptumApp();
     const context = app.getContext();
     const pluginObj = new SourcePlugin('test_12');
     app.use(pluginObj);
-    await app.start();
-    const source = await context.getObjectByName('EtlSource');
 
     test('Test the type of object:', async () => {
-        source.must.be.instanceof(AdwordsReportsHistoricalData);
+      await app.start();
+      const source = await context.getObjectByName('EtlSource');
+      source.must.be.instanceof(AdwordsReportsHistoricalData);
     });
     test('Test configuration: getAccount', async () => {
-        source.getAccount().must.be.equal('THE_ACCOUNT_NAME');
+      const source = await context.getObjectByName('EtlSource');
+      source.getAccount().must.be.equal('THE_ACCOUNT_NAME');
     });
     test('Test configuration: getTotalBatches', async () => {
-        source.getTotalBatches().must.be.equal(2);
+      const source = await context.getObjectByName('EtlSource');
+      source.getTotalBatches().must.be.equal(2);
     });
     test('Test configuration: getAccountList', async () => {
-        source.getAccountList().must.be.eql([
+      const source = await context.getObjectByName('EtlSource');
+      source.getAccountList().must.be.eql([
             {name: 'ADWORDS_ACOUNT_NAME_1', id: 'ADWORDS_ACOUNT_ID_1'},
             {name: 'ADWORDS_ACOUNT_NAME_2', id: 'ADWORDS_ACOUNT_ID_2'}
         ]);
     });
     test('Test configuration: getQuery', async () => {
-        source.getQuery().must.be.equal('SELECT AccountDescriptiveName, AccountTimeZone, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM   KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0');
+      const source = await context.getObjectByName('EtlSource');
+      source.getQuery().must.be.equal('SELECT AccountDescriptiveName, AccountTimeZone, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM   KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0');
     });
     test('Test configuration: getConfigAdwords', async () => {
-        source.getConfigAdwords().must.be.eql({
+      const source = await context.getObjectByName('EtlSource');
+      source.getConfigAdwords().must.be.eql({
             developerToken: 'DEVELOPER_TOKEN',
             userAgent: 'YOUR_PROJECT_NAME',
             clientCustomerId: 'ADWORDS_MCC_ACCOUNT_ID',

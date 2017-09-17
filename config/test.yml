@@ -94,26 +94,18 @@ sources:
   extendedsource:
     test_7:
       param: value_source
-  gaLandingPagesHistoricaldata:
+  mysqldatabykey:
     test_8:
       dbClient: SEO
       sourceOptions:
-        etlName: gaLandingPagesHistoricaldata
-        tableName: ga_data_state_landing_pages
-        searchColoumn: id  
-        currentBatch: 48172196
-        endBatch: 48172195
-        totalBatches: 1
-  gaDataPartnersHistoricaldata:
+        tableName: landing_pages_table
+        searchColumn: id  
     test_9:
       dbClient: GA
       sourceOptions:
-        etlName: gaDataPartnersHistoricaldata
-        tableName: job_ga_data_partners
-        searchColoumn: job_id  
-        currentBatch: 3656975
-        endBatch: 3656974
-        totalBatches: 1    
+        tableName: job_table
+        searchColumn: job_id  
+         
   adwordsreportshistoricaldata:
     test_12: &adwords
       maxRetries: 5000
@@ -341,10 +333,10 @@ savepoints:
       savepoint: '{"startDate":"2017-08-10","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
     test_6: 
       savepoint: '{"startDate":"2017-08-11","endDate":"2017-08-12","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
-    test_8: 
-      savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
-    test_9: 
-      savepoint: '{"currentBatch":1,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
+    test_8:
+      savepoint: '{"columnStartValue":48172195,"columnEndValue":48172196,"batchSize":10,"currentBatch":0,"totalBatches":0,"currentDate":"2017-08-28T17:42:41.349Z"}'
+    test_9:
+      savepoint: '{"columnStartValue":3656974,"columnEndValue":3656975,"batchSize":10,"currentBatch":0,"totalBatches":1,"currentDate":"2017-08-28T17:42:41.349Z"}'
     test_12: 
       savepoint: '{"startDate":"20170901","endDate":"20170910","paceAmount":1,"paceTime":"months","finalDate":"20170701","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
   extendedsavepoint:
@@ -353,6 +345,23 @@ savepoints:
 
 mysql:
   EtlSavePoint:    
+    master:
+      host: localhost
+      port: 3306
+      user: root
+      password:
+      database: testDb
+      charset: utf8
+      connectionLimit: 10
+    slave:
+      host: localhost
+      port: 3306
+      user: root
+      password:
+      database: testDb
+      charset: utf8
+      connectionLimit: 10
+  GA:    
     master:
       host: localhost
       port: 3306
