@@ -3,7 +3,7 @@ import { SimpleCopy } from './SimpleCopy';
 import { SplitAdwordsCampaign } from './SplitAdwordsCampaign';
 import { GALandingPages } from './GALandingPages';
 import { GATransactions } from './GATransactions';
-import { GaLandingPagesHistoricaldata } from './GaLandingPagesHistoricaldata';
+import { SmartFieldMapping } from './SmartFieldMapping';
 import { FieldsMapping } from './FieldsMapping';
 
 export class TransformerPlugin implements Plugin {
@@ -33,20 +33,9 @@ export class TransformerPlugin implements Plugin {
 
     protected registerTransformerSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context) {
         switch (transformersType) {
-            case 'gaLandingPagesHistoricaldata' :
+            case 'smartfieldmapping' :
             {
-                const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlTransformer');
-                singletonDefinition.constructorParamByValue(etlName);
-                singletonDefinition.constructorParamByValue(transformersConfig['tempDirectory']);
-                singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);
-                singletonDefinition.constructorParamByValue(transformersConfig['bucket']);
-                singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
-                context.registerSingletons(singletonDefinition);
-            }
-                break;
-            case 'gaDataPartnersHistoricaldata' :
-            {
-                const singletonDefinition = new BaseSingletonDefinition<any>(GaLandingPagesHistoricaldata, 'EtlTransformer');
+                const singletonDefinition = new BaseSingletonDefinition<any>(SmartFieldMapping, 'EtlTransformer');
                 singletonDefinition.constructorParamByValue(etlName);
                 singletonDefinition.constructorParamByValue(transformersConfig['tempDirectory']);
                 singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);

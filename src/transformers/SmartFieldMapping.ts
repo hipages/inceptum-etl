@@ -12,33 +12,29 @@ import { S3Bucket } from '../destinations/S3Bucket';
 
 const log = LogManager.getLogger();
 
-export class GaLandingPagesHistoricaldata extends EtlTransformer {
+export class SmartFieldMapping extends EtlTransformer {
     protected fileType = 'json';
-    protected S3Bucket: S3Bucket;
     protected etlName: string;
+    protected tempDirectory: string;
     protected regexPath: string;
     protected bucket: string;
     protected fieldsMapping: object;
+    protected regexCollection: object;
 
     constructor(etlName: string, tempDirectory: string, regexPath: string, bucket: string, fieldsMapping: object) {
         super();
+        this.etlName = etlName;
+        this.tempDirectory = tempDirectory;
         this.regexPath =  regexPath;
         this.bucket = bucket.trim();
         this.fieldsMapping = {...fieldsMapping};
-        const baseFileName = etlName.replace(/ /g, '');
-        const directory = joinPath(tempDirectory, baseFileName);
-        if (!fs.existsSync(directory)) {
-            log.info(`Saving batch directory does not exist:${directory}. Will create`);
-            fs.mkdirSync(directory);
-        }
-        this.S3Bucket = new S3Bucket(this.fileType, this.bucket, directory, baseFileName, true);
     }
 
     /**
      * @static check if input string is a URL or not
      * @param {string} url
      * @returns {Boolean}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     static isURL(url: string): Boolean {
         const pattern = new RegExp('((http|https)(:\/\/))?([a-zA-Z0-9]+[.]{1}){2}[a-zA-z0-9]+(\/{1}[a-zA-Z0-9]+)*\/?', 'i');
@@ -52,7 +48,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @static this will determine if input URL came from S3 or not
      * @param {string} url
      * @returns {Boolean}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     static isS3URL(url: string): Boolean {
         const pattern = new RegExp('(s3-|s3\.)?(.*)\.amazonaws\.com', 'i');
@@ -64,29 +60,52 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     /**
      * @protected
      * @returns {Promise<any>}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     // tslint:disable-next-line
     protected async downloadFromS3 (): Promise<any> {
-        const currentFile = await this.S3Bucket.fetch(this.regexPath);
+        const baseFileName = this.etlName.replace(/ /g, '');
+        const directory = joinPath(this.tempDirectory, baseFileName);
+        if (!fs.existsSync(directory)) {
+            log.info(`Transformer temp directory does not exist:${directory}. Will create`);
+            fs.mkdirSync(directory);
+        }
+        const S3BucketObj = new S3Bucket(this.fileType, this.bucket, directory, baseFileName);
+        const currentFile = await S3BucketObj.fetch(this.regexPath);
         return Promise.resolve(fs.readFileSync(joinPath(currentFile), { encoding : 'utf8'}));
     }
     /**
      * @protected
-     * @returns {Promise<any>}
-     * @memberof GaLandingPagesHistoricaldata
+     * @returns any
+     * @memberof SmartFieldMapping
      */
-    protected  getRegexFromUrl(): Promise<any> {
-        if (GaLandingPagesHistoricaldata.isS3URL(this.regexPath)) {
-            return this.downloadFromS3();
+    protected  getRegexFromUrl(): any {
+        // The file is in a S3 bucket
+        if (SmartFieldMapping.isS3URL(this.regexPath)) {
+            return this.downloadFromS3().then( (body) => body )
+            .catch((err) => {
+                // Request failed due to technical reasons...
+                log.fatal(`Transformer can't read regex file ${this.regexPath}`);
+                throw(err);
+            });
         }
-        return request({ uri: this.regexPath });
+        // Its a url request the file
+        return request({ uri: this.regexPath }).then((body) => {
+            // Request succeeded but might as well be a 404
+            // Usually combined with resolveWithFullResponse = true to check response.statusCode
+            return body;
+        })
+        .catch((err) => {
+            // Request failed due to technical reasons...
+            log.fatal(`Transformer can't read regex file ${this.regexPath}`);
+            throw(err);
+        });
     }
 
     /**
      * Get batch of records and loop through each record in the batch
      * @param {EtlBatch} batch
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     public async transform(batch: EtlBatch): Promise<void> {
         batch.getRecords().map((record) => {
@@ -97,7 +116,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     /**
      * @public loop through each element in record and if has property then regex match the value against the rule
      * @param {EtlBatchRecord} record
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     // tslint:disable-next-line:prefer-function-over-method
     public transformBatchRecord(record: EtlBatchRecord) {
@@ -130,7 +149,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @param {object} fields
      * @param {string} key
      * @returns {object}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     protected add(transformedData: object = {}, input: object, fields: object, key: string): object {
         transformedData[key] = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : null;
@@ -143,7 +162,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @param {object} fields
      * @param {string} key
      * @returns {object}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     protected replace(transformedData: object = {}, input: object, fields: object, key: string): object {
         transformedData[key] = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : null;
@@ -159,7 +178,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @param {object} fields
      * @param {string} key
      * @returns {object}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     protected regexAdd(transformedData: object = {}, input: object, fields: object, key: string): object {
         const currentValue = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input).toString() : '';
@@ -168,10 +187,27 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     }
     /**
      * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof SmartFieldMapping
+     */
+    protected convertDateTimeToUTC(transformedData: object = {}, input: object, fields: object, key: string): object {
+         const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
+        transformedData[key] = value ? moment(value).utc().format('YYYY-MM-DD HH:mm:ss') : '';
+        if ((key !== fields['field']) && transformedData.hasOwnProperty(fields['field'])) {
+            delete transformedData[fields['field']];
+        }
+        return transformedData;
+    }
+    /**
+     * @protected
      * @param {object} obj
      * @param {object} [input]
      * @returns {string}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     // tslint:disable-next-line:prefer-function-over-method
     protected fetchValue(obj: object, input?: object): string  {
@@ -184,22 +220,27 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @returns
      * @memberof ValueMapping
      */
-    protected getRegex(): any {
-        // check if URL
-        if (GaLandingPagesHistoricaldata.isURL(this.regexPath)) {
-             return this.getRegexFromUrl();
-        } else {
-            return fs.readFileSync(this.regexPath, { encoding : 'utf8'});
+    protected getRegex(): object {
+        if (typeof this.regexCollection === 'undefined') {
+            let regexCollection = '{}';
+            // check if URL
+            if (SmartFieldMapping.isURL(this.regexPath)) {
+                regexCollection = this.getRegexFromUrl();
+            } else {
+                regexCollection = fs.readFileSync(this.regexPath, { encoding : 'utf8'});
+            }
+            this.regexCollection = JSON.parse(regexCollection);
         }
+        return this.regexCollection;
     }
     /**
      * @protected
      * @param {string} landingPagePath
      * @returns {string}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     protected regexReplace(landingPagePath: string): string {
-        const regexCollection = JSON.parse(this.getRegex());
+        const regexCollection = this.getRegex();
         for (const key in regexCollection) {
             if (regexCollection.hasOwnProperty(key)) {
                 if (new RegExp(key).exec(landingPagePath) !== null) {
