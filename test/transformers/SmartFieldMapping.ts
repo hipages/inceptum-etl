@@ -91,11 +91,12 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
         public exposeRegexReplace(landingPagePath: string): string {
             return this.regexReplace(landingPagePath);
         }
-        public getRegex(): any {
-          return JSON.stringify({
+        public getRegex(): object {
+          this.regexCollection = {
             '^\/account': 'Login Area',
             '/login': 'Login',
-          });
+          };
+          return super.getRegex();
         }
 }
 

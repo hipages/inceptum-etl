@@ -45,6 +45,8 @@ export class S3Bucket extends EtlDestination {
   protected sourceObj: JsonFile|CsvFile;
   protected bucket: string;
   protected s3Client: S3;
+  protected tempDirectory: string;
+  protected baseFileName: string;
 
   /**
    * Set all settings to connect to S3
@@ -60,6 +62,8 @@ export class S3Bucket extends EtlDestination {
                     new JsonFile(tempDirectory, baseFileName, true, singleObjects) :
                     new CsvFile(tempDirectory, baseFileName, true);
     this.bucket = bucket.trim();
+    this.tempDirectory = tempDirectory.trim();
+    this.baseFileName = baseFileName.trim();
 
     const options = {
         maxAsyncS3: 20,     // this is the default
@@ -105,7 +109,7 @@ export class S3Bucket extends EtlDestination {
   }
 
   public async fetch(filePath: string): Promise<string> {
-    const tempFile = joinPath(__dirname, `../../${lodash.uniqueId()}.json`);
+    const tempFile = joinPath(this.tempDirectory , `/${this.baseFileName}_${lodash.uniqueId()}.json`);
     const loadParams = {
       tempFile,
       s3Params: {

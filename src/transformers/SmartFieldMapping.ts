@@ -14,24 +14,20 @@ const log = LogManager.getLogger();
 
 export class SmartFieldMapping extends EtlTransformer {
     protected fileType = 'json';
-    protected S3Bucket: S3Bucket;
     protected etlName: string;
+    protected tempDirectory: string;
     protected regexPath: string;
     protected bucket: string;
     protected fieldsMapping: object;
+    protected regexCollection: object;
 
     constructor(etlName: string, tempDirectory: string, regexPath: string, bucket: string, fieldsMapping: object) {
         super();
+        this.etlName = etlName;
+        this.tempDirectory = tempDirectory;
         this.regexPath =  regexPath;
         this.bucket = bucket.trim();
         this.fieldsMapping = {...fieldsMapping};
-        const baseFileName = etlName.replace(/ /g, '');
-        const directory = joinPath(tempDirectory, baseFileName);
-        if (!fs.existsSync(directory)) {
-            log.info(`Saving batch directory does not exist:${directory}. Will create`);
-            fs.mkdirSync(directory);
-        }
-        this.S3Bucket = new S3Bucket(this.fileType, this.bucket, directory, baseFileName, true);
     }
 
     /**
@@ -68,19 +64,42 @@ export class SmartFieldMapping extends EtlTransformer {
      */
     // tslint:disable-next-line
     protected async downloadFromS3 (): Promise<any> {
-        const currentFile = await this.S3Bucket.fetch(this.regexPath);
+        const baseFileName = this.etlName.replace(/ /g, '');
+        const directory = joinPath(this.tempDirectory, baseFileName);
+        if (!fs.existsSync(directory)) {
+            log.info(`Transformer temp directory does not exist:${directory}. Will create`);
+            fs.mkdirSync(directory);
+        }
+        const S3BucketObj = new S3Bucket(this.fileType, this.bucket, directory, baseFileName);
+        const currentFile = await S3BucketObj.fetch(this.regexPath);
         return Promise.resolve(fs.readFileSync(joinPath(currentFile), { encoding : 'utf8'}));
     }
     /**
      * @protected
-     * @returns {Promise<any>}
+     * @returns any
      * @memberof SmartFieldMapping
      */
-    protected  getRegexFromUrl(): Promise<any> {
+    protected  getRegexFromUrl(): any {
+        // The file is in a S3 bucket
         if (SmartFieldMapping.isS3URL(this.regexPath)) {
-            return this.downloadFromS3();
+            return this.downloadFromS3().then( (body) => body )
+            .catch((err) => {
+                // Request failed due to technical reasons...
+                log.fatal(`Transformer can't read regex file ${this.regexPath}`);
+                throw(err);
+            });
         }
-        return request({ uri: this.regexPath });
+        // Its a url request the file
+        return request({ uri: this.regexPath }).then((body) => {
+            // Request succeeded but might as well be a 404
+            // Usually combined with resolveWithFullResponse = true to check response.statusCode
+            return body;
+        })
+        .catch((err) => {
+            // Request failed due to technical reasons...
+            log.fatal(`Transformer can't read regex file ${this.regexPath}`);
+            throw(err);
+        });
     }
 
     /**
@@ -184,13 +203,18 @@ export class SmartFieldMapping extends EtlTransformer {
      * @returns
      * @memberof ValueMapping
      */
-    protected getRegex(): any {
-        // check if URL
-        if (SmartFieldMapping.isURL(this.regexPath)) {
-             return this.getRegexFromUrl();
-        } else {
-            return fs.readFileSync(this.regexPath, { encoding : 'utf8'});
+    protected getRegex(): object {
+        if (typeof this.regexCollection === 'undefined') {
+            let regexCollection = '{}';
+            // check if URL
+            if (SmartFieldMapping.isURL(this.regexPath)) {
+                regexCollection = this.getRegexFromUrl();
+            } else {
+                regexCollection = fs.readFileSync(this.regexPath, { encoding : 'utf8'});
+            }
+            this.regexCollection = JSON.parse(regexCollection);
         }
+        return this.regexCollection;
     }
     /**
      * @protected
@@ -199,7 +223,7 @@ export class SmartFieldMapping extends EtlTransformer {
      * @memberof SmartFieldMapping
      */
     protected regexReplace(landingPagePath: string): string {
-        const regexCollection = JSON.parse(this.getRegex());
+        const regexCollection = this.getRegex();
         for (const key in regexCollection) {
             if (regexCollection.hasOwnProperty(key)) {
                 if (new RegExp(key).exec(landingPagePath) !== null) {
