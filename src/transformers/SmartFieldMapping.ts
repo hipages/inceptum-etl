@@ -12,7 +12,7 @@ import { S3Bucket } from '../destinations/S3Bucket';
 
 const log = LogManager.getLogger();
 
-export class GaLandingPagesHistoricaldata extends EtlTransformer {
+export class SmartFieldMapping extends EtlTransformer {
     protected fileType = 'json';
     protected S3Bucket: S3Bucket;
     protected etlName: string;
@@ -38,7 +38,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @static check if input string is a URL or not
      * @param {string} url
      * @returns {Boolean}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     static isURL(url: string): Boolean {
         const pattern = new RegExp('((http|https)(:\/\/))?([a-zA-Z0-9]+[.]{1}){2}[a-zA-z0-9]+(\/{1}[a-zA-Z0-9]+)*\/?', 'i');
@@ -52,7 +52,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @static this will determine if input URL came from S3 or not
      * @param {string} url
      * @returns {Boolean}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     static isS3URL(url: string): Boolean {
         const pattern = new RegExp('(s3-|s3\.)?(.*)\.amazonaws\.com', 'i');
@@ -64,7 +64,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     /**
      * @protected
      * @returns {Promise<any>}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     // tslint:disable-next-line
     protected async downloadFromS3 (): Promise<any> {
@@ -74,10 +74,10 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     /**
      * @protected
      * @returns {Promise<any>}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     protected  getRegexFromUrl(): Promise<any> {
-        if (GaLandingPagesHistoricaldata.isS3URL(this.regexPath)) {
+        if (SmartFieldMapping.isS3URL(this.regexPath)) {
             return this.downloadFromS3();
         }
         return request({ uri: this.regexPath });
@@ -86,7 +86,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     /**
      * Get batch of records and loop through each record in the batch
      * @param {EtlBatch} batch
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     public async transform(batch: EtlBatch): Promise<void> {
         batch.getRecords().map((record) => {
@@ -97,7 +97,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
     /**
      * @public loop through each element in record and if has property then regex match the value against the rule
      * @param {EtlBatchRecord} record
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     // tslint:disable-next-line:prefer-function-over-method
     public transformBatchRecord(record: EtlBatchRecord) {
@@ -130,7 +130,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @param {object} fields
      * @param {string} key
      * @returns {object}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     protected add(transformedData: object = {}, input: object, fields: object, key: string): object {
         transformedData[key] = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : null;
@@ -143,7 +143,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @param {object} fields
      * @param {string} key
      * @returns {object}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     protected replace(transformedData: object = {}, input: object, fields: object, key: string): object {
         transformedData[key] = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : null;
@@ -159,7 +159,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @param {object} fields
      * @param {string} key
      * @returns {object}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     protected regexAdd(transformedData: object = {}, input: object, fields: object, key: string): object {
         const currentValue = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input).toString() : '';
@@ -171,7 +171,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @param {object} obj
      * @param {object} [input]
      * @returns {string}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     // tslint:disable-next-line:prefer-function-over-method
     protected fetchValue(obj: object, input?: object): string  {
@@ -186,7 +186,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      */
     protected getRegex(): any {
         // check if URL
-        if (GaLandingPagesHistoricaldata.isURL(this.regexPath)) {
+        if (SmartFieldMapping.isURL(this.regexPath)) {
              return this.getRegexFromUrl();
         } else {
             return fs.readFileSync(this.regexPath, { encoding : 'utf8'});
@@ -196,7 +196,7 @@ export class GaLandingPagesHistoricaldata extends EtlTransformer {
      * @protected
      * @param {string} landingPagePath
      * @returns {string}
-     * @memberof GaLandingPagesHistoricaldata
+     * @memberof SmartFieldMapping
      */
     protected regexReplace(landingPagePath: string): string {
         const regexCollection = JSON.parse(this.getRegex());

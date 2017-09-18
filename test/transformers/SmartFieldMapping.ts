@@ -6,9 +6,9 @@ import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 // Internal dependencies
 import { EtlBatch, EtlState, EtlBatchRecord } from '../../src/EtlBatch';
-import { GaLandingPagesHistoricaldata } from '../../src/transformers/GaLandingPagesHistoricaldata';
+import { SmartFieldMapping } from '../../src/transformers/SmartFieldMapping';
 // Test Config
-const gaConfig = utilConfig.get('transformers.gaLandingPagesHistoricaldata.test_8');
+const gaConfig = utilConfig.get('transformers.smartfieldmapping.test_8');
 
 export interface GaLandingPageInputData {
   id: number,
@@ -62,7 +62,7 @@ export interface GaLandingPageOutputData {
   landing_content_group5: string,
 }
 
-class HelperGaLandingPagesHistoricaldata extends GaLandingPagesHistoricaldata {
+class HelperSmartFieldMapping extends SmartFieldMapping {
 
         public exposeDownloadFromS3(): Promise<any> {
             return this.downloadFromS3();
@@ -100,11 +100,11 @@ class HelperGaLandingPagesHistoricaldata extends GaLandingPagesHistoricaldata {
 }
 
 
-@suite class GaLandingPagesHistoricaldataTransformerTest {
+@suite class SmartFieldMappingTransformerTest {
   private inputData: GaLandingPageInputData[];
   private outputData: GaLandingPageOutputData[];
   private batchRecords: EtlBatchRecord[];
-  private GaLandingPagesHistoricaldata: GaLandingPagesHistoricaldata;
+  private SmartFieldMapping: SmartFieldMapping;
 
   before() {
     const totalTCs = 1;
@@ -167,8 +167,8 @@ class HelperGaLandingPagesHistoricaldata extends GaLandingPagesHistoricaldata {
     for (let i = 0; i < totalTCs; i++) {
         this.batchRecords[i] = new EtlBatchRecord(this.inputData[i]);
     }
-    this.GaLandingPagesHistoricaldata = new HelperGaLandingPagesHistoricaldata(
-      'gaLandingPagesHistoricaldata',
+    this.SmartFieldMapping = new HelperSmartFieldMapping(
+      'SmartFieldMapping',
       gaConfig.tempDirectory,
       gaConfig.regexPath,
       gaConfig.bucket,
@@ -179,18 +179,18 @@ class HelperGaLandingPagesHistoricaldata extends GaLandingPagesHistoricaldata {
   @test transformBatchRecord() {
     this.batchRecords.map((bRec, i) => {
         // tslint:disable-next-line:no-unused-expression
-        this.GaLandingPagesHistoricaldata.transformBatchRecord(bRec);
+        this.SmartFieldMapping.transformBatchRecord(bRec);
           bRec.getTransformedData().must.be.eql(this.outputData[i]);
     });
   }
 
   @test isURL() {
-    const urlCheck = HelperGaLandingPagesHistoricaldata.isURL('http://www.google.com');
+    const urlCheck = HelperSmartFieldMapping.isURL('http://www.google.com');
     urlCheck.must.be.true();
   }
 
   @test isS3URL() {
-    const urlCheck = HelperGaLandingPagesHistoricaldata.isS3URL('http://s3-us-west-2.amazonaws.com/bucketName');
+    const urlCheck = HelperSmartFieldMapping.isS3URL('http://s3-us-west-2.amazonaws.com/bucketName');
     urlCheck.must.be.true();
   }
 

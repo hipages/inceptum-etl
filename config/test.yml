@@ -189,7 +189,7 @@ transformers:
       test_7:
         param: value_transformer
 
-  gaLandingPagesHistoricaldata:
+  smartfieldmapping:
     test_8:
       tempDirectory: .
       regexPath: './regex.json'
@@ -214,7 +214,6 @@ transformers:
           action: regexAdd
           field: landing_page_path
 
-  gaDataPartnersHistoricaldata:
     test_9:
       tempDirectory: .
       regexPath: './regex.json'
