@@ -26,6 +26,7 @@ interface SimpleCopyData {
     private batch: EtlBatch;
 
     before() {
+        this.inputData = [];
         // init test data
         this.inputData[0] = {
             transactionId: 'JOB3649837',
