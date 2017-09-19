@@ -136,54 +136,13 @@ transformers:
         source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
       fieldsRequiringMapping:
         keyword_placement: keyword__placement
-
   simplecopy:
     test_2:
       available: true
-
-  gatransactions:
     test_3:
-      fieldsMapping: 
-        job_id: job_id
-        partner_job_id: partner_job_id
-        transaction_id: transactionId
-        campaign: campaign
-        source: source
-        ad_group: adGroup
-        medium: medium
-        keyword: keyword
-        landing_page_path: landingPagePath
-        ad_matched_query: adMatchedQuery
-        device_category: deviceCategory
-        browser: browser
-        browser_version: browserVersion
-        browser_size: browserSize
-
-  galandingpages:
+      available: true
     test_4:
-      dbClient: EtlSavePoint
-      fieldsMapping: 
-        source_account: source_account
-        report_date: report_date
-        page: page
-        base: base
-        category: category
-        category_parent_id: category_parent_id
-        medium: medium
-        source: source
-        landing_page_path: landingPagePath
-        device_category: deviceCategory
-        region: region
-        campaign: campaign
-        ad_group: adGroup
-        landing_content_group5: landingContentGroup5
-        sessions: sessions
-        percent_new_sessions: percentNewSessions
-        organic_searches: organicSearches
-        goal1_completions: goal1Completions
-        goal15_completions: goal15Completions
-        pageviews: pageviews
-        record_created_date: record_created_date
+      available: true
 
   extendedtransformer:
       test_7:
@@ -422,6 +381,3 @@ logging:
     - name: mysql/
       streams:
         console: debug
-
-Context:
-  ActiveProfiles: development
