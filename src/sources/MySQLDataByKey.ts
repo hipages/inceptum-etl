@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import * as _ from 'lodash';
 import { LogManager, DBClient, DBTransaction } from 'inceptum';
 import { EtlSource } from '../EtlSource';
 import { EtlBatch, EtlState } from '../EtlBatch';
@@ -12,6 +13,9 @@ export class MySQLDataByKey extends EtlSource {
   // etl and table name
   protected tableName: string;
   protected searchColumn: string;
+  protected pk: string;
+  protected minId: number;
+  protected maxId: number;
 
   constructor(mysqlClient: DBClient, etlConfig: object) {
     super();
@@ -20,6 +24,7 @@ export class MySQLDataByKey extends EtlSource {
     // stl and table name
     this.tableName = etlConfig['tableName'].trim();
     this.searchColumn = etlConfig['searchColumn'].trim();
+    this.pk = etlConfig['pk'] ? etlConfig['pk'].trim() : 0;
   }
 
   public getMysqlClient() {
@@ -84,6 +89,8 @@ export class MySQLDataByKey extends EtlSource {
     this.currentSavePoint = {
       columnStartValue: this.initialSavePoint['columnStartValue'],
       columnEndValue: this.initialSavePoint['columnEndValue'],
+      minId: this.initialSavePoint['minId'] || 0,
+      maxId: this.initialSavePoint['maxId'] || 0,
       batchSize: Number(this.initialSavePoint['batchSize']),
       currentBatch: this.initialSavePoint.hasOwnProperty('currentBatch') ? Number(this.initialSavePoint['currentBatch']) : 0,
       totalBatches: 0,
@@ -94,13 +101,25 @@ export class MySQLDataByKey extends EtlSource {
     this.currentSavePoint['totalBatches'] = this.totalBatches;
   }
   protected async getTotalRecords(): Promise<any> {
-    const query = `SELECT  count(*) as total FROM ${this.tableName} where ${this.searchColumn} between ? AND ? order by ${this.searchColumn}`;
+    const [minId, maxId] = await this.getMaxAndMinIds();
+    const query = `SELECT  count(*) as total FROM ${this.tableName} where ${this.pk} between ? AND ? order by ${this.pk}`;
     try {
-      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, this.currentSavePoint['columnStartValue'], this.currentSavePoint['columnEndValue']));
+      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, minId, maxId));
       if (results === null || results.length === 0 || !results[0].hasOwnProperty('total')) {
         return 0;
       }
       return Number(results[0]['total']);
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+
+  protected async getMaxAndMinIds(): Promise<Array<Number>> {
+    const query = `SELECT  min(${this.pk}) as min_id, max(${this.pk}) as max_id FROM ${this.tableName} where ${this.searchColumn} between ? AND ? order by ${this.searchColumn}`;
+    try {
+      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, this.currentSavePoint['columnStartValue'], this.currentSavePoint['columnEndValue']));
+      this.minId = Number(_.first(results)['min_id']);
+      this.maxId = Number(_.first(results)['max_id']);
     } catch (e) {
       return Promise.reject(e);
     }
@@ -125,22 +144,17 @@ export class MySQLDataByKey extends EtlSource {
     if (newState === EtlState.ERROR) {
       throw new Error(`Error found processing batch`);
     }
-    // Note: Still have doubts here. Need Clarification
-    if ((newState === EtlState.SAVE_ENDED) && (this.currentSavePoint['currentBatch'] === this.currentSavePoint['totalBatches'])) {
+    if ((newState === EtlState.SAVE_ENDED)) {
       await this.updateStoredSavePoint(this.currentSavePoint);
       log.debug(`savepoint stored: ${this.getCurrentSavepoint()}`);
     }
   }
 
   protected async getRecords(): Promise<any> {
-    const offset = this.currentSavePoint['batchSize'] * (this.currentSavePoint['currentBatch'] - 1);
-    const query = `SELECT  * FROM ${this.tableName} where ${this.searchColumn} between ? AND ? order by ${this.searchColumn} limit ${this.currentSavePoint['batchSize']} offset ${offset}`;
+    const query = `SELECT  * FROM ${this.tableName} where ${this.pk} between ? AND ?`;
     try {
-      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, this.currentSavePoint['columnStartValue'], this.currentSavePoint['columnEndValue']));
-      if ((results !== null && results.length > 0)) {
-        return Promise.resolve(results);
-      }
-      return [];
+      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, this.minId, this.maxId));
+      return Promise.resolve(results);
     } catch (e) {
       return Promise.reject(e);
     }
