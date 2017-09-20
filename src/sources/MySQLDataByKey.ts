@@ -25,8 +25,8 @@ export class MySQLDataByKey extends EtlSource {
     // stl and table name
     this.tableName = etlConfig['tableName'].trim();
     this.searchColumn = etlConfig['searchColumn'].trim();
-    this.searchColumnDataType = etlConfig['searchColumnDataType'].trim();
-    this.pk = etlConfig['pk'] ? etlConfig['pk'].trim() : 0;
+    this.searchColumnDataType = etlConfig['searchColumnDataType'] ? etlConfig['searchColumnDataType'].trim() : 'number';
+    this.pk = etlConfig['pk'] ? etlConfig['pk'].trim() : this.searchColumn;
   }
 
   public getMysqlClient() {
