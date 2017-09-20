@@ -100,11 +100,15 @@ sources:
       sourceOptions:
         tableName: landing_pages_table
         searchColumn: id  
+        searchColumnDataType: number
+        pk: id  
     test_9:
       dbClient: GA
       sourceOptions:
         tableName: job_table
         searchColumn: job_id  
+        searchColumnDataType: number
+        pk: job_id  
          
   adwordsreportshistoricaldata:
     test_12: &adwords
