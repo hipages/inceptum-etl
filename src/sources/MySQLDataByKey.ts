@@ -91,8 +91,6 @@ export class MySQLDataByKey extends EtlSource {
     this.currentSavePoint = {
       columnStartValue: this.initialSavePoint['columnStartValue'],
       columnEndValue: this.initialSavePoint['columnEndValue'],
-      minId: this.initialSavePoint['minId'] || 0,
-      maxId: this.initialSavePoint['maxId'] || 0,
       batchSize: Number(this.initialSavePoint['batchSize']),
       currentBatch: this.initialSavePoint.hasOwnProperty('currentBatch') ? Number(this.initialSavePoint['currentBatch']) : 0,
       totalBatches: 0,
