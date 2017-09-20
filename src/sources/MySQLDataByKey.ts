@@ -107,11 +107,12 @@ export class MySQLDataByKey extends EtlSource {
   protected async getTotalRecords(): Promise<any> {
     const query = `SELECT count(*) as total FROM ${this.tableName} where ${this.pk} between ? AND ? order by ${this.pk}`;
     try {
-      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, this.minId, this.maxId));
-      if (results === null || results.length === 0 || !results[0].hasOwnProperty('total')) {
+      const results: Array<any> = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, this.minId, this.maxId));
+
+      if (results === null || results.length === 0 || !_.head(results).hasOwnProperty('total')) {
         return 0;
       }
-      return Number(results[0]['total']);
+      return Number(_.head(results)['total']);
     } catch (e) {
       return Promise.reject(e);
     }
@@ -120,9 +121,9 @@ export class MySQLDataByKey extends EtlSource {
   protected async getMaxAndMinIds() {
     const query = `SELECT  min(${this.pk}) as min_id, max(${this.pk}) as max_id FROM ${this.tableName} where ${this.searchColumn} between ? AND ? order by ${this.searchColumn}`;
     try {
-      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, this.currentSavePoint['columnStartValue'], this.currentSavePoint['columnEndValue']));
-      this.minId = Number(results[0]['min_id']);
-      this.maxId = Number(results[0]['max_id']);
+      const results: Array<any> = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, this.currentSavePoint['columnStartValue'], this.currentSavePoint['columnEndValue']));
+      this.minId = Number(_.head(results)['min_id']);
+      this.maxId = Number(_.head(results)['max_id']);
     } catch (e) {
       log.error(e);
     }
