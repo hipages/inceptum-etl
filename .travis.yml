@@ -1,0 +1,28 @@
+#https://docs.travis-ci.com/user/customizing-the-build#The-Build-Lifecycle
+sudo: false
+language: node_js
+bash: ["4.4"]
+node_js: ["7.10"]
+python: ["3.4"]
+go: ["1.8"]
+
+env:
+  global:
+    - APPLICATION_ENV=docker
+    - TRAVIS_COMMIT_RANGE_SPACE=$(echo ${TRAVIS_COMMIT_RANGE/.../ })
+
+services:
+  - docker
+
+cache:
+  apt: true
+  pip: true
+  bundle: true
+  npm: true
+
+install:
+  - yarn install
+
+script:
+  - yarn coverage-check
+
