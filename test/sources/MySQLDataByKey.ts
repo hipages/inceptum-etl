@@ -283,11 +283,11 @@ suite('MySQLDataByKey', () => {
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal(current);
       const savePoint = source.exposeStringToSavePoint(current);
-      savePoint['columnStartValue'].must.be.equal(48172195);
+      savePoint['columnStartValue'].must.be.equal(48172197);
       savePoint['columnEndValue'].must.be.equal(48172196);
       savePoint['batchSize'].must.be.equal(10);
-      savePoint['currentBatch'].must.be.equal(2);
-      savePoint['totalBatches'].must.be.equal(2);
+      savePoint['currentBatch'].must.be.equal(0);
+      savePoint['totalBatches'].must.be.equal(0);
     });
     test('Test getRecords', async () => {
         dbClient.runInTransaction.returns(inputLandingPages);

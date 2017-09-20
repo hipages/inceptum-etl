@@ -158,7 +158,9 @@ export class EtlBatch {
           return listener.stateChanged(state).then((result) => true);
       }),
     ).then((result) => true)
-    .catch((result) => false);
+    .catch((result) => {
+      throw result;
+    });
   }
 
   /**

@@ -16,6 +16,7 @@ export class MySQLDataByKey extends EtlSource {
   protected pk: string;
   protected minId: number;
   protected maxId: number;
+  protected searchColumnDataType: string;
 
   constructor(mysqlClient: DBClient, etlConfig: object) {
     super();
@@ -24,6 +25,7 @@ export class MySQLDataByKey extends EtlSource {
     // stl and table name
     this.tableName = etlConfig['tableName'].trim();
     this.searchColumn = etlConfig['searchColumn'].trim();
+    this.searchColumnDataType = etlConfig['searchColumnDataType'].trim();
     this.pk = etlConfig['pk'] ? etlConfig['pk'].trim() : 0;
   }
 
@@ -96,6 +98,7 @@ export class MySQLDataByKey extends EtlSource {
       totalBatches: 0,
       currentDate: moment().toISOString(),
     };
+    await this.getMaxAndMinIds();
     const totalRecords = await this.getTotalRecords();
     this.totalBatches = (this.currentSavePoint['batchSize'] > 0) ? Math.ceil(totalRecords / this.currentSavePoint['batchSize']) : 0;
     this.currentSavePoint['totalBatches'] = this.totalBatches;
@@ -140,21 +143,55 @@ export class MySQLDataByKey extends EtlSource {
     return (nextSavePoint['currentBatch'] <= nextSavePoint['totalBatches']);
   }
 
+  /**
+   * This get called at the end of each batch
+   * @param newState has the current batch successfully run
+   */
   public async stateChanged(newState: EtlState): Promise<void> {
     if (newState === EtlState.ERROR) {
       throw new Error(`Error found processing batch`);
     }
+    // Note: Still have doubts here. Need Clarification
     if ((newState === EtlState.SAVE_ENDED)) {
-      await this.updateStoredSavePoint(this.currentSavePoint);
-      log.debug(`savepoint stored: ${this.getCurrentSavepoint()}`);
+      if (this.currentSavePoint['currentBatch'] === this.currentSavePoint['totalBatches']) {
+        // Fininal batch is done. update the starting and ending save point
+        this.updateFinalSavePoint();
+        await this.updateStoredSavePoint(this.currentSavePoint);
+        log.debug(`All done. Savepoint stored: ${this.getCurrentSavepoint()}`);
+      } else {
+        // finish one batch. update the batch number in the save point.
+        // it will start from here again if something breaks in the next batch.
+        await this.updateStoredSavePoint(this.currentSavePoint);
+        log.debug(`Batch done. Savepoint stored: ${this.getCurrentSavepoint()}`);
+      }
     }
+  }
+
+  /**
+   * update the start and end points at the end if all batches finished running.
+   */
+  protected updateFinalSavePoint() {
+    switch (this.searchColumnDataType) {
+      case 'number':
+        this.currentSavePoint['columnStartValue'] = +this.currentSavePoint['columnEndValue'] + 1;
+        break;
+      case 'date':
+        this.currentSavePoint['columnStartValue'] = this.currentSavePoint['columnEndValue'].add(1, 'days');
+        break;
+      default:
+        throw new Error(`Invalid [searchColumnDataType] variable.`);
+    }
+    this.currentSavePoint['batchSize'] = Number(this.initialSavePoint['batchSize']);
+    this.currentSavePoint['currentBatch'] = 0;
+    this.currentSavePoint['totalBatches'] = 0;
+    this.currentSavePoint['currentDate'] = moment().toISOString();
   }
 
   protected async getRecords(): Promise<any> {
     const query = `SELECT  * FROM ${this.tableName} where ${this.pk} between ? AND ?`;
-    const currentBatchStart = Number(this.currentSavePoint['batchsize']) * Number(this.currentSavePoint['currentBatch']) + this.minId;
+    const currentBatchStart = Number(this.currentSavePoint['batchSize']) * Number(this.currentSavePoint['currentBatch']) + this.minId;
     try {
-      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, currentBatchStart, currentBatchStart + Number(this.currentSavePoint['batchsize'])));
+      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, currentBatchStart, currentBatchStart + Number(this.currentSavePoint['batchSize'])));
       return Promise.resolve(results);
     } catch (e) {
       return Promise.reject(e);
