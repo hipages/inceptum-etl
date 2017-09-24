@@ -77,6 +77,7 @@ export class Redshift extends EtlDestination {
         const sql = `copy ${this.tableCopyName}
             from '${filePathInS3}'
             ${iamRole}
+            TRUNCATECOLUMNS
             ${this.fileTypeOptions[this.fileType]};`;
         log.debug(`copy the file: ${sql}`);
 
