@@ -70,7 +70,7 @@ app:
   validEtls:
     - ETL_UNIQUE_NAME
     - ETL_UNIQUE_NAME_2
-    
+
 etlOptions:
   ETL_UNIQUE_NAME:
     source:
@@ -244,4 +244,3 @@ const f = async () => {
 f();
 
 ```
-
