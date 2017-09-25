@@ -23,3 +23,4 @@ export { SavepointPlugin } from './savepoints/SavepointPlugin';
 export { GoogleAnalytics } from './util/GoogleAnalytics';
 export { mapRecord } from './util/FieldMapper';
 export { MySQLDataByKey } from './sources/MySQLDataByKey';
+export { StaticSavepointManager } from './savepoints/StaticSavepointManager';
