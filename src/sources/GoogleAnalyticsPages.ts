@@ -88,7 +88,7 @@ export class GoogleAnalyticsPages extends EtlSource {
   /**
    * This method can be overriten to set the required data to fetch the next batch
    */
-  protected initCurrentSavePoint() {
+  protected async initCurrentSavePoint() {
     const start = moment(this.initialSavePoint['endDate']);
     // tslint:disable-next-line
     const end = moment(this.initialSavePoint['endDate']).add(1, 'days');

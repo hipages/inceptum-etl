@@ -121,7 +121,7 @@ export class GoogleAnalyticsJobs extends EtlSource {
   /**
    * This method can be overwritten to set the required data to fetch the next batch
    */
-  protected initCurrentSavePoint() {
+  protected async initCurrentSavePoint() {
     // tslint:disable-next-line
     let start = moment(this.initialSavePoint['endDate']).subtract(1, 'days');
     start = start.isBefore(this.twoDaysAgo) ? start : this.twoDaysAgo;

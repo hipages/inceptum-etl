@@ -40,7 +40,7 @@ export class AdwordsReportsHistoricalData extends AdwordsReports {
   /**
    * This method can be overwritten to set the required data to fetch the next batch
    */
-  protected initCurrentSavePoint() {
+  protected async initCurrentSavePoint() {
     // The etl runs backwards on time
     const paceAmount = this.initialSavePoint['paceAmount'] || 1;
     const paceTime = this.initialSavePoint['paceTime'] || 'days';
