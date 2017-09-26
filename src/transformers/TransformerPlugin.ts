@@ -1,8 +1,6 @@
 import { Plugin, InceptumApp, Context, BaseSingletonDefinition } from 'inceptum';
 import { SimpleCopy } from './SimpleCopy';
 import { SplitAdwordsCampaign } from './SplitAdwordsCampaign';
-import { GALandingPages } from './GALandingPages';
-import { GATransactions } from './GATransactions';
 import { SmartFieldMapping } from './SmartFieldMapping';
 import { FieldsMapping } from './FieldsMapping';
 
@@ -63,21 +61,6 @@ export class TransformerPlugin implements Plugin {
                     const singletonDefinition = new BaseSingletonDefinition<any>(SplitAdwordsCampaign, this.getEtlObjectName());
                     singletonDefinition.constructorParamByValue(transformersConfig['fixedFields']);
                     singletonDefinition.constructorParamByValue(transformersConfig['fieldsRequiringMapping']); context.registerSingletons(singletonDefinition);
-                }
-                break;
-            case 'galandingpages':
-                {
-                    const singletonDefinition = new BaseSingletonDefinition<any>(GALandingPages, this.getEtlObjectName());
-                    singletonDefinition.constructorParamByRef(transformersConfig['dbClient']);
-                    singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
-                    context.registerSingletons(singletonDefinition);
-                }
-                break;
-            case 'gatransactions':
-                {
-                    const singletonDefinition = new BaseSingletonDefinition<any>(GATransactions, this.getEtlObjectName());
-                    singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
-                    context.registerSingletons(singletonDefinition);
                 }
                 break;
             case 'fieldsmapping':
