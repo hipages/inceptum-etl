@@ -42,7 +42,7 @@ export abstract class EtlSource implements EtlStateListener {
   /**
    * This method can be overload to set the required to fetch the next batch
    */
-  protected initCurrentSavePoint() {
+  protected async initCurrentSavePoint() {
     this.currentSavePoint = {...this.initialSavePoint};
   }
 
@@ -53,7 +53,7 @@ export abstract class EtlSource implements EtlStateListener {
   public async initSavePoint(etlSavepointManager: EtlSavepointManager): Promise<void> {
     this.etlSavepointManager = etlSavepointManager;
     this.initialSavePoint = await this.getStoredSavePoint();
-    this.initCurrentSavePoint();
+    await this.initCurrentSavePoint();
   }
 
   /**

@@ -17,16 +17,29 @@ export class MySQLDataByKey extends EtlSource {
   protected minId: number;
   protected maxId: number;
   protected searchColumnDataType: string;
+  protected recordsLeft: number;
+  protected totalRecords: number;
 
   constructor(mysqlClient: DBClient, etlConfig: object) {
     super();
     // Mysql object to perform ation of Mysql database
     this.mysqlClient = mysqlClient;
-    // stl and table name
-    this.tableName = etlConfig['tableName'].trim();
-    this.searchColumn = etlConfig['searchColumn'].trim();
-    this.searchColumnDataType = etlConfig['searchColumnDataType'] ? etlConfig['searchColumnDataType'].trim() : 'number';
-    this.pk = etlConfig['pk'] ? etlConfig['pk'].trim() : this.searchColumn;
+
+    // validate config file variables
+    this.validateRequiredConfig(etlConfig, 'tableName');
+    this.validateRequiredConfig(etlConfig, 'searchColumn');
+    this.validateRequiredConfig(etlConfig, 'searchColumnDataType');
+    this.validateRequiredConfig(etlConfig, 'pk', this.searchColumn);
+  }
+
+  private validateRequiredConfig(etlConfig, configInput, defaultValue = null) {
+    if (etlConfig[configInput]) {
+      this[configInput] = etlConfig[configInput].trim();
+    } else if (defaultValue) {
+      this[configInput] = defaultValue;
+    }else {
+      throw new Error(`Variable [${configInput}] must be defined in the source config.`);
+    }
   }
 
   public getMysqlClient() {
@@ -97,8 +110,9 @@ export class MySQLDataByKey extends EtlSource {
       currentDate: moment().toISOString(),
     };
     await this.getMaxAndMinIds();
-    const totalRecords = await this.getTotalRecords();
-    this.totalBatches = (this.currentSavePoint['batchSize'] > 0) ? Math.ceil(totalRecords / this.currentSavePoint['batchSize']) : 0;
+    this.totalRecords = await this.getTotalRecords();
+    this.recordsLeft = this.totalRecords;
+    this.totalBatches = (this.currentSavePoint['batchSize'] > 0) ? Math.ceil(this.totalRecords / this.currentSavePoint['batchSize']) : 0;
     this.currentSavePoint['totalBatches'] = this.totalBatches;
   }
 
@@ -138,8 +152,7 @@ export class MySQLDataByKey extends EtlSource {
   }
 
   public hasNextBatch(): boolean {
-    const nextSavePoint = this.getNextSavePoint();
-    return (nextSavePoint['currentBatch'] <= nextSavePoint['totalBatches']);
+    return (this.recordsLeft > 0);
   }
 
   /**
@@ -172,15 +185,19 @@ export class MySQLDataByKey extends EtlSource {
   protected updateFinalSavePoint() {
     switch (this.searchColumnDataType) {
       case 'number':
-        this.currentSavePoint['columnStartValue'] = +this.currentSavePoint['columnEndValue'] + 1;
+        this.currentSavePoint['columnStartValue'] = +this.currentSavePoint['columnStartValue'] + this.totalRecords;
+        this.currentSavePoint['columnEndValue'] = +this.currentSavePoint['columnEndValue'] + this.totalRecords;
         break;
       case 'date':
-        this.currentSavePoint['columnStartValue'] = this.currentSavePoint['columnEndValue'].add(1, 'days');
+        const startDate = moment(this.currentSavePoint['columnEndValue']);
+        const endDate = moment(this.currentSavePoint['columnEndValue']);
+        const duration = moment.duration(endDate.diff(startDate));
+        this.currentSavePoint['columnStartValue'] = endDate.add(1, 'days');
+        this.currentSavePoint['columnEndValue'] = endDate.add(duration.asDays(), 'days');
         break;
       default:
         throw new Error(`Invalid [searchColumnDataType] variable.`);
     }
-    this.currentSavePoint['batchSize'] = Number(this.initialSavePoint['batchSize']);
     this.currentSavePoint['currentBatch'] = 0;
     this.currentSavePoint['totalBatches'] = 0;
     this.currentSavePoint['currentDate'] = moment().toISOString();
@@ -188,9 +205,15 @@ export class MySQLDataByKey extends EtlSource {
 
   protected async getRecords(): Promise<any> {
     const query = `SELECT  * FROM ${this.tableName} where ${this.pk} between ? AND ?`;
-    const currentBatchStart = Number(this.currentSavePoint['batchSize']) * Number(this.currentSavePoint['currentBatch']) + this.minId;
+    const batchSize = Number(this.currentSavePoint['batchSize']);
+    const currentBatch = Number(this.currentSavePoint['currentBatch']);
+    const currentBatchSize = (this.recordsLeft > batchSize) ? batchSize : this.recordsLeft;
+
     try {
-      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, currentBatchStart, currentBatchStart + Number(this.currentSavePoint['batchSize'])));
+      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => transaction.query(query, this.minId, this.minId + currentBatchSize));
+      this.recordsLeft = this.recordsLeft - currentBatchSize;
+      this.minId = this.minId + currentBatchSize;
+
       return Promise.resolve(results);
     } catch (e) {
       return Promise.reject(e);
@@ -205,7 +228,6 @@ export class MySQLDataByKey extends EtlSource {
   public async getNextBatch(): Promise<EtlBatch> {
     let data = [];
     if (this.hasNextBatch()) {
-      this.currentSavePoint = this.getNextSavePoint();
       data = await this.getRecords();
       log.info(`read report from: ${this.currentSavePoint['currentBatch']} - ${this.currentSavePoint['totalBatches']} : batch ${this.currentSavePoint['currentBatch']}`);
     }
@@ -216,6 +238,7 @@ export class MySQLDataByKey extends EtlSource {
       `${this.currentSavePoint['currentBatch']}_${this.currentSavePoint['columnStartValue']}-${this.currentSavePoint['columnEndValue']}`,
     );
     batch.registerStateListener(this);
+    this.currentSavePoint = this.getNextSavePoint();
     return batch;
   }
 }

@@ -283,8 +283,8 @@ suite('MySQLDataByKey', () => {
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal(current);
       const savePoint = source.exposeStringToSavePoint(current);
-      savePoint['columnStartValue'].must.be.equal(48172197);
-      savePoint['columnEndValue'].must.be.equal(48172196);
+      savePoint['columnStartValue'].must.be.equal(48172210);
+      savePoint['columnEndValue'].must.be.equal(48172211);
       savePoint['batchSize'].must.be.equal(10);
       savePoint['currentBatch'].must.be.equal(0);
       savePoint['totalBatches'].must.be.equal(0);
