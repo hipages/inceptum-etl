@@ -1,8 +1,6 @@
 import { Plugin, InceptumApp, Context, BaseSingletonDefinition } from 'inceptum';
 import { SimpleCopy } from './SimpleCopy';
 import { SplitAdwordsCampaign } from './SplitAdwordsCampaign';
-import { GALandingPages } from './GALandingPages';
-import { GATransactions } from './GATransactions';
 import { SmartFieldMapping } from './SmartFieldMapping';
 import { FieldsMapping } from './FieldsMapping';
 
@@ -20,6 +18,14 @@ export class TransformerPlugin implements Plugin {
     }
 
     willStart(app: InceptumApp) {
+        const configPath = `etls.${this.etlName}.transformer`;
+        if (app.hasConfig(configPath)) {
+            const { type, ...options } = app.getConfig(configPath, null);
+            app.getContext().getLogger().debug(`Registering ${type} transformer for ${this.etlName}`);
+            this.registerTransformerSingleton(this.etlName, type, options, app.getContext());
+            return;
+        }
+
         if (!app.hasConfig(`transformers`)) {
             throw new Error('TransformerPlugin has been registered but could not find config using key "transformers"');
         }
@@ -33,16 +39,16 @@ export class TransformerPlugin implements Plugin {
 
     protected registerTransformerSingleton(etlName: string, transformersType: string, transformersConfig: object, context: Context) {
         switch (transformersType) {
-            case 'smartfieldmapping' :
-            {
-                const singletonDefinition = new BaseSingletonDefinition<any>(SmartFieldMapping, 'EtlTransformer');
-                singletonDefinition.constructorParamByValue(etlName);
-                singletonDefinition.constructorParamByValue(transformersConfig['tempDirectory']);
-                singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);
-                singletonDefinition.constructorParamByValue(transformersConfig['bucket']);
-                singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
-                context.registerSingletons(singletonDefinition);
-            }
+            case 'smartfieldmapping':
+                {
+                    const singletonDefinition = new BaseSingletonDefinition<any>(SmartFieldMapping, 'EtlTransformer');
+                    singletonDefinition.constructorParamByValue(etlName);
+                    singletonDefinition.constructorParamByValue(transformersConfig['tempDirectory']);
+                    singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);
+                    singletonDefinition.constructorParamByValue(transformersConfig['bucket']);
+                    singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
+                    context.registerSingletons(singletonDefinition);
+                }
                 break;
             case 'simplecopy':
                 {
@@ -54,22 +60,7 @@ export class TransformerPlugin implements Plugin {
                 {
                     const singletonDefinition = new BaseSingletonDefinition<any>(SplitAdwordsCampaign, this.getEtlObjectName());
                     singletonDefinition.constructorParamByValue(transformersConfig['fixedFields']);
-                    singletonDefinition.constructorParamByValue(transformersConfig['fieldsRequiringMapping']);                    context.registerSingletons(singletonDefinition);
-                }
-                break;
-            case 'galandingpages':
-                {
-                    const singletonDefinition = new BaseSingletonDefinition<any>(GALandingPages, this.getEtlObjectName());
-                    singletonDefinition.constructorParamByRef(transformersConfig['dbClient']);
-                    singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
-                    context.registerSingletons(singletonDefinition);
-                }
-                break;
-            case 'gatransactions':
-                {
-                    const singletonDefinition = new BaseSingletonDefinition<any>(GATransactions, this.getEtlObjectName());
-                    singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
-                    context.registerSingletons(singletonDefinition);
+                    singletonDefinition.constructorParamByValue(transformersConfig['fieldsRequiringMapping']); context.registerSingletons(singletonDefinition);
                 }
                 break;
             case 'fieldsmapping':
