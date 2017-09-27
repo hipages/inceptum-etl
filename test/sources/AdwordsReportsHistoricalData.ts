@@ -8,8 +8,8 @@ import { StaticSavepointManager } from '../../src/savepoints/StaticSavepointMana
 import { AdwordsReportsHistoricalData } from '../../src/sources/AdwordsReportsHistoricalData';
 import { SourcePlugin } from '../../src/sources/SourcePlugin';
 
-const adwordsConfig = utilConfig.get('sources.adwordsreportshistoricaldata.test_12');
-const savePointConfig = utilConfig.get('savepoints.static.test_12.savepoint');
+const adwordsConfig = utilConfig.get('etls.test_12.source');
+const savePointConfig = utilConfig.get('etls.test_12.savepoint.savepoint');
 // tslint:disable-next-line
 const yesterday = moment().subtract(1, 'days');
 const today = moment();

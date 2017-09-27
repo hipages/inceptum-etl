@@ -195,7 +195,7 @@ const testObjectResults2 = [
 
 suite('FieldsMapping', () => {
     suite('Test with fixedFields', () => {
-        const config = utilConfig.get('transformers.fieldsmapping.test_10');
+        const config = utilConfig.get('transformers.fieldsmapping');
         const batch =  new EtlBatch(testObject, 1, 1, 'test_FieldsMapping');
         const transf = new FieldsMapping(config.fixedFields, config.mappedFields);
         test('Test configuration: fixedFields', async () => {
@@ -237,7 +237,7 @@ suite('FieldsMapping', () => {
         });
     });
     suite('Test with no fixedFields', () => {
-        const config = utilConfig.get('transformers.fieldsmapping.test_11');
+        const config = utilConfig.get('etls.test_11.transformer');
         const batch =  new EtlBatch(testObject, 1, 1, 'test_FieldsMapping');
         const transf = new FieldsMapping(config.fixedFields, config.mappedFields);
         test('Test configuration: fixedFields', async () => {
