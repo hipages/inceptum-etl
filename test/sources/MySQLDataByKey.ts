@@ -139,6 +139,10 @@ class HelperMySQLDataByKey extends MySQLDataByKey {
   public exposegetRecords() {
     return this.getRecords();
   }
+  protected async getMaxAndMinIds() {
+    this.minId = 1;
+    this.maxId = 10;
+  }
 }
 
 suite('MySQLDataByKey', () => {
@@ -165,7 +169,6 @@ suite('MySQLDataByKey', () => {
       } catch (err) {
         err.message.must.be.equal('Empty savepoint found to run source');
       }
-      // source.getInitialSavepointObject().must.be.eql({});
     });
     test('Test empty savepoint init fail', async () => {
       const source = new HelperMySQLDataByKey(dbClient, gaConfig.sourceOptions);
