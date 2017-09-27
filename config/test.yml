@@ -26,6 +26,150 @@ generalConfig:
     timeoutMillis: 5000
     batchSize: 1
 
+sources:
+  adwordsreports:
+    maxRetries: 5000
+    timeoutMillis: 1
+    account: THE_ACCOUNT_NAME
+    token: DEVELOPER_TOKEN
+    userAgent: YOUR_PROJECT_NAME
+    clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
+    clientId: ADWORDS_API_CLIENT_ID
+    clientSecret: ADWORDS_API_CLIENT_SECRET
+    refreshToken: ADWORDS_API_REFRESHTOKEN
+    version: v201705
+    accountsList:
+      - name: ADWORDS_ACOUNT_NAME_1
+        id: ADWORDS_ACOUNT_ID_1
+      - name: ADWORDS_ACOUNT_NAME_2
+        id: ADWORDS_ACOUNT_ID_2
+    reportQuery: "SELECT AccountDescriptiveName, AccountTimeZone, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM   KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0"
+  gatransactions:
+    account: hip
+    gaViewId: 123456
+    clientKey: "-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----\n"
+    clientEmail: "the.iam.gserviceaccount.com"
+  galandingpages:
+    account: hip
+    gaViewId: 123456
+    clientKey: "-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----\n"
+    clientEmail: "the.iam.gserviceaccount.com"
+  mysqldatabykey:
+    dbClient: SEO
+    sourceOptions:
+      tableName: landing_pages_table
+      searchColumn: id  
+      searchColumnDataType: number
+      pk: id  
+  adwordsreportshistoricaldata:
+    test_12: &adwords
+      maxRetries: 5000
+      timeoutMillis: 1
+      account: THE_ACCOUNT_NAME
+      token: DEVELOPER_TOKEN
+      userAgent: YOUR_PROJECT_NAME
+      clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
+      clientId: ADWORDS_API_CLIENT_ID
+      clientSecret: ADWORDS_API_CLIENT_SECRET
+      refreshToken: ADWORDS_API_REFRESHTOKEN
+      version: v201705
+      accountsList:
+        - name: ADWORDS_ACOUNT_NAME_1
+          id: ADWORDS_ACOUNT_ID_1
+        - name: ADWORDS_ACOUNT_NAME_2
+          id: ADWORDS_ACOUNT_ID_2
+      reportQuery: "SELECT AccountDescriptiveName, AccountTimeZone, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM   KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0"
+
+transformers:
+  splitadwordscampaign:
+    fixedFields:
+      app_code: HIP
+      source_name: Adwords
+      source_account: hip
+      record_created_date: '2017-08-23 10:30:45'
+      source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
+    fieldsRequiringMapping:
+      keyword_placement: keyword__placement
+  simplecopy:
+    available: true
+  smartfieldmapping:
+    tempDirectory: .
+    regexPath: './regex.json'
+    bucket: 'bucketName'
+    fieldsMapping:
+      app_code: 
+        action: add
+        field: account
+      source_name:
+        action: add
+        value: Google Analytics
+      source_time_zone:
+        action: add
+        value: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
+      source_account:
+        action: replace
+        field: account
+      record_created_date:
+        action: replace
+        field: created_by_date
+      landing_content_group5:
+        action: regexAdd
+        field: landing_page_path
+  fieldsmapping:
+    fixedFields:
+      app_code: HIP
+      source_name: Adwords
+      source_account: hip
+      record_created_date: '2017-08-23 10:30:45'
+      source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
+    mappedFields:
+      report_date: report_date
+      medium: medium
+      source: source
+      landing_page_path: landingPagePath
+      device_category: deviceCategory
+      region: region
+      campaign: campaign
+      ad_group: adGroup
+      landing_content_group: landingContentGroup5
+      sessions: sessions
+      percent_new_sessions: percentNewSessions
+      organic_searches: organicSearches
+      goal_1_completions: goal1Completions
+      goal_15_completions: goal15Completions
+      pageviews: pageviews
+
+destinations:
+  csvfile:
+    directory: .
+    fileName: akp
+    cleanUpDirectory : false
+  jsonfile:
+    directory: .
+    fileName: akp
+    cleanUpDirectory : false
+  redshift:
+    dbClient: dwRedshift
+    bucket: bucket/path
+    tempDirectory: .
+    tableCopyName: copy.fact_keywords_performance
+    tableName: dwh.fact_keywords_performance
+    bulkDeleteMatchFields: 
+      - account 
+      - report_date
+    iamRole:
+  s3bucket:
+    fileType: json
+    bucket: bucket/path
+    tempDirectory: .
+    fileName: akp
+
+savepoints:
+  mysql:
+    dbClient: EtlSavePoint
+  static:
+    savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+
 etls:
   test_1: 
     source:
@@ -311,116 +455,6 @@ etls:
     savepoint:
       type: static
       savepoint: '{"startDate":"20170901","endDate":"20170910","paceAmount":1,"paceTime":"months","finalDate":"20170701","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
-
-
-sources:
-  adwordsreports:
-    maxRetries: 5000
-    timeoutMillis: 1
-    account: THE_ACCOUNT_NAME
-    token: DEVELOPER_TOKEN
-    userAgent: YOUR_PROJECT_NAME
-    clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
-    clientId: ADWORDS_API_CLIENT_ID
-    clientSecret: ADWORDS_API_CLIENT_SECRET
-    refreshToken: ADWORDS_API_REFRESHTOKEN
-    version: v201705
-    accountsList:
-      - name: ADWORDS_ACOUNT_NAME_1
-        id: ADWORDS_ACOUNT_ID_1
-      - name: ADWORDS_ACOUNT_NAME_2
-        id: ADWORDS_ACOUNT_ID_2
-    reportQuery: "SELECT AccountDescriptiveName, AccountTimeZone, CampaignName, CampaignId, AdGroupName, AdGroupId, Criteria, Id, KeywordMatchType, Status, Date, Device, Impressions, Clicks, Conversions, Cost, Ctr, AverageCpc, ConversionRate, CpcBid,  CpcBidSource, QualityScore, HasQualityScore, CreativeQualityScore, CriteriaDestinationUrl, AveragePosition, FirstPageCpc, FirstPositionCpc, TopOfPageCpc, IsNegative, SearchExactMatchImpressionShare, SearchImpressionShare, SearchRankLostImpressionShare, BidType FROM   KEYWORDS_PERFORMANCE_REPORT WHERE  Clicks > 0"
-
-transformers:
-  splitadwordscampaign:
-    fixedFields:
-      app_code: HIP
-      source_name: Adwords
-      source_account: hip
-      record_created_date: '2017-08-23 10:30:45'
-      source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
-    fieldsRequiringMapping:
-      keyword_placement: keyword__placement
-  simplecopy:
-    available: true
-  smartfieldmapping:
-    tempDirectory: .
-    regexPath: './regex.json'
-    bucket: 'bucketName'
-    fieldsMapping:
-      app_code: 
-        action: add
-        field: account
-      source_name:
-        action: add
-        value: Google Analytics
-      source_time_zone:
-        action: add
-        value: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
-      source_account:
-        action: replace
-        field: account
-      record_created_date:
-        action: replace
-        field: created_by_date
-      landing_content_group5:
-        action: regexAdd
-        field: landing_page_path
-  fieldsmapping:
-    fixedFields:
-      app_code: HIP
-      source_name: Adwords
-      source_account: hip
-      record_created_date: '2017-08-23 10:30:45'
-      source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
-    mappedFields:
-      report_date: report_date
-      medium: medium
-      source: source
-      landing_page_path: landingPagePath
-      device_category: deviceCategory
-      region: region
-      campaign: campaign
-      ad_group: adGroup
-      landing_content_group: landingContentGroup5
-      sessions: sessions
-      percent_new_sessions: percentNewSessions
-      organic_searches: organicSearches
-      goal_1_completions: goal1Completions
-      goal_15_completions: goal15Completions
-      pageviews: pageviews
-
-destinations:
-  csvfile:
-    directory: .
-    fileName: akp
-    cleanUpDirectory : false
-  jsonfile:
-    directory: .
-    fileName: akp
-    cleanUpDirectory : false
-  redshift:
-    dbClient: dwRedshift
-    bucket: bucket/path
-    tempDirectory: .
-    tableCopyName: copy.fact_keywords_performance
-    tableName: dwh.fact_keywords_performance
-    bulkDeleteMatchFields: 
-      - account 
-      - report_date
-    iamRole:
-  s3bucket:
-    fileType: json
-    bucket: bucket/path
-    tempDirectory: .
-    fileName: akp
-
-savepoints:
-  mysql:
-    dbClient: EtlSavePoint
-  static:
-    savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
 
 mysql:
   EtlSavePoint:    
