@@ -51,9 +51,15 @@ export class ConfigPlugin implements Plugin {
       singletonDefinition.setPropertyByValue('etlTransformerTimeoutMillis', configurationConfig['transformers']['timeoutMillis']);
       singletonDefinition.setPropertyByValue('minSuccessfulTransformationPercentage', configurationConfig['transformers']['minSuccessPercentage']);
     }
-    singletonDefinition.setPropertyByValue('maxEtlDestinationRetries', configurationConfig['destinations']['maxRetries']);
-    singletonDefinition.setPropertyByValue('etlDestinationTimeoutMillis', configurationConfig['destinations']['timeoutMillis']);
-    singletonDefinition.setPropertyByValue('etlDestinationBatchSize', configurationConfig['destinations']['batchSize']);
+    if (configurationConfig.hasOwnProperty('destination')) {
+      singletonDefinition.setPropertyByValue('maxEtlDestinationRetries', configurationConfig['destination']['maxRetries']);
+      singletonDefinition.setPropertyByValue('etlDestinationTimeoutMillis', configurationConfig['destination']['timeoutMillis']);
+      singletonDefinition.setPropertyByValue('etlDestinationBatchSize', configurationConfig['destination']['batchSize']);
+    } else {
+      singletonDefinition.setPropertyByValue('maxEtlDestinationRetries', configurationConfig['destinations']['maxRetries']);
+      singletonDefinition.setPropertyByValue('etlDestinationTimeoutMillis', configurationConfig['destinations']['timeoutMillis']);
+      singletonDefinition.setPropertyByValue('etlDestinationBatchSize', configurationConfig['destinations']['batchSize']);
+    }
     context.registerSingletons(singletonDefinition);
   }
 }

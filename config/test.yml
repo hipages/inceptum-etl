@@ -18,10 +18,10 @@ generalConfig:
   source:
     maxRetries: 3
     timeoutMillis: 5000
-  transformers:
+  transformer:
     minSuccessPercentage: 1
     timeoutMillis: 5000
-  destinations:
+  destination:
     maxRetries: 3
     timeoutMillis: 5000
     batchSize: 1
