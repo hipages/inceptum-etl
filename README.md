@@ -41,12 +41,17 @@ Now the extra parts :
 - "runner" to finally run the ETL  
 
 ### Available sources
-- Adwords keywords performance report
-- Adwords clicks performance report
+- Adwords reports
+- Adwords report historical data
+- Google analytics transactions
+- Google analytics landing pages
+- MySQL data
 
 ### Available transformers
 - Simple copy
 - Split adwords campaign
+- Field mapping
+- Smart field mapping
 
 ### Available destinations
 - CSV file
