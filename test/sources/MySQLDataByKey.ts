@@ -141,7 +141,7 @@ class HelperMySQLDataByKey extends MySQLDataByKey {
   }
   protected async getMaxAndMinIds() {
     this.minId = 1;
-    this.maxId = 10;
+    this.maxId = 15;
   }
 }
 
@@ -154,6 +154,7 @@ suite('MySQLDataByKey', () => {
       source.getMysqlClient().must.be.instanceOf(DBClient);
       source.getTableName().must.be.equal('landing_pages_table');
       source.getSearchColumn().must.be.equal('id');
+      source.getPK().must.be.equal('id');
     });
     test('Test initial savepoint manager', async () => {
       const source = new HelperMySQLDataByKey(dbClient, gaConfig.sourceOptions);
@@ -287,7 +288,7 @@ suite('MySQLDataByKey', () => {
       finalSavePoint.must.be.equal(current);
       const savePoint = source.exposeStringToSavePoint(current);
       savePoint['columnStartValue'].must.be.equal(48172197);
-      savePoint['columnEndValue'].must.be.equal(48172196);
+      savePoint['columnEndValue'].must.be.equal('');
       savePoint['batchSize'].must.be.equal(10);
       savePoint['currentBatch'].must.be.equal(0);
       savePoint['totalBatches'].must.be.equal(0);
