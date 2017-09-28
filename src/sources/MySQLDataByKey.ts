@@ -93,9 +93,13 @@ export class MySQLDataByKey extends EtlSource {
     if (!this.initialSavePoint.hasOwnProperty('columnStartValue') || !this.initialSavePoint.hasOwnProperty('columnEndValue') || !this.initialSavePoint.hasOwnProperty('batchSize')) {
       throw new Error(`Missing fields in savepoint`);
     }
+    if (this.searchColumnDataType !== 'number') {
+      this.initialSavePoint['columnStartValue'] = this.initialSavePoint['columnStartValue'].trim();
+      this.initialSavePoint['columnEndValue'] = this.initialSavePoint['columnEndValue'].trim();
+    }
     this.currentSavePoint = {
-      columnStartValue: this.initialSavePoint['columnStartValue'].trim(),
-      columnEndValue: this.initialSavePoint['columnEndValue'].trim(),
+      columnStartValue: this.initialSavePoint['columnStartValue'],
+      columnEndValue: this.initialSavePoint['columnEndValue'],
       batchSize: Number(this.initialSavePoint['batchSize']),
       currentBatch: this.initialSavePoint.hasOwnProperty('currentBatch') ? Number(this.initialSavePoint['currentBatch']) : 0,
       totalBatches: 0,
@@ -149,7 +153,9 @@ export class MySQLDataByKey extends EtlSource {
       });
       this.minId = Number(_.head(results)['min_id']);
       this.maxId = Number(_.head(results)['max_id']);
-      this.currentSavePoint['columnEndValue'] = _.head(results)['end_value'];
+      if (findEndVal) {
+        this.currentSavePoint['columnEndValue'] = _.head(results)['end_value'];
+      }
     } catch (e) {
       log.fatal(e, `Fail getting table ${this.tableName} getMaxAndMinIds`);
       return Promise.reject(e);
@@ -201,7 +207,7 @@ export class MySQLDataByKey extends EtlSource {
   protected updateFinalSavePoint() {
     switch (this.searchColumnDataType) {
       case 'number':
-        this.currentSavePoint['columnStartValue'] = +this.currentSavePoint['columnEndValue'] + 1;
+        this.currentSavePoint['columnStartValue'] = Number(this.currentSavePoint['columnEndValue']) + 1;
         break;
       case 'date':
         this.currentSavePoint['columnStartValue'] = moment(this.currentSavePoint['columnEndValue']).add(1, 'days');
@@ -251,13 +257,18 @@ export class MySQLDataByKey extends EtlSource {
       data = await this.getRecords();
       log.info(`read report from: ${this.currentSavePoint['currentBatch']} - ${this.currentSavePoint['totalBatches']} : batch ${this.currentSavePoint['currentBatch']}`);
     }
-    const batch = new EtlBatch(
-      data,
-      this.currentSavePoint['currentBatch'],
-      this.currentSavePoint['totalBatches'],
-      `${this.currentSavePoint['currentBatch']}_${this.currentSavePoint['columnStartValue']}-${this.currentSavePoint['columnEndValue']}`,
-    );
-    batch.registerStateListener(this);
-    return batch;
+    // There can be empty batches read the next batch in that case
+    if ((data.length === 0) && this.hasNextBatch()) {
+      return await this.getNextBatch();
+    } else {
+      const batch = new EtlBatch(
+        data,
+        this.currentSavePoint['currentBatch'],
+        this.currentSavePoint['totalBatches'],
+        `${this.currentSavePoint['currentBatch']}_${this.currentSavePoint['columnStartValue']}-${this.currentSavePoint['columnEndValue']}`,
+      );
+      batch.registerStateListener(this);
+      return batch;
+    }
   }
 }
