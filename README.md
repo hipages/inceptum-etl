@@ -65,7 +65,7 @@ Now the extra parts :
 
 Every part of the ETL is set up via the config file ( default.yml )
 
-Use one config file
+Use one config file: default.yml, development.yml and production.yml
 ```
 app:
   name: Inceptum Etl
@@ -150,9 +150,10 @@ logging:
         console: debug
 ```
 
-Use a default.yml config file and a config for each etl
+Use a default.yml config file and a separated config for each etl
 
-default.yml
+The default values are in:
+default.yml, development.mnt.yml and production.yml
 ```
 app:
   name: Inceptum Etl
@@ -232,28 +233,22 @@ logging:
         console: debug
 ```
 
-ETL_UNIQUE_NAME config file
+Set the variable NODE_APP_INSTANCE with the name of the etl
+
+development-{etl_name}.yml, production-{etl_name}.yml
 
 ```
 generalConfig:
   source:
-    maxRetries: 3
-    timeoutMillis: 5000
     type: source_name
   transformer:
-    minSuccessPercentage: 1
-    timeoutMillis: 5000
     type: transformer_name_2
   destination:
-    maxRetries: 3
-    timeoutMillis: 5000
-    batchSize: 1
     type: destination_name_2
   savepoint:
     type: savepoint_name
 
-# Overwrite the used source, transformer, destination or savepoint as required
-
+# Overwrite the required source, transformer, destination or savepoint as required
 sources:
   source_name:
     etl_source_parameters
