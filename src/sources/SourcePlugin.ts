@@ -20,6 +20,7 @@ export class SourcePlugin implements Plugin {
     }
 
     willStart(app: InceptumApp) {
+        // Source in etls object: etls = { etl_name: { source, transformer, destination, savepoint, config} }
         const configPath = `etls.${this.etlName}.source`;
         if (app.hasConfig(configPath)) {
             const { type, ...options } = app.getConfig(configPath, null);
@@ -32,7 +33,20 @@ export class SourcePlugin implements Plugin {
             throw new Error('SourcePlugin has been registered but could not find config using key "sources"');
         }
         const sources = app.getConfig('sources', {});
-        Object.keys(sources).forEach((sourceType) => {
+
+        // Source in generalConfig object:  generalConfig = { source, transformer, destination, savepoint }
+        // sources = { type, ... }
+        if (app.hasConfig(`generalConfig.source.type`)) {
+            const type = app.getConfig('etlOptions.source.type', '');
+            if (app.hasConfig(`sources.${type}`)) {
+            app.getContext().getLogger().debug(`Registering ${type} source for ${this.etlName}`);
+            this.registerSourceSingleton(this.etlName, type, sources[type], app.getContext());
+            return;
+            }
+        }
+
+        // Etl in sources object:  sources = { etl_name, ... }
+          Object.keys(sources).forEach((sourceType) => {
             if (app.hasConfig(`sources.${sourceType}.${this.etlName}`)) {
                 this.registerSourceSingleton(this.etlName, sourceType, sources[sourceType][this.etlName], app.getContext());
             }

@@ -30,6 +30,19 @@ export class TransformerPlugin implements Plugin {
             throw new Error('TransformerPlugin has been registered but could not find config using key "transformers"');
         }
         const transformers = app.getConfig('transformers', {});
+
+        // Source in generalConfig object:  generalConfig = { source, transformer, destination, savepoint }
+        // transformers = { type, ... }
+        if (app.hasConfig(`generalConfig.transformer.type`)) {
+            const type = app.getConfig('etlOptions.transformer.type', '');
+            if (app.hasConfig(`transformers.${type}`)) {
+                app.getContext().getLogger().debug(`Registering ${type} transformer for ${this.etlName}`);
+                this.registerTransformerSingleton(this.etlName, type, transformers[type], app.getContext());
+                return;
+            }
+        }
+
+        // Etl in transformer object:  sources = { etl_name, ... }
         Object.keys(transformers).forEach((transformersType) => {
             if (app.hasConfig(`transformers.${transformersType}.${this.etlName}`)) {
                 this.registerTransformerSingleton(this.etlName, transformersType, transformers[transformersType][this.etlName], app.getContext());

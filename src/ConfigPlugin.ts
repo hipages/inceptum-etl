@@ -15,14 +15,17 @@ export class ConfigPlugin implements Plugin {
   }
 
   willStart(app: InceptumApp) {
+    // Options in etls object:  etls = { etl_name: { source, transformer, destination, savepoint, config} }
     const configPath = `etls.${this.etlName}.config`;
-    if (app.hasConfig(configPath)) {
-      const { ...options } = app.getConfig(configPath, null);
+    if (app.hasConfig(configPath) || app.hasConfig('generalConfig')) {
+      const generalConfig = app.getConfig('generalConfig', null);
+      const { ...options } = app.getConfig(configPath, generalConfig);
       app.getContext().getLogger().debug(`Registering configuration for ${this.etlName}`);
       this.registerConfigSingleton(this.etlName, options, app.getContext());
       return;
     }
 
+    // Options in etlOptions object:  etlOptions = { etl_name, ... }
     if (!app.hasConfig(`etlOptions`)) {
       throw new Error('ConfigPlugin has been registered but could not find config using key "etlOptions"');
     }
@@ -41,11 +44,22 @@ export class ConfigPlugin implements Plugin {
     singletonDefinition.setPropertyByRef('etlSavepointManager', 'EtlSavepointManager');
     singletonDefinition.setPropertyByValue('maxEtlSourceRetries', configurationConfig['source']['maxRetries']);
     singletonDefinition.setPropertyByValue('etlSourceTimeoutMillis', configurationConfig['source']['timeoutMillis']);
-    singletonDefinition.setPropertyByValue('etlTransformerTimeoutMillis', configurationConfig['transformers']['timeoutMillis']);
-    singletonDefinition.setPropertyByValue('minSuccessfulTransformationPercentage', configurationConfig['transformers']['minSuccessPercentage']);
-    singletonDefinition.setPropertyByValue('maxEtlDestinationRetries', configurationConfig['destinations']['maxRetries']);
-    singletonDefinition.setPropertyByValue('etlDestinationTimeoutMillis', configurationConfig['destinations']['timeoutMillis']);
-    singletonDefinition.setPropertyByValue('etlDestinationBatchSize', configurationConfig['destinations']['batchSize']);
+    if (configurationConfig.hasOwnProperty('transformer')) {
+      singletonDefinition.setPropertyByValue('etlTransformerTimeoutMillis', configurationConfig['transformer']['timeoutMillis']);
+      singletonDefinition.setPropertyByValue('minSuccessfulTransformationPercentage', configurationConfig['transformer']['minSuccessPercentage']);
+    } else {
+      singletonDefinition.setPropertyByValue('etlTransformerTimeoutMillis', configurationConfig['transformers']['timeoutMillis']);
+      singletonDefinition.setPropertyByValue('minSuccessfulTransformationPercentage', configurationConfig['transformers']['minSuccessPercentage']);
+    }
+    if (configurationConfig.hasOwnProperty('destination')) {
+      singletonDefinition.setPropertyByValue('maxEtlDestinationRetries', configurationConfig['destination']['maxRetries']);
+      singletonDefinition.setPropertyByValue('etlDestinationTimeoutMillis', configurationConfig['destination']['timeoutMillis']);
+      singletonDefinition.setPropertyByValue('etlDestinationBatchSize', configurationConfig['destination']['batchSize']);
+    } else {
+      singletonDefinition.setPropertyByValue('maxEtlDestinationRetries', configurationConfig['destinations']['maxRetries']);
+      singletonDefinition.setPropertyByValue('etlDestinationTimeoutMillis', configurationConfig['destinations']['timeoutMillis']);
+      singletonDefinition.setPropertyByValue('etlDestinationBatchSize', configurationConfig['destinations']['batchSize']);
+    }
     context.registerSingletons(singletonDefinition);
   }
 }

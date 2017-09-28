@@ -13,8 +13,8 @@ import { SourcePlugin } from '../../src/sources/SourcePlugin';
 import { MySQLDataByKey } from '../../src/sources/MySQLDataByKey';
 
 // Test Config
-const gaConfig = utilConfig.get('sources.mysqldatabykey.test_8');
-const savePointConfig = utilConfig.get('savepoints.static.test_8.savepoint');
+const gaConfig = utilConfig.get('etls.test_8.source');
+const savePointConfig = utilConfig.get('etls.test_8.savepoint.savepoint');
 
 const inputLandingPages = [{
     source_type: 0,
@@ -139,6 +139,10 @@ class HelperMySQLDataByKey extends MySQLDataByKey {
   public exposegetRecords() {
     return this.getRecords();
   }
+  protected async getMaxAndMinIds() {
+    this.minId = 1;
+    this.maxId = 10;
+  }
 }
 
 suite('MySQLDataByKey', () => {
@@ -165,7 +169,6 @@ suite('MySQLDataByKey', () => {
       } catch (err) {
         err.message.must.be.equal('Empty savepoint found to run source');
       }
-      // source.getInitialSavepointObject().must.be.eql({});
     });
     test('Test empty savepoint init fail', async () => {
       const source = new HelperMySQLDataByKey(dbClient, gaConfig.sourceOptions);

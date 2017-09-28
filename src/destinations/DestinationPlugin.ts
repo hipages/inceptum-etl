@@ -18,6 +18,7 @@ export class DestinationPlugin implements Plugin {
   }
 
   willStart(app: InceptumApp) {
+    // Destination in etls object: etls = { etl_name: { source, transformer, destination, savepoint, config} }
     const configPath = `etls.${this.etlName}.destination`;
     if (app.hasConfig(configPath)) {
       const { type, ...options } = app.getConfig(configPath, null);
@@ -30,6 +31,19 @@ export class DestinationPlugin implements Plugin {
       throw new Error('DestinationPlugin has been registered but could not find config using key "destinations"');
     }
     const destinations = app.getConfig('destinations', {});
+
+    // Destination in generalConfig object:  generalConfig = { source, transformer, destination, savepoint }
+    // destination = { type, ... }
+    if (app.hasConfig(`generalConfig.destination.type`)) {
+      const type = app.getConfig('etlOptions.destination.type', '');
+      if (app.hasConfig(`destinations.${type}`)) {
+        app.getContext().getLogger().debug(`Registering ${type} destination for ${this.etlName}`);
+        this.registerDestinationSingleton(this.etlName, type, destinations[type], app.getContext());
+        return;
+      }
+    }
+
+    // Etl in destinations object:  destinations = { etl_name, ... }
     Object.keys(destinations).forEach((destinationType) => {
       if (app.hasConfig(`destinations.${destinationType}.${this.etlName}`)) {
         this.registerDestinationSingleton(this.etlName, destinationType, destinations[destinationType][this.etlName], app.getContext());

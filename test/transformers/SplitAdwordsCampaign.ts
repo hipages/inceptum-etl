@@ -243,7 +243,7 @@ const testObjectClicksResults = [
   },
 ];
 
-const adwordsClicksConfig = utilConfig.get('transformers.splitadwordscampaign.test_1');
+const adwordsClicksConfig = utilConfig.get('transformers.splitadwordscampaign');
 const batch =  new EtlBatch(testObjectClicks, 1, 1, 'test_clicks');
 
 suite('SplitAdwordsCampaign', () => {

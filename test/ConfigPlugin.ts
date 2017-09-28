@@ -22,8 +22,8 @@ context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlRunn
 const confPlugin = new ConfigPlugin(etlName);
 app.use(confPlugin);
 
-suite('EtlConfig', () => {
-  suite('Etl config test', () => {
+suite('Config Plugin', () => {
+  suite('ConfigPlugin test', () => {
     test('Basic Getters and setters', async () => {
       await app.start();
       const config = await context.getObjectByName('EtlConfig');

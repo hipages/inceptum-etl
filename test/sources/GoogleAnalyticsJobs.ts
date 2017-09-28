@@ -6,8 +6,8 @@ import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { StaticSavepointManager } from '../../src/savepoints/StaticSavepointManager';
 import { GoogleAnalyticsJobs } from '../../src/sources/GoogleAnalyticsJobs';
 
-const gaConfig = utilConfig.get('sources.gatransactions.test_5');
-const savePointConfig = utilConfig.get('savepoints.static.test_5.savepoint');
+const gaConfig = utilConfig.get('etls.test_5.source');
+const savePointConfig = utilConfig.get('etls.test_5.savepoint.savepoint');
 // tslint:disable-next-line
 const twoDaysAgo = moment().subtract(2, 'days');
 const oneDaysAgo = moment().subtract(1, 'days');
