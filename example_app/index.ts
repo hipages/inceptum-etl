@@ -1,11 +1,11 @@
 import { LogManager, InceptumApp, Context } from 'inceptum';
 import * as program from 'commander';
-import { SourceConfigManager,
-  TransformerConfigManager,
-  DestinationConfigManager,
-  ConfigConfigManager,
-  RunnerConfigManager,
-  SavepointConfigManager,
+import { SourcePlugin,
+  TransformerPlugin,
+  DestinationPlugin,
+  ConfigPlugin,
+  RunnerPlugin,
+  SavepointPlugin,
 } from 'inceptum-etl';
 
 program.version('0.1.0')
@@ -39,30 +39,35 @@ if (validEtls.indexOf(etlName) < 0) {
 
 logger.info(`Starting execution of ETL: ${etlName}`);
 
+// const etlPlugin = new EtlPlugin(etlName);
+// app.use(etlPlugin);
 const context = app.getContext();
-SavepointConfigManager.registerSingletons(etlName, context);
-DestinationConfigManager.registerSingletons(etlName, context);
-TransformerConfigManager.registerSingletons(etlName, context);
-SourceConfigManager.registerSingletons(etlName, context);
-ConfigConfigManager.registerSingletons(etlName, context);
-RunnerConfigManager.registerSingletons(etlName, context);
+app.use(new SavepointPlugin(etlName),
+        new DestinationPlugin(etlName),
+        new TransformerPlugin(etlName),
+        new SourcePlugin(etlName),
+        new ConfigPlugin(etlName),
+        new RunnerPlugin(etlName),
+      );
 
 const f = async () => {
   await app.start();
 
-  // Runn the ETL
+  // Run the ETL
   const etlRunner = await context.getObjectByName('EtlRunner');
-  etlRunner.executeEtl()
-      .then(function(val) {
-          // log success
-          logger.info(`Finished all good`);
-      })
-      .catch(function(err) {
-          // log err.message);
-          logger.fatal(`Finished Error:${err.message}`);
-      });
+  try {
+    await etlRunner.executeEtl()
+        .then(function() {
+            // log success
+            logger.info(`Finished all good`);
+        });
+  } catch (err) {
+    logger.fatal(err, `Finished Error:${err.message}`);
+  }
   // tslint:disable-next-line:no-console
   console.log('The runner is', etlRunner);
   await app.stop();
 };
-f();
+f().catch( (err) => {
+  logger.fatal(err, `Etl finished before starting :${err.message}`);
+});
