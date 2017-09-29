@@ -13,8 +13,8 @@ import { SourcePlugin } from '../../src/sources/SourcePlugin';
 import { MySQLDataByKey } from '../../src/sources/MySQLDataByKey';
 
 // Test Config
-const gaConfig = utilConfig.get('sources.mysqldatabykey.test_8');
-const savePointConfig = utilConfig.get('savepoints.static.test_8.savepoint');
+const gaConfig = utilConfig.get('etls.test_8.source');
+const savePointConfig = utilConfig.get('etls.test_8.savepoint.savepoint');
 
 const inputLandingPages = [{
     source_type: 0,
@@ -139,6 +139,10 @@ class HelperMySQLDataByKey extends MySQLDataByKey {
   public exposegetRecords() {
     return this.getRecords();
   }
+  protected async getMaxAndMinIds() {
+    this.minId = 1;
+    this.maxId = 15;
+  }
 }
 
 suite('MySQLDataByKey', () => {
@@ -150,6 +154,7 @@ suite('MySQLDataByKey', () => {
       source.getMysqlClient().must.be.instanceOf(DBClient);
       source.getTableName().must.be.equal('landing_pages_table');
       source.getSearchColumn().must.be.equal('id');
+      source.getPK().must.be.equal('id');
     });
     test('Test initial savepoint manager', async () => {
       const source = new HelperMySQLDataByKey(dbClient, gaConfig.sourceOptions);
@@ -165,7 +170,6 @@ suite('MySQLDataByKey', () => {
       } catch (err) {
         err.message.must.be.equal('Empty savepoint found to run source');
       }
-      // source.getInitialSavepointObject().must.be.eql({});
     });
     test('Test empty savepoint init fail', async () => {
       const source = new HelperMySQLDataByKey(dbClient, gaConfig.sourceOptions);
@@ -284,7 +288,7 @@ suite('MySQLDataByKey', () => {
       finalSavePoint.must.be.equal(current);
       const savePoint = source.exposeStringToSavePoint(current);
       savePoint['columnStartValue'].must.be.equal(48172197);
-      savePoint['columnEndValue'].must.be.equal(48172196);
+      savePoint['columnEndValue'].must.be.equal('');
       savePoint['batchSize'].must.be.equal(10);
       savePoint['currentBatch'].must.be.equal(0);
       savePoint['totalBatches'].must.be.equal(0);

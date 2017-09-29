@@ -38,9 +38,8 @@ class ExtendedTransformerPlugin extends TransformerPlugin {
   }
 }
 
-suite('EtlConfig', () => {
-  suite('Etl config test', () => {
-    test('Basic ', async () => {
+suite('TransformerPlugin', () => {
+    test('Basic plugin SplitAdwordsCampaign', async () => {
       const app = new InceptumApp();
       const context = app.getContext();
       const pluginObj = new TransformerPlugin('test_1');
@@ -49,6 +48,36 @@ suite('EtlConfig', () => {
       const transformer = await context.getObjectByName('EtlTransformer');
       const theType = transformer.constructor.name;
       theType.must.be.equal('SplitAdwordsCampaign');
+    });
+    test('Plugin SmartFieldMapping', async () => {
+      const app = new InceptumApp();
+      const context = app.getContext();
+      const pluginObj = new TransformerPlugin('test_8');
+      app.use(pluginObj);
+      await app.start();
+      const transformer = await context.getObjectByName('EtlTransformer');
+      const theType = transformer.constructor.name;
+      theType.must.be.equal('SmartFieldMapping');
+    });
+    test('Plugin SimpleCopy', async () => {
+      const app = new InceptumApp();
+      const context = app.getContext();
+      const pluginObj = new TransformerPlugin('test_2');
+      app.use(pluginObj);
+      await app.start();
+      const transformer = await context.getObjectByName('EtlTransformer');
+      const theType = transformer.constructor.name;
+      theType.must.be.equal('SimpleCopy');
+    });
+    test('Plugin FieldsMapping', async () => {
+      const app = new InceptumApp();
+      const context = app.getContext();
+      const pluginObj = new TransformerPlugin('test_10');
+      app.use(pluginObj);
+      await app.start();
+      const transformer = await context.getObjectByName('EtlTransformer');
+      const theType = transformer.constructor.name;
+      theType.must.be.equal('FieldsMapping');
     });
     test('Basic transformer load with extended config ', async () => {
       const app = new InceptumApp();
@@ -77,9 +106,9 @@ suite('EtlConfig', () => {
         const pluginObj = new TransformerPlugin('test_7');
         app.use(pluginObj);
         await app.start();
+        false.must.be.true();
       } catch (err) {
         err.message.must.be.equal('Unknown trasformation type: extendedtransformer');
       }
     });
-  });
 });
