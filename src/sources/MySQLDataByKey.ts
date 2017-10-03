@@ -151,10 +151,18 @@ export class MySQLDataByKey extends EtlSource {
           return transaction.query(query, this.currentSavePoint['columnStartValue'], this.currentSavePoint['columnEndValue']);
         }
       });
-      this.minId = Number(_.head(results)['min_id']);
-      this.maxId = Number(_.head(results)['max_id']);
-      if (findEndVal) {
-        this.currentSavePoint['columnEndValue'] = _.head(results)['end_value'];
+      if (results === null || results.length === 0) {
+        this.minId = 0;
+        this.maxId = 0;
+        if (findEndVal) {
+          this.currentSavePoint['columnEndValue'] = '';
+        }
+      } else {
+        this.minId = Number(_.head(results)['min_id']);
+        this.maxId = Number(_.head(results)['max_id']);
+        if (findEndVal) {
+          this.currentSavePoint['columnEndValue'] = _.head(results)['end_value'];
+        }
       }
     } catch (e) {
       log.fatal(e, `Fail getting table ${this.tableName} getMaxAndMinIds`);
@@ -228,8 +236,8 @@ export class MySQLDataByKey extends EtlSource {
   protected async getRecords(): Promise<any> {
     const includeSearchColumn = this.searchColumn !== this.pk;
     const query = `SELECT  * FROM ${this.tableName} where ${this.pk} between ? AND ?`;
-    const currentBatchStart = (Number(this.currentSavePoint['batchSize']) - 1) * Number(this.currentSavePoint['currentBatch']) + this.minId;
-    const currentBatchEnd = currentBatchStart + Number(this.currentSavePoint['batchSize']) - 1;
+    const currentBatchStart = (Number(this.currentSavePoint['currentBatch']) - 1) * Number(this.currentSavePoint['batchSize']) + this.minId;
+    const currentBatchEnd = (currentBatchStart + Number(this.currentSavePoint['batchSize']) - 1) > this.maxId ? this.maxId : currentBatchStart + Number(this.currentSavePoint['batchSize']) - 1;
     try {
       const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => {
         if (includeSearchColumn) {
