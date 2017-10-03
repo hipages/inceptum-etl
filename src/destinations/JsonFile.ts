@@ -19,6 +19,7 @@ export class JsonFile extends EtlDestinationFile {
    * The destinations.csvfile.fileName is use as default for the parameter {@link:baseFileName}
    * @param directory the directory to save the files
    * @param baseFileName the base file name to use to create the file name.
+   * @param cleanUpDirectory remove existing files in directory
    * @param singleObjects save each record in the batch as JSON objects
    */
   constructor(directory: string, baseFileName: string, cleanUpDirectory = false, singleObjects = false) {

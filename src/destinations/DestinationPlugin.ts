@@ -22,9 +22,7 @@ export class DestinationPlugin implements Plugin {
             throw new Error('DestinationPlugin has been registered but could not find config using key "destinations"');
         }
         const destinations = app.getConfig('destinations', {});
-        console.log(destinations);        
         Object.keys(destinations).forEach((destinationType) => {
-            console.log(destinationType, this.etlName);
             if (app.hasConfig(`destinations.${destinationType}.${this.etlName}`)) {
                 this.registerDestinationSingleton(this.etlName, destinationType, destinations[destinationType][this.etlName], app.getContext());
             }
@@ -32,7 +30,6 @@ export class DestinationPlugin implements Plugin {
     }
 
   protected registerDestinationSingleton(etlName: string, destinationType: string, destinationConfig: object, context: Context) {
-        console.log(destinationType);  
     switch (destinationType) {
         case 'csvfile' :
         {
@@ -45,7 +42,6 @@ export class DestinationPlugin implements Plugin {
             break;
         case 'jsonfile':
         {
-            console.log('asd');
             const singletonDefinition = new BaseSingletonDefinition<any>(JsonFile, this.getEtlObjectName());
             singletonDefinition.constructorParamByValue(destinationConfig['directory']);
             singletonDefinition.constructorParamByValue(destinationConfig['fileName']);

@@ -1,9 +1,5 @@
-import * as fs from 'fs';
-import { join as joinPath } from 'path';
-import { dirname } from 'path';
 import { LogManager } from 'inceptum';
-import { EtlBatch, EtlState } from '../EtlBatch';
-import { EtlConfig } from '../EtlConfig';
+import { EtlBatch } from '../EtlBatch';
 import { EtlDestination } from '../EtlDestination';
 
 const log = LogManager.getLogger();
@@ -17,7 +13,7 @@ export class ElasticsearchIndex extends EtlDestination {
   private elasticClient: ElasticClient;
 
   static autowire = {
-    elasticClient: 'elastic',
+    elasticClient: 'Elastic',
   };
 
   public async store(batch: EtlBatch): Promise<void> {

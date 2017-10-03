@@ -121,7 +121,7 @@ export class AdwordsReports extends EtlSource {
       // tslint:disable-next-line
       const end = moment(savePoint['endDate']).add(1, 'days');
       savePoint['currentBatch'] = 1;
-      savePoint['startDate'] = savePoint['endDate'],
+      savePoint['startDate'] = savePoint['endDate'];
       savePoint['endDate'] = end.isBefore(this.lastDay) ? end.format('YYYYMMDD') : this.lastDay;
     }
     return savePoint;
