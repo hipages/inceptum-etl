@@ -4,33 +4,22 @@ app:
     - etl_1_name
     - etl_2_name
 
-etlOptions:
+generalConfig:
+  source:
+    maxRetries: 3
+    timeoutMillis: 5000
+  transformer:
+    minSuccessPercentage: 1
+    timeoutMillis: 5000
+  destination:
+    maxRetries: 3
+    timeoutMillis: 5000
+    batchSize: 1
+
+etls:  
   etl_1_name:
     source:
-      maxRetries: 3
-      timeoutMillis: 5000
-    transformers:
-      minSuccessPercentage: 1
-      timeoutMillis: 5000
-    destinations:
-      maxRetries: 3
-      timeoutMillis: 5000
-      batchSize: 1
-  etl_2_name:
-    source:
-      maxRetries: 3
-      timeoutMillis: 5000
-    transformers:
-      minSuccessPercentage: 1
-      timeoutMillis: 5000
-    destinations:
-      maxRetries: 3
-      timeoutMillis: 5000
-      batchSize: 1
-
-sources:
-  adwordsclicks:
-    etl_1_name:
+      type: adwordsclicks
       account: hip
       token: HIP_ADWORDS_TOKEN
       userAgent: my_app_adwords
@@ -42,52 +31,104 @@ sources:
       accountsList:
         - name: account name
           id: account_id
-
-transformers:
-  splitadwordscampaign:
-    etl_1_name:
-      available: true
-  simplecopy:
-    etl_2_name:
-      available: true
- 
-
-destinations:
-  csvfile:
-    etl_1_name:
+    transformer:
+      type: splitadwordscampaign
+      fixedFields:
+        app_code: HIP
+        source_name: Adwords
+        source_account: hip
+        record_created_date: '2017-08-23 10:30:45'
+        source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
+      fieldsRequiringMapping:
+        keyword_placement: keyword__placement
+    destination:
+      type: csvfile
       directory: path/to/directory
       fileName: base_file_name
       cleanUpDirectory : false # clean the directory before writing
-  jsonfile:
-    etl_2_name:
+    savepoint:
+      type: mysql
+      dbClient: EtlSavePoint
+
+  etl_2_name:
+    source:
+      type: mysqldatabykey
+      dbClient: SEO
+      sourceOptions:
+        tableName: landing_pages_table
+        searchColumn: id  
+        searchColumnDataType: number
+        pk: id  
+    transformer:
+      type: simplecopy
+      available: true
+    destination:
+      type: jsonfile
       directory: path/to/directory
       fileName: base_file_name
-      cleanUpDirectory : # clean the directory before writing
+      cleanUpDirectory : false # clean the directory before writing
+    savepoint:
+      type: static
+      savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+
+# Default definitions
+sources:
+  adwordsclicks:
+    account: hip
+    token: HIP_ADWORDS_TOKEN
+    userAgent: my_app_adwords
+    clientCustomerId:  HIP_ADWORDS_CUSTOMER_ID
+    clientId: HIP_ADWORDS_CLIENT_ID
+    clientSecret: HIP_ADWORDS_CLIENT_SECRET
+    refreshToken: HIP_ADWORDS_REFRESH_TOKEN
+    version: v201705
+    accountsList:
+      - name: account name
+        id: account_id
+
+transformers:
+  splitadwordscampaign:
+    fixedFields:
+      app_code: HIP
+      source_name: Adwords
+      source_account: hip
+      record_created_date: '2017-08-23 10:30:45'
+      source_time_zone: '(GMT+10:00) Eastern Time - Melbourne, Sydney'
+    fieldsRequiringMapping:
+      keyword_placement: keyword__placement
+  simplecopy:
+    available: true
+ 
+destinations:
+  csvfile:
+    directory: path/to/directory
+    fileName: base_file_name
+    cleanUpDirectory : false # clean the directory before writing
+  jsonfile:
+    directory: path/to/directory
+    fileName: base_file_name
+    cleanUpDirectory : # clean the directory before writing
   s3bucket:
-    etl_3_name: 
-      fileType: json | csv
-      bucket: bucket/name
-      tempDirectory: ETL_TEMP_DIR
-      fileName: base_file_name
+    fileType: json | csv
+    bucket: bucket/name
+    tempDirectory: ETL_TEMP_DIR
+    fileName: base_file_name
   redshift:
-    etl_4_name: 
-      dbClient: dwRedshift
-      bucket: bucket/name # use S3 file to upload data to redshift
-      tempDirectory: ETL_TEMP_DIR
-      tableCopyName: temp table to use to copy data
-      tableName: final table
-      bulkDeleteMatchFields: # list of the "unique key" fields 
-        - field_one 
-        - field_one
-      iamRole: # required if redshift doesn't have permission to access S3
+    dbClient: dwRedshift
+    bucket: bucket/name # use S3 file to upload data to redshift
+    tempDirectory: ETL_TEMP_DIR
+    tableCopyName: temp table to use to copy data
+    tableName: final table
+    bulkDeleteMatchFields: # list of the "unique key" fields 
+      - field_one 
+      - field_one
+    iamRole: # required if redshift doesn't have permission to access S3
 
 savepoints:
   mysql:
-    etl_1_name: 
-      dbClient: EtlSavePoint
+    dbClient: EtlSavePoint
   static:
-    etl_2_name: 
-      savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
+    savepoint: '{"startDate":"20170731","endDate":"20170801","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
 
 postgres:
   dwRedshift:   # reference name for redshift database
