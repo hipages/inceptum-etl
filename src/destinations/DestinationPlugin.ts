@@ -30,7 +30,7 @@ export class DestinationPlugin implements Plugin {
     }
 
   protected registerDestinationSingleton(etlName: string, destinationType: string, destinationConfig: object, context: Context) {
-    switch (destinationType){
+    switch (destinationType) {
         case 'csvfile' :
         {
             const singletonDefinition = new BaseSingletonDefinition<any>(CsvFile, this.getEtlObjectName());
