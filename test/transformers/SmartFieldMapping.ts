@@ -8,7 +8,7 @@ import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import { EtlBatch, EtlState, EtlBatchRecord } from '../../src/EtlBatch';
 import { SmartFieldMapping } from '../../src/transformers/SmartFieldMapping';
 // Test Config
-const gaConfig = utilConfig.get('transformers.smartfieldmapping.test_8');
+const gaConfig = utilConfig.get('transformers.smartfieldmapping');
 
 export interface GaLandingPageInputData {
   id: number,

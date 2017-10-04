@@ -27,8 +27,8 @@ context.registerSingletons(new BaseSingletonDefinition<any>(EmptyClass, 'EtlConf
 const pluginObj = new RunnerPlugin(etlName);
 app.use(pluginObj);
 
-suite('EtlConfig', () => {
-  suite('Etl config test', () => {
+suite('Runner plugin', () => {
+  suite('RunnerPlugin test', () => {
     test('Basic Getters and setters', async () => {
       await app.start();
       const runner = await context.getObjectByName('EtlRunner');

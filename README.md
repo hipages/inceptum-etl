@@ -45,12 +45,17 @@ Now the extra parts:
 - "runner" runs the ETL
 
 ### Available sources
-- Adwords keywords performance report
-- Adwords clicks performance report
+- Adwords reports
+- Adwords report historical data
+- Google analytics transactions
+- Google analytics landing pages
+- MySQL data
 
 ### Available transformers
 - Simple copy
 - Split adwords campaign
+- Field mapping
+- Smart field mapping
 
 ### Available destinations
 - CSV file
@@ -64,56 +69,56 @@ Now the extra parts:
 - Static value
 
 Every part of the ETL is set up via the config file ( default.yml )
+
+Use one config file: default.yml, development.yml and production.yml
 ```
 app:
   name: Inceptum Etl
   validEtls:
     - ETL_UNIQUE_NAME
     - ETL_UNIQUE_NAME_2
+   
+generalConfig:
+  source:
+    maxRetries: 3
+    timeoutMillis: 5000
+  transformer:
+    minSuccessPercentage: 1
+    timeoutMillis: 5000
+  destination:
+    maxRetries: 3
+    timeoutMillis: 5000
+    batchSize: 1
 
-etlOptions:
-  ETL_UNIQUE_NAME:
-    source:
-      source_retry_parameters
-    transformers:
-      source_retry_parameters
-    destinations:
-      source_retry_parameters
-  ETL_UNIQUE_NAME_2:
-    source:
-      source_retry_parameters
-    transformers:
-      source_retry_parameters
-    destinations:
-      source_retry_parameters
-
-sources:
-  source_name:
+etls:
     ETL_UNIQUE_NAME:
-      source_parameters
-    ETL_UNIQUE_NAME_2:
-      source_parameters
+      source:
+        type: source_name
+        source_parameters
+      transformer:
+        type: transformer_name
+        transformer_parameters
+      destination:
+        type: destination_name
+        destination_parameters
+      savepoint:
+        type: savepoint_name
+        savepoint_parameters
 
-transformers:
-  transformer_name:
-    ETL_UNIQUE_NAME:
-      transformer_parameters
     ETL_UNIQUE_NAME_2:
-      transformer_parameters
+      source:
+        type: source_name
+        source_parameters
+      transformer:
+        type: transformer_name
+        transformer_parameters
+      destination:
+        type: destination_name
+        destination_parameters
+      savepoint:
+        type: savepoint_name
+        savepoint_parameters
 
-destinations:
-  destination_name:
-    ETL_UNIQUE_NAME:
-      destination_parameters
-    ETL_UNIQUE_NAME_2:
-      destination_parameters
-
-savepoints:
-  savepoint_name:
-    ETL_UNIQUE_NAME:
-      savepoint_parameters
-    ETL_UNIQUE_NAME_2:
-      savepoint_parameters
 # DATABASES
 postgres:
   DATABASE_CLIENT_NAME:
@@ -148,11 +153,116 @@ logging:
     - name: mysql/
       streams:
         console: debug
-
-Context:
-  ActiveProfiles: development
 ```
 
+Use a default.yml config file and a separated config for each etl
+
+The default values are in:
+default.yml, development.mnt.yml and production.yml
+```
+app:
+  name: Inceptum Etl
+  validEtls:
+    - ETL_UNIQUE_NAME
+    - ETL_UNIQUE_NAME_2
+    
+generalConfig:
+  source:
+    maxRetries: 3
+    timeoutMillis: 5000
+  transformer:
+    minSuccessPercentage: 1
+    timeoutMillis: 5000
+  destination:
+    maxRetries: 3
+    timeoutMillis: 5000
+    batchSize: 1
+
+# General values
+sources:
+  source_name:
+    source_parameters
+  source_name_2:
+    source_parameters
+
+transformers:
+  transformer_name:
+    transformer_parameters
+  transformer_name_2:
+    transformer_parameters
+
+destinations:
+  destination_name:
+    destination_parameters
+  destination_name_2:
+    destination_parameters
+
+savepoints:
+  savepoint_name:
+    savepoint_parameters
+
+# DATABASES
+postgres:
+  DATABASE_CLIENT_NAME:
+    master:
+      database_login_parameters
+    slave:
+      database_login_parameters
+
+mysql:
+  DATABASE_CLIENT_NAME:
+    master:
+      database_login_parameters
+    slave:
+      database_login_parameters
+
+# LOG settings
+logging:
+  streams:
+    console:
+      type: console
+    myredis:
+      type: redis
+    mainLogFile:
+      type: file
+      path: main.log
+  loggers:
+    - name: ROOT
+      streams:
+        console: debug
+    - name: ioc/
+      streams:
+        console: debug
+    - name: mysql/
+      streams:
+        console: debug
+```
+
+Set the variable NODE_APP_INSTANCE with the name of the etl
+
+development-{etl_name}.yml, production-{etl_name}.yml
+
+```
+generalConfig:
+  source:
+    type: source_name
+  transformer:
+    type: transformer_name_2
+  destination:
+    type: destination_name_2
+  savepoint:
+    type: savepoint_name
+
+# Overwrite the required source, transformer, destination or savepoint as required
+sources:
+  source_name:
+    etl_source_parameters
+
+destinations:
+  destination_name_2:
+    etl_destination_parameters
+
+```
 
 How to setup - Empty project
 -------
@@ -175,14 +285,14 @@ $ vi index.ts # the following code will run any etl
 Example
 -------
 ```
-import { LogManager, InceptumApp, BaseSingletonDefinition } from 'inceptum';
+import { LogManager, InceptumApp, Context } from 'inceptum';
 import * as program from 'commander';
-import { SourceConfigManager,
-    TransformerConfigManager,
-    DestinationConfigManager,
-    ConfigConfigManager,
-    RunnerConfigManager,
-    SavepointConfigManager,
+import { SourcePlugin,
+  TransformerPlugin,
+  DestinationPlugin,
+  ConfigPlugin,
+  RunnerPlugin,
+  SavepointPlugin,
 } from 'inceptum-etl';
 
 program.version('0.1.0')
@@ -216,31 +326,37 @@ if (validEtls.indexOf(etlName) < 0) {
 
 logger.info(`Starting execution of ETL: ${etlName}`);
 
+// const etlPlugin = new EtlPlugin(etlName);
+// app.use(etlPlugin);
 const context = app.getContext();
-SavepointConfigManager.registerSingletons(etlName, context);
-DestinationConfigManager.registerSingletons(etlName, context);
-TransformerConfigManager.registerSingletons(etlName, context);
-SourceConfigManager.registerSingletons(etlName, context);
-ConfigConfigManager.registerSingletons(etlName, context);
-RunnerConfigManager.registerSingletons(etlName, context);
+app.use(new SavepointPlugin(etlName),
+        new DestinationPlugin(etlName),
+        new TransformerPlugin(etlName),
+        new SourcePlugin(etlName),
+        new ConfigPlugin(etlName),
+        new RunnerPlugin(etlName),
+      );
 
 const f = async () => {
   await app.start();
 
-  // Runn the ETL
+  // Run the ETL
   const etlRunner = await context.getObjectByName('EtlRunner');
   try {
-    await etlRunner.executeEtl();
-    // log success
-    logger.info(`Finished all good`);
+    await etlRunner.executeEtl()
+        .then(function() {
+            // log success
+            logger.info(`Finished all good`);
+        });
   } catch (err) {
-      // log err.message);
-      logger.fatal(`Finished Error:${err.message}`);
+    logger.fatal(err, `Finished Error:${err.message}`);
   }
   // tslint:disable-next-line:no-console
   console.log('The runner is', etlRunner);
   await app.stop();
 };
-f();
+f().catch( (err) => {
+  logger.fatal(err, `Etl finished before starting :${err.message}`);
+});
 
 ```
