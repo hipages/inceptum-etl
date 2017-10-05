@@ -3,11 +3,11 @@ import * as nodeAdwords from 'node-adwords';
 import * as moment from 'moment';
 import { toObject as csvToObject } from 'csvjson';
 import { LogManager } from 'inceptum';
+import { EtlBase } from '../EtlBase';
 import { EtlSource } from '../EtlSource';
 import { EtlBatch, EtlState } from '../EtlBatch';
 
 promisifyAll(nodeAdwords);
-const log = LogManager.getLogger();
 
 export class AdwordsReports extends EtlSource {
   // Example of queries
@@ -161,7 +161,7 @@ export class AdwordsReports extends EtlSource {
       const newHeader = header.toLowerCase().replace(/ /g, '_').replace(/[\.|\/|\(|\)|-]+/g, '')
       .replace(/day/i, 'report_date').replace(/cost/i, 'report_cost');
       data = csvToObject(csv.replace(header, newHeader).replace(/--/g, '').replace(/%/g, ''), { delimiter : ',', quote: '"' });
-      log.debug(`read adwords report for: ${this.getCurrentBatchIdentifier()}`);
+      EtlBase.log.debug(`read adwords report for: ${this.getCurrentBatchIdentifier()}`);
     }
     const batch =  new EtlBatch(data, this.currentSavePoint['currentBatch'], this.totalBatches, this.getCurrentBatchIdentifier());
     batch.registerStateListener(this);
@@ -180,7 +180,7 @@ export class AdwordsReports extends EtlSource {
     }
     if (!this.errorFound && (newState === EtlState.SAVE_ENDED) && (this.currentSavePoint['currentBatch'] === this.totalBatches)) {
       await this.updateStoredSavePoint(this.currentSavePoint);
-      log.debug(`savepoint stored: ${this.getCurrentSavepoint()}`);
+      EtlBase.log.debug(`savepoint stored: ${this.getCurrentSavepoint()}`);
     }
   }
 }

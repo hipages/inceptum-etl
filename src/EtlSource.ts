@@ -1,6 +1,6 @@
 import { EtlBatch, EtlStateListener, EtlState } from './EtlBatch';
 import { EtlSavepointManager } from './EtlSavepointManager';
-
+import { EtlBase } from './EtlBase';
 
 /**
  * An EtlSource is an object of which the ETL will ask for batches
@@ -14,7 +14,7 @@ import { EtlSavepointManager } from './EtlSavepointManager';
  * a call to getNextBatch or hasNextBatch but after it has given it's answer to
  * previous calls to those methods.
  */
-export abstract class EtlSource implements EtlStateListener {
+export abstract class EtlSource extends EtlBase implements EtlStateListener {
   protected totalBatches = 0;
   protected initialSavePoint: object;
   protected currentSavePoint: object;
