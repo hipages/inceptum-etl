@@ -15,8 +15,8 @@
     "@types/node" "*"
 
 "@types/elasticsearch@^5.0.16":
-  version "5.0.16"
-  resolved "https://registry.yarnpkg.com/@types/elasticsearch/-/elasticsearch-5.0.16.tgz#fc29dc26c894aed69a6d20390d3c736aad61e625"
+  version "5.0.17"
+  resolved "https://registry.yarnpkg.com/@types/elasticsearch/-/elasticsearch-5.0.17.tgz#e2ff3a37cfa974260f6bb29990b288459687a34f"
 
 "@types/fs-extra@^3.0.0":
   version "3.0.3"
@@ -1440,9 +1440,9 @@ imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
 
-inceptum@0.5.11:
-  version "0.5.11"
-  resolved "https://registry.yarnpkg.com/inceptum/-/inceptum-0.5.11.tgz#34bdd8eb5bd3822b69dcb7c96fef21ef6994f568"
+inceptum@^0.5.12:
+  version "0.5.12"
+  resolved "https://registry.yarnpkg.com/inceptum/-/inceptum-0.5.12.tgz#798e3a2a6d57d2b72c0deff7217825370ba6319c"
   dependencies:
     "@types/axios" "^0.14.0"
     "@types/bunyan" "1.8.0"
