@@ -1,44 +1,48 @@
-Inceptum Etl
+Inceptum ETL
 ====
 
-This is a base project you can use to create your own ETLs.
-This is what we use at [hipages](https://www.hipages.com.au) for our internal projects.
+Inceptum ETL is a tool designed to facilitate the creation and management of Extract, Transform, Load (ETL) scripts.
+
+Inceptum ETL is what we use at [hipages](https://www.hipages.com.au) for our internal projects.
 
 Benefits
 -------
 
-In this project we're managing all the basics that are needed for a ETL project:
-- lenguage: typescript
-- base on: [typescript base](https://github.com/hipages/typescript-base)
-- easy to extend
+In this project we're managing all the basics that are needed for an ETL project:
 
-But beyond all that the real benefit is that as we refine our standard more and more it'll be very easy to update all your projects to the latest version with a simple couple of `git` commands.
+- Language: typescript
+- Base: [typescript base](https://github.com/hipages/typescript-base)
+- Supported technologies: Mysql, Postgres, Redis, and Elasticsearch
+- Easy to extend
+- Easy to upgrade
+
+One of the most valuable features that comes with Inceptum based projects is the ability to easily upgrade to the newest Inceptum version with just a few simple `git` commands. As we continue to refine our standard your projects benefit as well.
 
 Dependencies
 -------
 
-- inceptum(https://www.npmjs.com/package/inceptum)
-- bluebird(https://www.npmjs.com/package/bluebird)
-- commander(https://www.npmjs.com/package/commander)
-- config(https://www.npmjs.com/package/config)
-- csvjson(https://www.npmjs.com/package/csvjson)
-- moment(https://www.npmjs.com/package/moment)
-- node-adwords(https://www.npmjs.com/package/node-adwords)
-- s3(https://www.npmjs.com/package/s3)
+- [Inceptum](https://www.npmjs.com/package/inceptum)
+- [Bluebird](https://www.npmjs.com/package/bluebird)
+- [Commander](https://www.npmjs.com/package/commander)
+- [Config](https://www.npmjs.com/package/config)
+- [Csvjson](https://www.npmjs.com/package/csvjson)
+- [Moment](https://www.npmjs.com/package/moment)
+- [Node-adwords](https://www.npmjs.com/package/node-adwords)
+- [S3](https://www.npmjs.com/package/s3)
 
-How its works
+How it works
 -------
 
-The inceptum-etl has been design following the Extract, Transform, Load paradigm:
+Inceptum-etl has been designed to follow the Extract, Transform, Load paradigm:
 
 - To extract data we create "sources"
 - To transform data we create "transformers"
 - To load data we create "destinations"
 
-Now the extra parts :
-- "savepoints" to manage the point the etl needs to start from
-- "configuration" to put all the pieces together
-- "runner" to finally run the ETL  
+Now the extra parts:
+- "savepoints" add fault tolerance to the etl and manage the starting point
+- "configuration" puts all the pieces together
+- "runner" runs the ETL
 
 ### Available sources
 - Adwords reports
@@ -58,6 +62,7 @@ Now the extra parts :
 - JSON file
 - Amazon S3
 - Redshift
+- Elasticsearch
 
 ### Available savepoints
 - MySQL table
@@ -72,7 +77,7 @@ app:
   validEtls:
     - ETL_UNIQUE_NAME
     - ETL_UNIQUE_NAME_2
-    
+   
 generalConfig:
   source:
     maxRetries: 3
@@ -262,7 +267,7 @@ destinations:
 How to setup - Empty project
 -------
 
-The easiest way to use it is if you are starting a project from scratch. Simply follow these instructions:
+Starting a new project from scratch is easy!
 
 ```
 $ mkdir project-name
@@ -277,7 +282,7 @@ $ vi config/default.yml # set up your etl here
 $ vi index.ts # the following code will run any etl
 ```
 
-Code Example
+Example
 -------
 ```
 import { LogManager, InceptumApp, Context } from 'inceptum';
@@ -355,4 +360,3 @@ f().catch( (err) => {
 });
 
 ```
-

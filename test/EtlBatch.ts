@@ -38,6 +38,7 @@ suite('EtlBatch', () => {
       record.getState().must.be.equal(EtlState.TRANSFORMED);
     });
   });
+
   suite('EtlBatchRecord test', () => {
     test('Test create batch', async () => {
       const batch = new EtlBatch([{id: 1, name: 'part 1'}, {id: 2, name: 'part 2'}], 1, 4);
