@@ -41,7 +41,7 @@
     "config": "1.25.1",
     "csvjson": "^4.3.3",
     "csvtojson": "^1.1.7",
-    "inceptum": "^0.5.16",
+    "inceptum": "^0.5.17",
     "lodash": "^4.17.4",
     "moment": "^2.18.1",
     "node-adwords": "201705.1.0",
