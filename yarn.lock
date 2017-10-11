@@ -1440,9 +1440,9 @@ imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
 
-inceptum@^0.5.12:
-  version "0.5.12"
-  resolved "https://registry.yarnpkg.com/inceptum/-/inceptum-0.5.12.tgz#798e3a2a6d57d2b72c0deff7217825370ba6319c"
+inceptum@^0.5.16:
+  version "0.5.16"
+  resolved "https://registry.yarnpkg.com/inceptum/-/inceptum-0.5.16.tgz#114aac2eef0931cef8f0f1fd141639b70d964bdb"
   dependencies:
     "@types/axios" "^0.14.0"
     "@types/bunyan" "1.8.0"
