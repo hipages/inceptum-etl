@@ -196,7 +196,8 @@ export class SmartFieldMapping extends EtlTransformer {
      */
     protected convertDateTimeToUTC(transformedData: object = {}, input: object, fields: object, key: string): object {
          const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
-        transformedData[key] = value ? moment(value).utc().format('YYYY-MM-DD HH:mm:ss') : '';
+         const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
+         transformedData[key] = value ? moment(value).utc().format(effectiveFormat) : '';
         if ((key !== fields['field']) && transformedData.hasOwnProperty(fields['field'])) {
             delete transformedData[fields['field']];
         }
