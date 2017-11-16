@@ -6,7 +6,7 @@ import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 // Internal dependencies
 import { EtlBatch, EtlState, EtlBatchRecord } from '../../src/EtlBatch';
-import { SmartFieldMapping } from '../../src/transformers/SmartFieldMapping';
+import { SmartFieldMapping,  } from '../../src/transformers/SmartFieldMapping';
 // Test Config
 const gaConfig = utilConfig.get('transformers.smartfieldmapping');
 
@@ -168,13 +168,13 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
     for (let i = 0; i < totalTCs; i++) {
         this.batchRecords[i] = new EtlBatchRecord(this.inputData[i]);
     }
-    this.SmartFieldMapping = new HelperSmartFieldMapping(
-      'SmartFieldMapping',
-      gaConfig.tempDirectory,
-      gaConfig.regexPath,
-      gaConfig.bucket,
-      gaConfig.fieldsMapping,
-    );
+    this.SmartFieldMapping = new HelperSmartFieldMapping({
+      etlName: 'SmartFieldMapping',
+      tempDirectory: gaConfig.tempDirectory,
+      regexPath: gaConfig.regexPath,
+      bucket: gaConfig.bucket,
+      fieldsMapping: gaConfig.fieldsMapping,
+    });
   }
 
   @test transformBatchRecord() {

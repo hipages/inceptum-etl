@@ -2376,6 +2376,10 @@ mysql@^2.11.1:
     safe-buffer "5.1.1"
     sqlstring "2.2.0"
 
+n-readlines@^0.2.8:
+  version "0.2.8"
+  resolved "https://registry.yarnpkg.com/n-readlines/-/n-readlines-0.2.8.tgz#6022f0b1a034a32dc0bfcc0e8ca9fbd6877d341a"
+
 nan@^2.3.3:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.7.0.tgz#d95bf721ec877e08db276ed3fc6eb78f9083ad46"
