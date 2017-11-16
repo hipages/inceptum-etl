@@ -156,6 +156,10 @@ export class GoogleAnalyticsJobs extends EtlSource {
       savePoint['currentBatch'] = 1;
       savePoint['startDate'] = start.format('YYYY-MM-DD'),
       savePoint['endDate'] = end.isBefore(this.lastDay) ? end.format('YYYY-MM-DD') : this.lastDay.format('YYYY-MM-DD');
+      // Reset next page token
+      this.nextPageToken.forEach((pageToken, index) => {
+        this.nextPageToken[index] = 1;
+      });
     }
     return savePoint;
   }

@@ -121,6 +121,8 @@ export class GoogleAnalyticsPages extends EtlSource {
       savePoint['currentBatch'] = 1;
       savePoint['startDate'] = start.format('YYYY-MM-DD'),
       savePoint['endDate'] = end.isBefore(this.today) ? end.format('YYYY-MM-DD') : this.today.format('YYYY-MM-DD');
+      // Reset next page token
+      this.gaParams['nextPageToken'] = 1;
     }
     return savePoint;
   }

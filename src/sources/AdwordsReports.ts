@@ -146,6 +146,20 @@ export class AdwordsReports extends EtlSource {
   }
 
   /**
+   * Convert csv to data object
+   * @param {string} csv
+   */
+  protected async getReportData(): Promise<any> {
+    const config = {...this.configAdwords};
+    const csv = await this.getAdwordsReport(config);
+    // Replace spaces in the header row
+    const header = csv.slice(0, csv.search(/[\n\r]+/i));
+    const newHeader = header.toLowerCase().replace(/ /g, '_').replace(/[\.|\/|\(|\)|-]+/g, '')
+    .replace(/day/i, 'report_date').replace(/cost/i, 'report_cost');
+    return csvToObject(csv.replace(header, newHeader).replace(/--/g, '').replace(/%/g, ''), { delimiter : ',', quote: '"' });
+  }
+
+  /**
    * Get's the next batch of objects. It should add this object as listener to the batch
    * to know when it finished and make the relevant updates to the savePoint in
    * {@link #stateChanged}
@@ -154,13 +168,7 @@ export class AdwordsReports extends EtlSource {
     let data = [];
     if (this.hasNextBatch()) {
       this.currentSavePoint = this.getNextSavePoint();
-      const config = {...this.configAdwords};
-      const csv = await this.getAdwordsReport(config);
-      // Replace spaces in the header row
-      const header = csv.slice(0, csv.search(/[\n\r]+/i));
-      const newHeader = header.toLowerCase().replace(/ /g, '_').replace(/[\.|\/|\(|\)|-]+/g, '')
-      .replace(/day/i, 'report_date').replace(/cost/i, 'report_cost');
-      data = csvToObject(csv.replace(header, newHeader).replace(/--/g, '').replace(/%/g, ''), { delimiter : ',', quote: '"' });
+      data = await this.getReportData();
       log.debug(`read adwords report for: ${this.getCurrentBatchIdentifier()}`);
     }
     const batch =  new EtlBatch(data, this.currentSavePoint['currentBatch'], this.totalBatches, this.getCurrentBatchIdentifier());
