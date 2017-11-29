@@ -347,6 +347,7 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
     const input = {... data};
     const action = {
       action: 'convertDateTimeToUTC',
+      field: 'myTime',
       format: 'YYYYMMDD HHmmss',
     };
     const value = this.SmartFieldMapping.convertDateTimeToUTC(data, input, action, 'myTime');

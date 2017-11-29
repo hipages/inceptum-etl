@@ -476,7 +476,7 @@ etls:
       type: adwordsreportlargefile
       maxRetries: 5000
       timeoutMillis: 1
-      tempDirectory: /Users/techdev3/src/inceptum-etl/tmp/search
+      tempDirectory: ./tmp
       account: THE_ACCOUNT_NAME
       token: DEVELOPER_TOKEN
       userAgent: YOUR_PROJECT_NAME
