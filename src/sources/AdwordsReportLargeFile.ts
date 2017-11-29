@@ -22,12 +22,14 @@ export interface AdwordsReportLargeFileConfig {
   clientSecret: string,
   refreshToken: string,
   version: string,
+  pace: number,
 }
 
 export class AdwordsReportLargeFile extends ReadCsvFile {
   // Example of queries
   protected clicksQuery = `SELECT AccountDescriptiveName, CampaignName, CampaignId, AdGroupName, AdGroupId, CriteriaParameters, CriteriaId, KeywordMatchType, AdFormat, CreativeId, Device, Date, GclId, Clicks, ClickType, ExternalCustomerId, Page, Slot FROM CLICK_PERFORMANCE_REPORT`;
 
+  protected pace: number;
   protected account: string;
   protected query: string;
   protected configAdwords: object;
@@ -45,6 +47,7 @@ export class AdwordsReportLargeFile extends ReadCsvFile {
         fs.mkdirSync(directory);
     }
 
+    this.pace = configAdwords.pace || 0;
     this.query = configAdwords.reportQuery;
     this.account = configAdwords.account;
     this.configAdwords = {
@@ -77,7 +80,7 @@ export class AdwordsReportLargeFile extends ReadCsvFile {
   public defaultSavePoint(): object {
     const savepoint = super.defaultSavePoint();
     // tslint:disable-next-line
-    const yesterday = moment().subtract(1, 'days');
+    const yesterday = (this.pace === 0) ? moment() : moment().subtract(this.pace, 'days');
     return {
       ...savepoint,
       startDate: yesterday.format('YYYYMMDD'),
@@ -91,7 +94,7 @@ export class AdwordsReportLargeFile extends ReadCsvFile {
    */
   protected async initCurrentSavePoint() {
     // tslint:disable-next-line
-    const start = moment(this.initialSavePoint['endDate']).add(1, 'days');
+    const start = (this.pace === 0) ? moment(this.initialSavePoint['endDate']).add(1, 'days') : moment(this.initialSavePoint['endDate']).subtract(this.pace, 'days');
     const currentSavePoint = {
       startDate: start.isBefore(this.lastDay) ? start.format('YYYYMMDD') : this.lastDay,
       endDate: this.lastDay,

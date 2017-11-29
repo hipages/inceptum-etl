@@ -13,6 +13,8 @@ app:
     - test_10
     - test_11
     - test_12
+    - test_13
+    - test_14
 
 generalConfig:
   source:
@@ -456,6 +458,38 @@ etls:
       type: static
       savepoint: '{"startDate":"20170901","endDate":"20170910","paceAmount":1,"paceTime":"months","finalDate":"20170701","currentBatch":1,"totalBatches":1,"currentDate":"2017-08-01T01:14:37.995Z"}'
 
+  test_13:
+    source:
+      type: readcsvfile
+      fileName: ./this/is/an/example.txt
+      fileHasHeader: False
+      headers:
+        - header_1
+        - header_2
+        - header_3
+    savepoint:
+      type: static
+      savepoint: '{"blockSize":2,"line":0,"batchNumber":0}'
+
+  test_14:
+    source:
+      type: adwordsreportlargefile
+      maxRetries: 5000
+      timeoutMillis: 1
+      tempDirectory: /Users/techdev3/src/inceptum-etl/tmp/search
+      account: THE_ACCOUNT_NAME
+      token: DEVELOPER_TOKEN
+      userAgent: YOUR_PROJECT_NAME
+      clientCustomerId: ADWORDS_MCC_ACCOUNT_ID
+      clientId: ADWORDS_API_CLIENT_ID
+      clientSecret: ADWORDS_API_CLIENT_SECRET
+      refreshToken: ADWORDS_API_REFRESHTOKEN
+      version: v201705
+      reportQuery: "SELECT QueryMatchTypeWithVariant, Query, CampaignId, CampaignName, AdGroupId, AdGroupName, Clicks, Impressions, Ctr, AverageCpc, Cost,AveragePosition, Conversions, CostPerConversion, ConversionRate, AllConversions, ViewThroughConversions FROM SEARCH_QUERY_PERFORMANCE_REPORT "
+    savepoint:
+      type: static
+      savepoint: '{"startDate":"20170731","endDate":"20170801","currentDate":"2017-08-01T01:14:37.995Z","blockSize":2,"line":0,"batchNumber":0}'
+
 mysql:
   EtlSavePoint:    
     master:
@@ -529,7 +563,7 @@ logging:
   loggers:
     - name: ROOT
       streams:
-        console: debug
+        console: fatal
     - name: ioc/
       streams:
         console: debug

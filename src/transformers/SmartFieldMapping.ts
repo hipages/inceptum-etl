@@ -25,6 +25,10 @@ enum SmartFieldMappingAction {
     replace,
     regexAdd,
     convertDateTimeToUTC,
+    addDateTimeToUTC,
+    delete,
+    mapReplace,
+    mapAdd,
 }
 
 interface SmartFieldMappingRecord {
@@ -32,6 +36,7 @@ interface SmartFieldMappingRecord {
     value: string,
     field: string,
     values: object,
+    format: string,
 }
 
 export class SmartFieldMapping extends EtlTransformer {
@@ -200,6 +205,25 @@ export class SmartFieldMapping extends EtlTransformer {
     }
 
     /**
+     * Add a field value with the given object values. Values are given in a pair:
+     * { givenValue: replaceValue }
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof SmartFieldMapping
+     */
+    // tslint:disable-next-line:prefer-function-over-method
+    protected mapAdd(transformedData: object = {}, input: object, fields: object, key: string): object {
+        const values = fields.hasOwnProperty('values') ? fields['values'] : {};
+        const currentValue = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : '';
+        transformedData[key] = values.hasOwnProperty(currentValue) ? values[currentValue] : null;
+        return transformedData;
+    }
+
+    /**
      * Replace a field value with the given object values. Values are given in a pair:
      * { givenValue: replaceValue }
      * @protected
@@ -212,12 +236,18 @@ export class SmartFieldMapping extends EtlTransformer {
      */
     // tslint:disable-next-line:prefer-function-over-method
     protected mapReplace(transformedData: object = {}, input: object, fields: object, key: string): object {
-        const values = fields.hasOwnProperty('values') ? fields['values'] : {};
-        const currentValue = input.hasOwnProperty(key) ? input[key] : '';
-        transformedData[key] = values.hasOwnProperty(currentValue) ? values[currentValue] : null;
+        if (fields.hasOwnProperty('field')) {
+            transformedData = this.mapAdd(transformedData, input, fields, key);
+            if ((key !== fields['field']) && transformedData.hasOwnProperty(fields['field'])) {
+                delete transformedData[fields['field']];
+            }
+        } else {
+            const values = fields.hasOwnProperty('values') ? fields['values'] : {};
+            const currentValue = (input.hasOwnProperty(key)) ? input[key] : '';
+            transformedData[key] = values.hasOwnProperty(currentValue) ? values[currentValue] : null;
+        }
         return transformedData;
     }
-
 
     /**
      * @protected
@@ -230,8 +260,8 @@ export class SmartFieldMapping extends EtlTransformer {
      */
     // tslint:disable-next-line:prefer-function-over-method
     protected delete(transformedData: object = {}, input: object, fields: object, key: string): object {
-        if (transformedData.hasOwnProperty(fields['field'])) {
-            delete transformedData[fields['field']];
+        if (transformedData.hasOwnProperty(key)) {
+            delete transformedData[key];
         }
         return transformedData;
     }
@@ -261,13 +291,35 @@ export class SmartFieldMapping extends EtlTransformer {
      * @memberof SmartFieldMapping
      */
     protected convertDateTimeToUTC(transformedData: object = {}, input: object, fields: object, key: string): object {
-         const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
-         const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
-         transformedData[key] = value ? moment(value).utc().format(effectiveFormat) : '';
+        const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
+        const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
+        transformedData[key] = value ? moment(value).utc().format(effectiveFormat) : '';
+        if (fields.hasOwnProperty('type') && fields['type'] === 'number') {
+            transformedData[key] = Number(transformedData[key]);
+        }
         if ((key !== fields['field']) && transformedData.hasOwnProperty(fields['field'])) {
             delete transformedData[fields['field']];
         }
         return transformedData;
+    }
+
+    /**
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof SmartFieldMapping
+     */
+    protected addDateTimeToUTC(transformedData: object = {}, input: object, fields: object, key: string): object {
+        const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
+        const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
+        transformedData[key] = value ? moment(value).utc().format(effectiveFormat) : '';
+        if (fields.hasOwnProperty('type') && fields['type'] === 'number') {
+           transformedData[key] = Number(transformedData[key]);
+        }
+       return transformedData;
     }
 
     /**

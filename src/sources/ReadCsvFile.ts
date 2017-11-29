@@ -32,8 +32,29 @@ export class ReadCsvFile extends EtlSource {
   constructor(config: Partial<ReadCsvFileConfig>) {
     super();
     this.fileName = config.fileName || '';
-    this.fileHasHeader = config.fileHasHeader || true;
+    this.fileHasHeader = config.hasOwnProperty('fileHasHeader') ? config.fileHasHeader : true;
     this.headers = this.fileHasHeader ? [] : config.headers || [];
+  }
+
+  /**
+   * Get fileName private variable
+   */
+  public getFileName(): string {
+    return this.fileName;
+  }
+
+  /**
+   * Get fileHasHeader private variable
+   */
+  public getFileHasHeader(): boolean {
+    return this.fileHasHeader;
+  }
+
+  /**
+   * Get fileName private variable
+   */
+  public getHeaders(): string[] {
+    return this.headers;
   }
 
   /**
