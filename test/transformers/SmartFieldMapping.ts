@@ -2,11 +2,14 @@
 import { must } from 'must';
 import * as sinon from 'sinon';
 import * as moment from 'moment';
+import { tz } from 'moment-timezone';
 import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 // Internal dependencies
 import { EtlBatch, EtlState, EtlBatchRecord } from '../../src/EtlBatch';
 import { SmartFieldMapping, SmartFieldMappingConfig } from '../../src/transformers/SmartFieldMapping';
+
+tz.setDefault('Australia/Sydney');
 // Test Config
 const gaConfig = utilConfig.get('transformers.smartfieldmapping');
 
