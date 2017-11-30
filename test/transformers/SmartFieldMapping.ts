@@ -326,7 +326,7 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
   @test convertDateTimeToUTC() {
     const data = {
       id: 48162196,
-      myTime: moment('2017-10-27 13:18:40').tz('Australia/Sydney').format('YYYY-MM-DD HH:mm:ss'),
+      myTime: moment.tz('2017-10-27 13:18:40', 'Australia/Sydney').format(),
     };
     const input = {... data};
     const action = {
@@ -344,7 +344,7 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
   @test convertDateTimeToUTCTest1() {
     const data = {
       id: 48162196,
-      myTime: moment('2017-10-27 13:18:40').tz('Australia/Sydney').format('YYYY-MM-DD HH:mm:ss'),
+      myTime: moment.tz('2017-10-27 13:18:40', 'Australia/Sydney').format(),
     };
     const input = {... data};
     const action = {
@@ -362,7 +362,7 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
   @test convertDateTimeToUTCTest2() {
     const data = {
       id: 48162196,
-      myTime: moment('2017-10-27 13:18:40').tz('Australia/Sydney').format('YYYY-MM-DD HH:mm:ss'),
+      myTime: moment.tz('2017-10-27 13:18:40', 'Australia/Sydney').format(),
     };
     const input = {... data};
     const action = {
@@ -381,7 +381,7 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
   @test addDateTimeToUTC() {
     const data = {
       id: 48162196,
-      myTime: moment('2017-10-27 13:18:40').tz('Australia/Sydney').format('YYYY-MM-DD HH:mm:ss'),
+      myTime: moment.tz('2017-10-27 13:18:40', 'Australia/Sydney').format(),
     };
     const input = {... data};
     const action = {
@@ -392,7 +392,7 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
     const value = this.SmartFieldMapping.addDateTimeToUTC(data, input, action, 'utcTime');
     value.must.be.eql({
       id: 48162196,
-      myTime: '2017-10-27 13:18:40',
+      myTime: moment.tz('2017-10-27 13:18:40', 'Australia/Sydney').format(),
       utcTime: '20171027 02:18:40',
     });
   }
