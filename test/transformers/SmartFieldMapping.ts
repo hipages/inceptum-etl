@@ -109,7 +109,12 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
   public addDateTimeToUTC(transformedData: object = {}, input: object, fields: object, key: string): object {
     return super.addDateTimeToUTC(transformedData, input, fields, key);
   }
-
+  public convertDateTimeFormat(transformedData: object = {}, input: object, fields: object, key: string): object {
+    return super.convertDateTimeFormat(transformedData, input, fields, key);
+  }
+  public addDateTimeFormat(transformedData: object = {}, input: object, fields: object, key: string): object {
+    return super.addDateTimeFormat(transformedData, input, fields, key);
+  }
 }
 
 
@@ -394,6 +399,80 @@ class HelperSmartFieldMapping extends SmartFieldMapping {
       id: 48162196,
       myTime: moment.tz('2017-10-27 13:18:40', 'Australia/Sydney').format(),
       utcTime: '20171027 02:18:40',
+    });
+  }
+
+  @test convertDateTimeFormat() {
+    const data = {
+      id: 48162196,
+      myTime: '2017-10-27 13:18:40',
+    };
+    const input = {... data};
+    const action = {
+      action: 'convertDateTimeToUTC',
+      field: 'myTime',
+      format: 'YYYYMMDD HHmmss',
+    };
+    const value = this.SmartFieldMapping.convertDateTimeFormat(data, input, action, 'myTime');
+    value.must.be.eql({
+      id: 48162196,
+      myTime: '20171027 131840',
+    });
+  }
+
+  @test convertDateTimeFormatTest1() {
+    const data = {
+      id: 48162196,
+      myTime: '2017-10-27 13:18:40',
+    };
+    const input = {... data};
+    const action = {
+      action: 'convertDateTimeToUTC',
+      field: 'myTime',
+      format: 'YYYYMMDD HHmmss',
+    };
+    const value = this.SmartFieldMapping.convertDateTimeFormat(data, input, action, 'utcTime');
+    value.must.be.eql({
+      id: 48162196,
+      utcTime: '20171027 131840',
+    });
+  }
+
+  @test convertDateTimeFormatTest2() {
+    const data = {
+      id: 48162196,
+      myTime: '2017-10-27 13:18:40',
+    };
+    const input = {... data};
+    const action = {
+      action: 'convertDateTimeToUTC',
+      field: 'myTime',
+      format: 'HHmm',
+      type: 'number',
+    };
+    const value = this.SmartFieldMapping.convertDateTimeFormat(data, input, action, 'myTime');
+    value.must.be.eql({
+      id: 48162196,
+      myTime: 1318,
+    });
+  }
+
+  @test addDateTimeFormat() {
+    const data = {
+      id: 48162196,
+      myTime: '2017-10-27 13:18:40',
+    };
+    const input = {... data};
+    const action = {
+      action: 'convertDateTimeToUTC',
+      field: 'myTime',
+      format: 'YYYYMMDD HH:mm:ss',
+    };
+    const value = this.SmartFieldMapping.addDateTimeFormat(data, input, action, 'utcTime');
+    value.must.be.eql({
+      id: 48162196,
+      myTime: '2017-10-27 13:18:40',
+      utcTime: '20171027 13:18:40',
     });
   }
 

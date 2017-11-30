@@ -29,6 +29,8 @@ enum SmartFieldMappingAction {
     delete,
     mapReplace,
     mapAdd,
+    convertDateTimeFormat,
+    addDateTimeFormat,
 }
 
 interface SmartFieldMappingRecord {
@@ -316,6 +318,47 @@ export class SmartFieldMapping extends EtlTransformer {
         const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
         const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
         transformedData[key] = value ? moment(value).utc().format(effectiveFormat) : '';
+        if (fields.hasOwnProperty('type') && fields['type'] === 'number') {
+           transformedData[key] = Number(transformedData[key]);
+        }
+       return transformedData;
+    }
+
+    /**
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof SmartFieldMapping
+     */
+    protected convertDateTimeFormat(transformedData: object = {}, input: object, fields: object, key: string): object {
+        const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
+        const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
+        transformedData[key] = value ? moment(value).format(effectiveFormat) : '';
+        if (fields.hasOwnProperty('type') && fields['type'] === 'number') {
+            transformedData[key] = Number(transformedData[key]);
+        }
+        if ((key !== fields['field']) && transformedData.hasOwnProperty(fields['field'])) {
+            delete transformedData[fields['field']];
+        }
+        return transformedData;
+    }
+
+    /**
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof SmartFieldMapping
+     */
+    protected addDateTimeFormat(transformedData: object = {}, input: object, fields: object, key: string): object {
+        const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
+        const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
+        transformedData[key] = value ? moment(value).format(effectiveFormat) : '';
         if (fields.hasOwnProperty('type') && fields['type'] === 'number') {
            transformedData[key] = Number(transformedData[key]);
         }
