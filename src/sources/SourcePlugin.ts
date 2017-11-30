@@ -5,6 +5,9 @@ import { GoogleAnalyticsJobs } from './GoogleAnalyticsJobs';
 import { GoogleAnalyticsPages } from './GoogleAnalyticsPages';
 import { MySQLDataByKey } from './MySQLDataByKey';
 import { AdwordsReportsHistoricalData } from './AdwordsReportsHistoricalData';
+import { ReadCsvFile } from './ReadCsvFile';
+import { AdwordsReportLargeFile } from './AdwordsReportLargeFile';
+
 
 export class SourcePlugin implements Plugin {
     public etlName: string;
@@ -94,6 +97,20 @@ export class SourcePlugin implements Plugin {
             case 'googleanalyticspages':
                 {
                     const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsPages, this.getEtlObjectName());
+                    singletonDefinition.constructorParamByValue(sourceConfig);
+                    context.registerSingletons(singletonDefinition);
+                }
+                break;
+            case 'readcsvfile':
+                {
+                    const singletonDefinition = new BaseSingletonDefinition<any>(ReadCsvFile, this.getEtlObjectName());
+                    singletonDefinition.constructorParamByValue(sourceConfig);
+                    context.registerSingletons(singletonDefinition);
+                }
+                break;
+            case 'adwordsreportlargefile':
+                {
+                    const singletonDefinition = new BaseSingletonDefinition<any>(AdwordsReportLargeFile, this.getEtlObjectName());
                     singletonDefinition.constructorParamByValue(sourceConfig);
                     context.registerSingletons(singletonDefinition);
                 }

@@ -53,4 +53,15 @@ export abstract class EtlDestinationFile extends EtlDestination {
   public getBaseFileName(): string {
       return this.baseFileName;
   }
+
+  /**
+   * Delete file
+   */
+  // tslint:disable-next-line:prefer-function-over-method
+  public deleteFileByName(fileName: string) {
+    if (fs.statSync(fileName).isFile()) {
+      fs.unlinkSync(fileName);
+    }
+  }
+
 }

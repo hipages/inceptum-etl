@@ -12,6 +12,33 @@ import { S3Bucket } from '../destinations/S3Bucket';
 
 const log = LogManager.getLogger();
 
+export interface SmartFieldMappingConfig {
+    etlName: string,
+    tempDirectory: string,
+    regexPath: string,
+    bucket: string,
+    fieldsMapping: object,
+}
+
+enum SmartFieldMappingAction {
+    add,
+    replace,
+    regexAdd,
+    convertDateTimeToUTC,
+    addDateTimeToUTC,
+    delete,
+    mapReplace,
+    mapAdd,
+}
+
+interface SmartFieldMappingRecord {
+    action: SmartFieldMappingAction,
+    value: string,
+    field: string,
+    values: object,
+    format: string,
+}
+
 export class SmartFieldMapping extends EtlTransformer {
     protected fileType = 'json';
     protected etlName: string;
@@ -21,13 +48,14 @@ export class SmartFieldMapping extends EtlTransformer {
     protected fieldsMapping: object;
     protected regexCollection: object;
 
-    constructor(etlName: string, tempDirectory: string, regexPath: string, bucket: string, fieldsMapping: object) {
+    constructor(config: Partial<SmartFieldMappingConfig>) {
         super();
-        this.etlName = etlName;
-        this.tempDirectory = tempDirectory;
-        this.regexPath =  regexPath;
-        this.bucket = bucket.trim();
-        this.fieldsMapping = {...fieldsMapping};
+        this.etlName = config.etlName || 'SmartFieldMapping';
+        this.tempDirectory = config.tempDirectory || 'tmp';
+        this.regexPath =  config.regexPath || '';
+        this.bucket = config.bucket || '';
+        this.bucket = this.bucket.trim();
+        this.fieldsMapping = {...config.fieldsMapping};
     }
 
     /**
@@ -57,6 +85,7 @@ export class SmartFieldMapping extends EtlTransformer {
         }
         return true;
     }
+
     /**
      * @protected
      * @returns {Promise<any>}
@@ -74,6 +103,7 @@ export class SmartFieldMapping extends EtlTransformer {
         const currentFile = await S3BucketObj.fetch(this.regexPath);
         return Promise.resolve(fs.readFileSync(joinPath(currentFile), { encoding : 'utf8'}));
     }
+
     /**
      * @protected
      * @returns any
@@ -142,6 +172,7 @@ export class SmartFieldMapping extends EtlTransformer {
             record.setState(EtlState.ERROR);
         }
     }
+
     /**
      * @protected
      * @param {object} [transformedData={}]
@@ -155,6 +186,7 @@ export class SmartFieldMapping extends EtlTransformer {
         transformedData[key] = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : null;
         return transformedData;
     }
+
     /**
      * @protected
      * @param {object} [transformedData={}]
@@ -171,6 +203,69 @@ export class SmartFieldMapping extends EtlTransformer {
         }
         return transformedData;
     }
+
+    /**
+     * Add a field value with the given object values. Values are given in a pair:
+     * { givenValue: replaceValue }
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof SmartFieldMapping
+     */
+    // tslint:disable-next-line:prefer-function-over-method
+    protected mapAdd(transformedData: object = {}, input: object, fields: object, key: string): object {
+        const values = fields.hasOwnProperty('values') ? fields['values'] : {};
+        const currentValue = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : '';
+        transformedData[key] = values.hasOwnProperty(currentValue) ? values[currentValue] : null;
+        return transformedData;
+    }
+
+    /**
+     * Replace a field value with the given object values. Values are given in a pair:
+     * { givenValue: replaceValue }
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof SmartFieldMapping
+     */
+    // tslint:disable-next-line:prefer-function-over-method
+    protected mapReplace(transformedData: object = {}, input: object, fields: object, key: string): object {
+        if (fields.hasOwnProperty('field')) {
+            transformedData = this.mapAdd(transformedData, input, fields, key);
+            if ((key !== fields['field']) && transformedData.hasOwnProperty(fields['field'])) {
+                delete transformedData[fields['field']];
+            }
+        } else {
+            const values = fields.hasOwnProperty('values') ? fields['values'] : {};
+            const currentValue = (input.hasOwnProperty(key)) ? input[key] : '';
+            transformedData[key] = values.hasOwnProperty(currentValue) ? values[currentValue] : null;
+        }
+        return transformedData;
+    }
+
+    /**
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof SmartFieldMapping
+     */
+    // tslint:disable-next-line:prefer-function-over-method
+    protected delete(transformedData: object = {}, input: object, fields: object, key: string): object {
+        if (transformedData.hasOwnProperty(key)) {
+            delete transformedData[key];
+        }
+        return transformedData;
+    }
+
     /**
      * @protected
      * @param {object} [transformedData={}]
@@ -185,6 +280,7 @@ export class SmartFieldMapping extends EtlTransformer {
         transformedData[key] = this.regexReplace(currentValue);
         return transformedData;
     }
+
     /**
      * @protected
      * @param {object} [transformedData={}]
@@ -195,15 +291,40 @@ export class SmartFieldMapping extends EtlTransformer {
      * @memberof SmartFieldMapping
      */
     protected convertDateTimeToUTC(transformedData: object = {}, input: object, fields: object, key: string): object {
-         const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
-         const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
-         transformedData[key] = value ? moment(value).utc().format(effectiveFormat) : '';
+        const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
+        const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
+        transformedData[key] = value ? moment(value).utc().format(effectiveFormat) : '';
+        if (fields.hasOwnProperty('type') && fields['type'] === 'number') {
+            transformedData[key] = Number(transformedData[key]);
+        }
         if ((key !== fields['field']) && transformedData.hasOwnProperty(fields['field'])) {
             delete transformedData[fields['field']];
         }
         return transformedData;
     }
+
     /**
+     * @protected
+     * @param {object} [transformedData={}]
+     * @param {object} input
+     * @param {object} fields
+     * @param {string} key
+     * @returns {object}
+     * @memberof SmartFieldMapping
+     */
+    protected addDateTimeToUTC(transformedData: object = {}, input: object, fields: object, key: string): object {
+        const value = (this.fetchValue(fields, input)) ? this.fetchValue(fields, input) : false;
+        const effectiveFormat = fields['format'] ? fields['format'] : 'YYYY-MM-DD HH:mm:ss';
+        transformedData[key] = value ? moment(value).utc().format(effectiveFormat) : '';
+        if (fields.hasOwnProperty('type') && fields['type'] === 'number') {
+           transformedData[key] = Number(transformedData[key]);
+        }
+       return transformedData;
+    }
+
+    /**
+     * If obj has property "field" returns input[obj.field]
+     * If obj has property "value" returns obj.value
      * @protected
      * @param {object} obj
      * @param {object} [input]
@@ -234,6 +355,7 @@ export class SmartFieldMapping extends EtlTransformer {
         }
         return this.regexCollection;
     }
+
     /**
      * @protected
      * @param {string} landingPagePath

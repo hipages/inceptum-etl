@@ -55,11 +55,7 @@ export class TransformerPlugin implements Plugin {
             case 'smartfieldmapping':
                 {
                     const singletonDefinition = new BaseSingletonDefinition<any>(SmartFieldMapping, 'EtlTransformer');
-                    singletonDefinition.constructorParamByValue(etlName);
-                    singletonDefinition.constructorParamByValue(transformersConfig['tempDirectory']);
-                    singletonDefinition.constructorParamByValue(transformersConfig['regexPath']);
-                    singletonDefinition.constructorParamByValue(transformersConfig['bucket']);
-                    singletonDefinition.constructorParamByValue(transformersConfig['fieldsMapping']);
+                    singletonDefinition.constructorParamByValue({etlName, ...transformersConfig});
                     context.registerSingletons(singletonDefinition);
                 }
                 break;
