@@ -189,10 +189,11 @@ export class ReadCsvFile extends EtlSource {
 
   private async loadFromCsvFile(): Promise<Array<object>> {
     let csv = '';
-    const toLine = this.currentSavePoint['line'] + this.currentSavePoint['blockSize'];
+    const toLine = Number(this.currentSavePoint['line']) + Number(this.currentSavePoint['blockSize']);
     while (this.lastLine && (this.currentLineNumber <= toLine)) {
       if (this.currentLineNumber > this.currentSavePoint['line']) {
-        csv += ((csv.length > 0) ? os.EOL : '') + this.lastLine.toString(this.fileFormat);
+        const eol = ((csv.length > 0) ? os.EOL : '');
+        csv = `${csv}${eol}${this.lastLine.toString(this.fileFormat)}`;
       }
       this.lastLine = this.fileReader.next();
       this.currentLineNumber++;
