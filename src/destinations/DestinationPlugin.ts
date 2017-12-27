@@ -3,6 +3,7 @@ import { CsvFile } from './CsvFile';
 import { JsonFile } from './JsonFile';
 import { Redshift } from './Redshift';
 import { S3Bucket } from './S3Bucket';
+import { Console } from './Console';
 
 export class DestinationPlugin implements Plugin {
   public etlName: string;
@@ -92,6 +93,12 @@ export class DestinationPlugin implements Plugin {
           singletonDefinition.constructorParamByValue(destinationConfig['tableName']);
           singletonDefinition.constructorParamByValue(destinationConfig['bulkDeleteMatchFields']);
           singletonDefinition.constructorParamByValue(destinationConfig['iamRole']);
+          context.registerSingletons(singletonDefinition);
+        }
+        break;
+      case 'console':
+        {
+          const singletonDefinition = new BaseSingletonDefinition<any>(Console, this.getEtlObjectName());
           context.registerSingletons(singletonDefinition);
         }
         break;
