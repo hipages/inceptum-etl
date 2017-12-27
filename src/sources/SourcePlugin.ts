@@ -7,6 +7,7 @@ import { MySQLDataByKey } from './MySQLDataByKey';
 import { AdwordsReportsHistoricalData } from './AdwordsReportsHistoricalData';
 import { ReadCsvFile } from './ReadCsvFile';
 import { AdwordsReportLargeFile } from './AdwordsReportLargeFile';
+import { GoogleAnalyticsReporting } from './GoogleAnalyticsReporting';
 
 
 export class SourcePlugin implements Plugin {
@@ -115,7 +116,14 @@ export class SourcePlugin implements Plugin {
                     context.registerSingletons(singletonDefinition);
                 }
                 break;
-            default:
+            case 'googleanalyticsreporting':
+              {
+                  const singletonDefinition = new BaseSingletonDefinition<any>(GoogleAnalyticsReporting, this.getEtlObjectName());
+                  singletonDefinition.constructorParamByValue(sourceConfig['sourceOptions']);
+                  context.registerSingletons(singletonDefinition);
+              }
+              break;
+          default:
                 throw new Error(`Unknown source type: ${sourceType}`);
         }
     }

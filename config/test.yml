@@ -15,6 +15,7 @@ app:
     - test_12
     - test_13
     - test_14
+    - test_15
 
 generalConfig:
   source:
@@ -489,6 +490,37 @@ etls:
     savepoint:
       type: static
       savepoint: '{"startDate":"20170731","endDate":"20170801","currentDate":"2017-08-01T01:14:37.995Z","blockSize":2,"line":0,"batchNumber":0}'
+
+  test_15:
+    source:
+      type: googleanalyticsreporting
+      account: hip
+      viewId: 123456
+      clientKey: "-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----\n"
+      clientEmail: "the.iam.gserviceaccount.com"
+      reportRequest:
+        key: "ga:transactionId"
+        keyStringPart: JOB
+        dimensions:
+          - "ga:transactionId": transactionId
+            "ga:campaign": campaign
+            "ga:adGroup": adGroup
+            "ga:source": source
+            "ga:medium": medium
+            "ga:keyword": keyword
+            "ga:landingPagePath": landingPagePath
+            "ga:adMatchedQuery": adMatchedQuery
+            "ga:deviceCategory": deviceCategory
+          - "ga:browser": browser
+            "ga:browserVersion": browserVersion
+            "ga:browserSize": browserSize
+          - "ga:dimension15": dimension15
+          - "ga:landingContentGroup5": landingContentGroup5
+        metric: "ga:transactions"
+        filters: "ga:transactionId=~^JOB*"
+        orderBys:
+          - "ga:transactionId"
+
 
 mysql:
   EtlSavePoint:    
