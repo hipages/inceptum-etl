@@ -4,6 +4,7 @@ import { JsonFile } from './JsonFile';
 import { Redshift } from './Redshift';
 import { S3Bucket } from './S3Bucket';
 import { Console } from './Console';
+import { MySqlInsert } from './MySqlInsert';
 
 export class DestinationPlugin implements Plugin {
   public etlName: string;
@@ -99,6 +100,13 @@ export class DestinationPlugin implements Plugin {
       case 'console':
         {
           const singletonDefinition = new BaseSingletonDefinition<any>(Console, this.getEtlObjectName());
+        }
+        break;
+      case 'mysqlinsert':
+        {
+          const singletonDefinition = new BaseSingletonDefinition<any>(MySqlInsert, this.getEtlObjectName());
+          singletonDefinition.constructorParamByRef(destinationConfig['dbClient']);
+          singletonDefinition.constructorParamByValue(destinationConfig['tableDetails']);
           context.registerSingletons(singletonDefinition);
         }
         break;

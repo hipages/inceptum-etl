@@ -24,3 +24,5 @@ export { GoogleAnalytics } from './util/GoogleAnalytics';
 export { mapRecord } from './util/FieldMapper';
 export { MySQLDataByKey } from './sources/MySQLDataByKey';
 export { StaticSavepointManager } from './savepoints/StaticSavepointManager';
+export { MySqlInsert } from './destinations/MySqlInsert';
+export { GoogleAnalyticsReporting } from './sources/GoogleAnalyticsReporting';

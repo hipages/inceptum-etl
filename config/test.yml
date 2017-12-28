@@ -16,6 +16,8 @@ app:
     - test_13
     - test_14
     - test_15
+    - test_16
+    - test_17
 
 generalConfig:
   source:
@@ -521,9 +523,34 @@ etls:
         orderBys:
           - "ga:transactionId"
 
+  test_16:
+    destination:
+      type: mysqlinsert
+      dbClient: EtlSavePoint
+      tableDetails:
+        tableName: test_table
+        bulkDeleteMatchFields: 
+          - job_id
+          - transaction_id
+          - account
+          - created_by_date
+    savepoint:
+      type: static
+      savepoint: ''
+
+  test_17:
+    destination:
+      type: mysqlinsert
+      dbClient: EtlSavePoint
+      tableDetails:
+        tableName: test_table
+        bulkDeleteMatchFields: False
+    savepoint:
+      type: static
+      savepoint: ''
 
 mysql:
-  EtlSavePoint:    
+  EtlSavePoint:  
     master:
       host: localhost
       port: 3306
