@@ -199,9 +199,7 @@ export class MySqlInsert extends EtlDestination {
         if (deleteFields.length === 1) {
             const field = deleteFields.pop();
             deleteQuery.queryValues = this.getFieldListValues(inputs, field);
-            const maskText = deleteQuery.queryValues.map((deleteValue) => {
-                return '?';
-            });
+            const maskText = deleteQuery.queryValues.map(() => '?');
             deleteQuery.query = `DELETE FROM ${this.tableName} WHERE ${field} in (${maskText.join(',')})`;
         } else if (deleteFields.length > 1) {
             const deleteValuesObjects = this.arrayOfObjectToListValues(inputs, deleteFields);
