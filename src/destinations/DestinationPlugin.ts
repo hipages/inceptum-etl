@@ -5,6 +5,7 @@ import { Redshift } from './Redshift';
 import { S3Bucket } from './S3Bucket';
 import { Console } from './Console';
 import { MySqlInsert } from './MySqlInsert';
+import { MySqlUpdate } from './MySqlUpdate';
 
 export class DestinationPlugin implements Plugin {
   public etlName: string;
@@ -100,6 +101,7 @@ export class DestinationPlugin implements Plugin {
       case 'console':
         {
           const singletonDefinition = new BaseSingletonDefinition<any>(Console, this.getEtlObjectName());
+          context.registerSingletons(singletonDefinition);
         }
         break;
       case 'mysqlinsert':
@@ -109,6 +111,14 @@ export class DestinationPlugin implements Plugin {
           singletonDefinition.constructorParamByValue(destinationConfig['tableDetails']);
           context.registerSingletons(singletonDefinition);
         }
+        break;
+      case 'mysqlupdate':
+      {
+        const singletonDefinition = new BaseSingletonDefinition<any>(MySqlUpdate, this.getEtlObjectName());
+        singletonDefinition.constructorParamByRef(destinationConfig['dbClient']);
+        singletonDefinition.constructorParamByValue(destinationConfig['tableDetails']);
+        context.registerSingletons(singletonDefinition);
+      }
         break;
       default:
         throw new Error(`Unknown destination type: ${destinationType}`);
