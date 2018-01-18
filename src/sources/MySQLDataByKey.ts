@@ -135,7 +135,7 @@ export class MySQLDataByKey extends EtlSource {
     }
   }
 
-  protected async getMaxAndMinIds() {
+  protected async getMaxAndMinIds(): Promise<void> {
     const findEndVal = this.currentSavePoint['columnEndValue'] === '';
     let query = `SELECT  min(${this.pk}) as min_id, max(${this.pk}) as max_id, max(${this.searchColumn}) as end_value FROM ${this.tableName}`;
     if (findEndVal) {
@@ -166,7 +166,7 @@ export class MySQLDataByKey extends EtlSource {
       }
     } catch (e) {
       log.fatal(e, `Fail getting table ${this.tableName} getMaxAndMinIds`);
-      return Promise.reject(e);
+      throw(e);
     }
   }
 
