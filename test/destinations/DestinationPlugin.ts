@@ -1,6 +1,7 @@
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
-import { InceptumApp, Context, BaseSingletonDefinition } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
+import { Context, BaseSingletonDefinition } from 'inceptum';
 import { EtlDestination } from '../../src/EtlDestination';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { DestinationPlugin } from '../../src/destinations/DestinationPlugin';
@@ -36,7 +37,7 @@ class ExtendedDestinationPlugin extends DestinationPlugin {
 suite('DestinationPlugin', () => {
   suite('Destination plugin test', () => {
     test('Basic ', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new DestinationPlugin('test_1');
       app.use(pluginObj);
@@ -44,9 +45,10 @@ suite('DestinationPlugin', () => {
       const destination = await context.getObjectByName('EtlDestination');
       const theType = destination.constructor.name;
       theType.must.be.equal('CsvFile');
+      await app.stop();
     });
     test('Basic destination load with extended config ', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new ExtendedDestinationPlugin('test_1');
       app.use(pluginObj);
@@ -54,9 +56,10 @@ suite('DestinationPlugin', () => {
       const destination = await context.getObjectByName('EtlDestination');
       const theType = destination.constructor.name;
       theType.must.be.equal('CsvFile');
+      await app.stop();
     });
     test('Extended destination load', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new ExtendedDestinationPlugin('test_7');
       app.use(pluginObj);
@@ -64,9 +67,10 @@ suite('DestinationPlugin', () => {
       const destination = await context.getObjectByName('EtlDestination');
       const theType = destination.constructor.name;
       theType.must.be.equal('ExtendedDestination');
+      await app.stop();
     });
     test('Basic not extended destination error', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       try {
         const pluginObj = new DestinationPlugin('test_7');
@@ -75,6 +79,7 @@ suite('DestinationPlugin', () => {
       } catch (err) {
         err.message.must.be.equal('Unknown destination type: extendeddestination');
       }
+      await app.stop();
     });
   });
 });

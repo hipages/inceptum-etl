@@ -6,9 +6,11 @@ import * as moment from 'moment';
 import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 // Internal dependencies
-import { DBClient, DBTransaction, InceptumApp, BaseSingletonDefinition } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
+import { DBClient, DBTransaction, BaseSingletonDefinition } from 'inceptum';
 import { Transaction } from 'inceptum/dist/transaction/TransactionManager';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
+import { SavepointPlugin } from '../../src/savepoints/SavepointPlugin';
 import { DestinationPlugin } from '../../src/destinations/DestinationPlugin';
 import { MySqlInsert, MysqlQueryHelper, MysqlQueryBuilderHelper } from '../../src/destinations/MySqlInsert';
 
@@ -272,37 +274,48 @@ suite('MySqlInsert', () => {
     });
   });
   suite('Test using the plugin:', () => {
-    const app = new InceptumApp();
+    const dbSingletonDefinition = new BaseSingletonDefinition(TestDBClient, 'EtlSavePoint');
+    const app = new BaseApp();
     const context = app.getContext();
+    context.registerSingletons(dbSingletonDefinition);
     const pluginObj = new DestinationPlugin('test_16');
-    app.use(pluginObj);
+    let dest: any;
+    before('start', async () => {
+      app.use(pluginObj);
+      await app.start();
+      dest = await context.getObjectByName('EtlDestination');
+    });
 
     test('The type of object:', async () => {
-      await app.start();
-      const dest = await context.getObjectByName('EtlDestination');
       dest.must.be.instanceof(MySqlInsert);
     });
+
     test('Initial config values', async () => {
-      const dest = await context.getObjectByName('EtlDestination');
       dest.getMySqlClient().must.be.instanceOf(DBClient);
       dest.getTableName().must.be.equal('test_table');
       dest.getBulkDeleteMatchFields().must.be.an.array();
       dest.getBulkDeleteMatchFields().must.be.eql(testConfig.bulkDeleteMatchFields);
     });
+
+    after('stop', async () => {
+      await app.stop();
+    });
   });
   suite('Test using the plugin no delete fields:', () => {
-    const app = new InceptumApp();
-    const context = app.getContext();
-    const pluginObj = new DestinationPlugin('test_17');
-    app.use(pluginObj);
-
     test('Initial config values', async () => {
+      const dbSingletonDefinition = new BaseSingletonDefinition(TestDBClient, 'EtlSavePoint');
+      const app = new BaseApp();
+      const context = app.getContext();
+      context.registerSingletons(dbSingletonDefinition);
+      const pluginObj = new DestinationPlugin('test_17');
+      app.use(pluginObj);
       await app.start();
       const dest = await context.getObjectByName('EtlDestination');
       dest.getMySqlClient().must.be.instanceOf(DBClient);
       dest.getTableName().must.be.equal('test_table');
       dest.getBulkDeleteMatchFields().must.be.an.boolean();
       dest.getBulkDeleteMatchFields().must.be.equal(false);
+      await app.stop();
     });
   });
 

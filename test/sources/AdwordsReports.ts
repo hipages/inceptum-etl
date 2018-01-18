@@ -2,7 +2,7 @@ import { must } from 'must';
 import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import * as moment from 'moment';
-import { InceptumApp } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { StaticSavepointManager } from '../../src/savepoints/StaticSavepointManager';
 import { AdwordsReports } from '../../src/sources/AdwordsReports';
@@ -168,12 +168,15 @@ suite('AdwordsReports', () => {
   });
 
   suite('Test using the plugin to ensure the parameters are passed:', async () => {
-    const app = new InceptumApp();
+    const app = new BaseApp();
     const context = app.getContext();
     const pluginObj = new SourcePlugin('test_12');
-    app.use(pluginObj);
-    await app.start();
-    const source = await context.getObjectByName('EtlSource');
+    let source: any;
+    before('start', async () => {
+      app.use(pluginObj);
+      await app.start();
+      source = await context.getObjectByName('EtlSource');
+    });
 
     test('Test the type of object:', async () => {
         source.must.be.instanceof(AdwordsReports);
@@ -203,6 +206,10 @@ suite('AdwordsReports', () => {
             refresh_token: 'ADWORDS_API_REFRESHTOKEN',
             version: 'v201705',
         });
+    });
+
+    after('stop', async () => {
+      await app.stop();
     });
   });
 });

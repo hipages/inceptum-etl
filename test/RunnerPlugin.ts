@@ -1,6 +1,7 @@
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
-import { InceptumApp, BaseSingletonDefinition } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
+import { BaseSingletonDefinition } from 'inceptum';
 import { SavepointPlugin } from '../src/savepoints/SavepointPlugin';
 import { DestinationPlugin } from '../src/destinations/DestinationPlugin';
 import { TransformerPlugin } from '../src/transformers/TransformerPlugin';
@@ -15,7 +16,7 @@ class EmptyClass {
     }
 }
 
-const app = new InceptumApp();
+const app = new BaseApp();
 const context = app.getContext();
 const etlName = 'test_1';
 
@@ -34,6 +35,7 @@ suite('Runner plugin', () => {
       const runner = await context.getObjectByName('EtlRunner');
       const theType = runner.constructor.name;
       theType.must.be.equal('EtlRunner');
+      await app.stop();
     });
   });
 });

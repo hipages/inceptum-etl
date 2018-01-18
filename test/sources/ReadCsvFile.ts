@@ -3,7 +3,7 @@ import * as utilConfig from 'config';
 import * as sinon from 'sinon';
 import * as moment from 'moment';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
-import { InceptumApp } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { StaticSavepointManager } from '../../src/savepoints/StaticSavepointManager';
 import { ReadCsvFile, ReadCsvFileConfig } from '../../src/sources/ReadCsvFile';
@@ -221,12 +221,15 @@ suite('ReadCsvFile', () => {
   });
 
   suite('Tes using the plugin to ensure the parameters are passed:', async () => {
-    const app = new InceptumApp();
+    const app = new BaseApp();
     const context = app.getContext();
     const pluginObj = new SourcePlugin('test_13');
-    app.use(pluginObj);
-    await app.start();
-    const source = await context.getObjectByName('EtlSource');
+    let source: any;
+    before('start', async () => {
+      app.use(pluginObj);
+      await app.start();
+      source = await context.getObjectByName('EtlSource');
+    });
 
     test('type of object:', async () => {
         source.must.be.instanceof(ReadCsvFile);
@@ -239,6 +242,10 @@ suite('ReadCsvFile', () => {
     });
     test('configuration: getHeaders', async () => {
       source.getHeaders().must.be.eql(['header_1', 'header_2', 'header_3']);
+    });
+
+    after('stop', async () => {
+      await app.stop();
     });
   });
 });

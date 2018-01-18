@@ -3,6 +3,7 @@ import * as promise from 'bluebird';
 import * as google from 'googleapis';
 import { LogManager } from 'inceptum';
 // Helper function
+import { GoogleAnalyticsReporting } from '../sources/GoogleAnalyticsReporting';
 import RequestGenerator from './RequestGenerator';
 
 const log = LogManager.getLogger();
@@ -65,8 +66,8 @@ export class GoogleAnalytics  {
      */
     public async fetch(params): Promise<any> {
         try {
-            const analytics = await this.authorize();
-            const report = promise.promisify(analytics.reports.batchGet);
+            const analytics: google.analyticsreporting = await this.authorize();
+            const report: google.analyticsreporting.reports.batchGet = promise.promisify(analytics.reports.batchGet);
             const requestGen = new RequestGenerator();
             const response = await report({
                 resource: requestGen

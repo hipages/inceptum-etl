@@ -2,7 +2,7 @@ import { must } from 'must';
 import * as nock from 'nock';
 import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
-import { InceptumApp } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
 import { EtlBatch } from '../../src/EtlBatch';
 import { FieldsMapping } from '../../src/transformers/FieldsMapping';
 import { TransformerPlugin } from '../../src/transformers/TransformerPlugin';
@@ -273,13 +273,16 @@ suite('FieldsMapping', () => {
         });
     });
     suite('Test using the plugin to ensure the parameters are passed:', async () => {
-        const app = new InceptumApp();
+        const app = new BaseApp();
         const context = app.getContext();
         const pluginObj = new TransformerPlugin('test_10');
-        app.use(pluginObj);
-        await app.start();
-        const transf = await context.getObjectByName('EtlTransformer');
         const batch =  new EtlBatch(testObject, 1, 1, 'test_FieldsMapping');
+        let transf: any;
+        before('start', async () => {
+          app.use(pluginObj);
+          await app.start();
+          transf = await context.getObjectByName('EtlTransformer');
+        });
 
         test('Test configuration: fixedFields', async () => {
             const fixedFields = transf.getFixedFields();
@@ -318,5 +321,9 @@ suite('FieldsMapping', () => {
             batchList[1].getTransformedData().must.be.eql(testObjectResults[1]);
             batchList[2].getTransformedData().must.be.eql(testObjectResults[2]);
         });
+
+        after('stop', async () => {
+            await app.stop();
+          });
     });
 });

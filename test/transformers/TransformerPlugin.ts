@@ -1,6 +1,7 @@
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
-import { Context, InceptumApp, BaseSingletonDefinition } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
+import { Context, BaseSingletonDefinition } from 'inceptum';
 import { EtlTransformer } from '../../src/EtlTransformer';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { TransformerPlugin } from '../../src/transformers/TransformerPlugin';
@@ -40,7 +41,7 @@ class ExtendedTransformerPlugin extends TransformerPlugin {
 
 suite('TransformerPlugin', () => {
     test('Basic plugin SplitAdwordsCampaign', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new TransformerPlugin('test_1');
       app.use(pluginObj);
@@ -48,9 +49,10 @@ suite('TransformerPlugin', () => {
       const transformer = await context.getObjectByName('EtlTransformer');
       const theType = transformer.constructor.name;
       theType.must.be.equal('SplitAdwordsCampaign');
+      await app.stop();
     });
     test('Plugin SmartFieldMapping', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new TransformerPlugin('test_8');
       app.use(pluginObj);
@@ -58,9 +60,10 @@ suite('TransformerPlugin', () => {
       const transformer = await context.getObjectByName('EtlTransformer');
       const theType = transformer.constructor.name;
       theType.must.be.equal('SmartFieldMapping');
+      await app.stop();
     });
     test('Plugin SimpleCopy', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new TransformerPlugin('test_2');
       app.use(pluginObj);
@@ -68,9 +71,10 @@ suite('TransformerPlugin', () => {
       const transformer = await context.getObjectByName('EtlTransformer');
       const theType = transformer.constructor.name;
       theType.must.be.equal('SimpleCopy');
+      await app.stop();
     });
     test('Plugin FieldsMapping', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new TransformerPlugin('test_10');
       app.use(pluginObj);
@@ -78,9 +82,10 @@ suite('TransformerPlugin', () => {
       const transformer = await context.getObjectByName('EtlTransformer');
       const theType = transformer.constructor.name;
       theType.must.be.equal('FieldsMapping');
+      await app.stop();
     });
     test('Basic transformer load with extended config ', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new ExtendedTransformerPlugin('test_1');
       app.use(pluginObj);
@@ -88,9 +93,10 @@ suite('TransformerPlugin', () => {
       const transformer = await context.getObjectByName('EtlTransformer');
       const theType = transformer.constructor.name;
       theType.must.be.equal('SplitAdwordsCampaign');
+      await app.stop();
     });
     test('Extended transformer load', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new ExtendedTransformerPlugin('test_7');
       app.use(pluginObj);
@@ -98,9 +104,10 @@ suite('TransformerPlugin', () => {
       const transformer = await context.getObjectByName('EtlTransformer');
       const theType = transformer.constructor.name;
       theType.must.be.equal('ExtendedTransformer');
+      await app.stop();
     });
     test('Basic not extended transformer error', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       try {
         const pluginObj = new TransformerPlugin('test_7');
@@ -110,5 +117,6 @@ suite('TransformerPlugin', () => {
       } catch (err) {
         err.message.must.be.equal('Unknown trasformation type: extendedtransformer');
       }
+      await app.stop();
     });
 });

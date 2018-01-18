@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "build": "tsc",
     "clean": "rm -rf dist docs && mkdir docs",
     "test": "NODE_ENV=test nyc --reporter=lcov mocha",
     "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
@@ -41,7 +42,7 @@
     "config": "1.25.1",
     "csvjson": "^4.3.3",
     "csvtojson": "^1.1.7",
-    "inceptum": "^0.5.17",
+    "inceptum": "^0.5.47",
     "lodash": "^4.17.4",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.14",
@@ -65,11 +66,11 @@
     "nock": "^9.0.14",
     "nyc": "^10.3.2",
     "sinon": "^3.2.0",
-    "ts-node": "3.0.4",
-    "tslint": "^5.4.3",
-    "tslint-config-shopify": "^2.0.0",
-    "typedoc": "^0.7.1",
-    "typedoc-clarity-theme": "^1.1.0"
+    "ts-node": "4.0.1",
+    "tslint": "^5.8.0",
+    "tslint-config-shopify": "2.0.0",
+    "typedoc-clarity-theme": "^1.1.0",
+    "typescript": "2.6.1"
   },
   "nyc": {
     "include": [
