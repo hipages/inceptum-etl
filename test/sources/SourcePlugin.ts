@@ -1,6 +1,7 @@
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
-import { Context, InceptumApp, BaseSingletonDefinition } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
+import { Context, BaseSingletonDefinition } from 'inceptum';
 import { EtlSource } from '../../src/EtlSource';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { SourcePlugin } from '../../src/sources/SourcePlugin';
@@ -53,7 +54,7 @@ class ExtendedSourcePlugin extends SourcePlugin {
 suite('SourcePlugin', () => {
   suite('Source config test', () => {
     test('Basic source load', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new SourcePlugin('test_1');
       app.use(pluginObj);
@@ -61,9 +62,10 @@ suite('SourcePlugin', () => {
       const source = await context.getObjectByName('EtlSource');
       const theType = source.constructor.name;
       theType.must.be.equal('AdwordsReports');
+      await app.stop();
     });
     test('Basic source load with extended config ', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new ExtendedSourcePlugin('test_1');
       app.use(pluginObj);
@@ -71,9 +73,10 @@ suite('SourcePlugin', () => {
       const source = await context.getObjectByName('EtlSource');
       const theType = source.constructor.name;
       theType.must.be.equal('AdwordsReports');
+      await app.stop();
     });
     test('Extended source load', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       const pluginObj = new ExtendedSourcePlugin('test_7');
       app.use(pluginObj);
@@ -81,9 +84,10 @@ suite('SourcePlugin', () => {
       const source = await context.getObjectByName('EtlSource');
       const theType = source.constructor.name;
       theType.must.be.equal('ExtendedSource');
+      await app.stop();
     });
     test('Basic not extended source error', async () => {
-      const app = new InceptumApp();
+      const app = new BaseApp();
       const context = app.getContext();
       try {
         const pluginObj = new SourcePlugin('test_7');
@@ -92,6 +96,7 @@ suite('SourcePlugin', () => {
       } catch (err) {
         err.message.must.be.equal('Unknown source type: extendedsource');
       }
+      await app.stop();
     });
   });
 });

@@ -6,7 +6,8 @@ import * as moment from 'moment';
 import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 // Internal dependencies
-import { DBClient, DBTransaction, InceptumApp } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
+import { DBClient, DBTransaction, BaseSingletonDefinition } from 'inceptum';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { StaticSavepointManager } from '../../src/savepoints/StaticSavepointManager';
 import { SourcePlugin } from '../../src/sources/SourcePlugin';
@@ -310,8 +311,10 @@ suite('MySQLDataByKey', () => {
   });
 
   suite('Test using the plugin:', () => {
-    const app = new InceptumApp();
+    const app = new BaseApp();
     const context = app.getContext();
+    const dbSingletonDefinition = new BaseSingletonDefinition(TestDBClient, 'GA');
+    context.registerSingletons(dbSingletonDefinition);
     const pluginObj = new SourcePlugin('test_9');
     app.use(pluginObj);
 
@@ -320,6 +323,7 @@ suite('MySQLDataByKey', () => {
       await app.start();
       const source = await context.getObjectByName('EtlSource');
       source.must.be.instanceof(MySQLDataByKey);
+      await app.stop();
     });
     test('Test initial config values', async () => {
       dbClient.runInTransaction.returns(maxMinAndTotals);

@@ -3,6 +3,9 @@ import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import RequestGenerator from '../../src/util/RequestGenerator';
 // Generating request for GA
+
+
+  // tslint:disable-next-line
 const response = (params, requestGen) => requestGen
     .report()
     .viewId(params.viewId)

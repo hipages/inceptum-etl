@@ -1,6 +1,7 @@
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
-import { Context, InceptumApp, BaseSingletonDefinition } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
+import { Context, BaseSingletonDefinition } from 'inceptum';
 import { EtlSavepointManager } from '../../src/EtlSavepointManager';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { SavepointPlugin } from '../../src/savepoints/SavepointPlugin';
@@ -35,34 +36,37 @@ class ExtendedSavepointPlugin extends SavepointPlugin {
 
 suite('Savepoint Plugin test', () => {
   test('Basic ', async () => {
-    const app = new InceptumApp();
+    const app = new BaseApp();
     const context = app.getContext();
     const savepoints = new SavepointPlugin('test_2');
     app.use(savepoints);
     await app.start();
     const savepoint = await context.getObjectByName('EtlSavepointManager');
     savepoint.must.be.instanceof(StaticSavepointManager);
+    await app.stop();
   });
   test('Basic savepoint load with extended config ', async () => {
-    const app = new InceptumApp();
+    const app = new BaseApp();
     const context = app.getContext();
     const savepoints = new ExtendedSavepointPlugin('test_2');
     app.use(savepoints);
     await app.start();
     const savepoint = await context.getObjectByName('EtlSavepointManager');
     savepoint.must.be.instanceof(StaticSavepointManager);
+    await app.stop();
   });
   test('Extended savepoint load', async () => {
-    const app = new InceptumApp();
+    const app = new BaseApp();
     const context = app.getContext();
     const savepoints = new ExtendedSavepointPlugin('test_7');
     app.use(savepoints);
     await app.start();
     const savepoint = await context.getObjectByName('EtlSavepointManager');
     savepoint.must.be.instanceof(ExtendedSavepoint);
+    await app.stop();
   });
   test('Basic not extended savepoint error', async () => {
-    const app = new InceptumApp();
+    const app = new BaseApp();
     const context = app.getContext();
     try {
       const savepoints = new SavepointPlugin('test_7');
@@ -72,5 +76,6 @@ suite('Savepoint Plugin test', () => {
     } catch (err) {
       err.message.must.be.equal('Unknown savepoint type: extendedsavepoint');
     }
+    await app.stop();
   });
 });

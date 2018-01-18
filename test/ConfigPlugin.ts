@@ -1,6 +1,7 @@
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
-import { InceptumApp, BaseSingletonDefinition } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
+import { BaseSingletonDefinition } from 'inceptum';
 import { ConfigPlugin } from '../src/ConfigPlugin';
 
 class EmptyClass {
@@ -10,7 +11,7 @@ class EmptyClass {
     }
 }
 
-const app = new InceptumApp();
+const app = new BaseApp();
 const context = app.getContext();
 const etlName = 'test_1';
 
@@ -40,6 +41,7 @@ suite('Config Plugin', () => {
       config.getEtlDestination().must.be.eql(obj);
       config.getEtlTransformer().must.be.eql(obj);
       config.getEtlSavepointManager().must.be.eql(obj);
+      await app.stop();
     });
   });
 });

@@ -2,7 +2,7 @@ import { must } from 'must';
 import * as nock from 'nock';
 import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
-import { InceptumApp } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
 import { EtlBatch } from '../../src/EtlBatch';
 import { SplitAdwordsCampaign } from '../../src/transformers/SplitAdwordsCampaign';
 import { TransformerPlugin } from '../../src/transformers/TransformerPlugin';
@@ -275,12 +275,15 @@ suite('SplitAdwordsCampaign', () => {
     });
   });
   suite('Test using the plugin to ensure the parameters are passed:', async () => {
-    const app = new InceptumApp();
+    const app = new BaseApp();
     const context = app.getContext();
     const pluginObj = new TransformerPlugin('test_1');
-    app.use(pluginObj);
-    await app.start();
-    const transf = await context.getObjectByName('EtlTransformer');
+    let transf: any;
+    before('start', async () => {
+      app.use(pluginObj);
+      await app.start();
+      transf = await context.getObjectByName('EtlTransformer');
+    });
 
     test('Test configuration: fixedFields', async () => {
       const fixedFields = transf.getFixedFields();
@@ -305,6 +308,10 @@ suite('SplitAdwordsCampaign', () => {
         batchList[1].getTransformedData().must.be.eql(testObjectClicksResults[1]);
         batchList[2].getTransformedData().must.be.eql(testObjectClicksResults[2]);
         batchList[3].getTransformedData().must.be.eql(testObjectClicksResults[3]);
+    });
+
+    after('stop', async () => {
+      await app.stop();
     });
   });
 });

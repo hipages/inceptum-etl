@@ -1,6 +1,6 @@
 import { suite, test } from 'mocha-typescript';
 import { must } from 'must';
-import { InceptumApp, Context } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
 import { EtlBatch } from '../../src/EtlBatch';
 import { SimpleCopy } from '../../src/transformers/SimpleCopy';
 import { TransformerPlugin } from '../../src/transformers/TransformerPlugin';
@@ -50,7 +50,7 @@ interface SimpleCopyData {
      * Validate class using plugin
      */
     @test async transformRecord() {
-        const app = new InceptumApp();
+        const app = new BaseApp();
         const context = app.getContext();
         const pluginObj = new TransformerPlugin('test_2');
         app.use(pluginObj);
@@ -63,5 +63,6 @@ interface SimpleCopyData {
             const outputD = this.inputData[key];
             bRecord.getTransformedData().must.be.eql(outputD);
         });
+        await app.stop();
     }
 }

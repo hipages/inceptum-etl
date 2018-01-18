@@ -2,7 +2,7 @@ import { must } from 'must';
 import * as utilConfig from 'config';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import * as moment from 'moment';
-import { InceptumApp } from 'inceptum';
+import BaseApp from 'inceptum/dist/app/BaseApp';
 import { EtlBatch, EtlState } from '../../src/EtlBatch';
 import { StaticSavepointManager } from '../../src/savepoints/StaticSavepointManager';
 import { AdwordsReportsHistoricalData } from '../../src/sources/AdwordsReportsHistoricalData';
@@ -199,7 +199,7 @@ suite('AdwordsReportsHistoricalData', () => {
   });
 
   suite('Test using the plugin to ensure the parameters are passed:', () => {
-    const app = new InceptumApp();
+    const app = new BaseApp();
     const context = app.getContext();
     const pluginObj = new SourcePlugin('test_12');
     app.use(pluginObj);
@@ -208,6 +208,7 @@ suite('AdwordsReportsHistoricalData', () => {
       await app.start();
       const source = await context.getObjectByName('EtlSource');
       source.must.be.instanceof(AdwordsReportsHistoricalData);
+      await app.stop();
     });
     test('Test configuration: getAccount', async () => {
       const source = await context.getObjectByName('EtlSource');
