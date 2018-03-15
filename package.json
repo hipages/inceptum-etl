@@ -1,6 +1,6 @@
 {
   "name": "inceptum-etl",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "A framework for ETL processes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -47,7 +47,7 @@
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.14",
     "n-readlines": "^0.2.8",
-    "node-adwords": "201705.1.0",
+    "node-adwords": "201802.1.0",
     "s3": "^4.4.0",
     "temp": "^0.8.3"
   },
