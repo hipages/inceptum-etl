@@ -49,6 +49,7 @@ suite('Savepoint Plugin test', () => {
     const app = new BaseApp();
     const context = app.getContext();
     const savepoints = new ExtendedSavepointPlugin('test_2');
+    savepoints.getEtlObjectName().must.be.equal('EtlSavepointManager');
     app.use(savepoints);
     await app.start();
     const savepoint = await context.getObjectByName('EtlSavepointManager');
@@ -59,6 +60,7 @@ suite('Savepoint Plugin test', () => {
     const app = new BaseApp();
     const context = app.getContext();
     const savepoints = new ExtendedSavepointPlugin('test_7');
+    savepoints.getEtlObjectName().must.be.equal('EtlSavepointManager');
     app.use(savepoints);
     await app.start();
     const savepoint = await context.getObjectByName('EtlSavepointManager');
