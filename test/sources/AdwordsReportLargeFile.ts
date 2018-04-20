@@ -285,16 +285,16 @@ suite('AdwordsReportLargeFile', () => {
         source.getQuery().must.be.equal('SELECT QueryMatchTypeWithVariant, Query, CampaignId, CampaignName, AdGroupId, AdGroupName, Clicks, Impressions, Ctr, AverageCpc, Cost,AveragePosition, Conversions, CostPerConversion, ConversionRate, AllConversions, ViewThroughConversions FROM SEARCH_QUERY_PERFORMANCE_REPORT ');
     });
     test('configuration: getConfigAdwords', async () => {
-        source.getConfigAdwords().must.be.eql({
-            developerToken: 'DEVELOPER_TOKEN',
-            userAgent: 'YOUR_PROJECT_NAME',
-            clientCustomerId: 'ADWORDS_MCC_ACCOUNT_ID',
-            client_id: 'ADWORDS_API_CLIENT_ID',
-            client_secret: 'ADWORDS_API_CLIENT_SECRET',
-            refresh_token: 'ADWORDS_API_REFRESHTOKEN',
-            version: 'v201705',
-            proxy: undefined,
-        });
+      source.getConfigAdwords().must.be.eql({
+          developerToken: 'DEVELOPER_TOKEN',
+          userAgent: 'YOUR_PROJECT_NAME',
+          clientCustomerId: 'ADWORDS_MCC_ACCOUNT_ID',
+          client_id: 'ADWORDS_API_CLIENT_ID',
+          client_secret: 'ADWORDS_API_CLIENT_SECRET',
+          refresh_token: 'ADWORDS_API_REFRESHTOKEN',
+          version: 'v201705',
+          proxy: 'HTTP_PROXY',
+      });
     });
 
     after('stop', async () => {
