@@ -4,6 +4,7 @@ import * as moment from 'moment';
 import { toObject as csvToObject } from 'csvjson';
 import { LogManager } from 'inceptum';
 import { EtlBatch, EtlState } from '../EtlBatch';
+import AdwordsReportExtend from '../util/AdwordsReportExtend';
 import { AdwordsReports } from './AdwordsReports';
 
 promisifyAll(nodeAdwords);
@@ -87,7 +88,7 @@ export class AdwordsReportsHistoricalData extends AdwordsReports {
   protected async getAdwordsReport(config: object) {
     const currentBatch = this.currentSavePoint['currentBatch'] - 1;
     config['clientCustomerId'] = this.accountList[currentBatch]['id'];
-    const report = new nodeAdwords.AdwordsReport(config);
+    const report = (config['proxy']) ? new AdwordsReportExtend(config) : new nodeAdwords.AdwordsReport(config);
     return await report.getReportAsync(config['version'], {
         query: `${this.query} DURING ${this.currentSavePoint['startDate']},${this.currentSavePoint['endDate']}`,
         format: 'CSV',

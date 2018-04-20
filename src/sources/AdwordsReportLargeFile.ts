@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import { join as joinPath } from 'path';
 import { toObject as csvToObject } from 'csvjson';
 import { LogManager } from 'inceptum';
+import AdwordsReportExtend from '../util/AdwordsReportExtend';
 import { EtlBatch, EtlState } from '../EtlBatch';
 import { ReadCsvFile } from './ReadCsvFile';
 
@@ -23,6 +24,7 @@ export interface AdwordsReportLargeFileConfig {
   refreshToken: string,
   version: string,
   pace: number,
+  proxy: string,
 }
 
 export class AdwordsReportLargeFile extends ReadCsvFile {
@@ -51,13 +53,14 @@ export class AdwordsReportLargeFile extends ReadCsvFile {
     this.query = configAdwords.reportQuery;
     this.account = configAdwords.account;
     this.configAdwords = {
-        developerToken: configAdwords.token,
-        userAgent: configAdwords.userAgent,
-        clientCustomerId: configAdwords.clientCustomerId,
-        client_id: configAdwords.clientId,
-        client_secret: configAdwords.clientSecret,
-        refresh_token: configAdwords.refreshToken,
-        version: configAdwords.version,
+      developerToken: configAdwords.token,
+      userAgent: configAdwords.userAgent,
+      clientCustomerId: configAdwords.clientCustomerId,
+      client_id: configAdwords.clientId,
+      client_secret: configAdwords.clientSecret,
+      refresh_token: configAdwords.refreshToken,
+      version: configAdwords.version,
+      proxy: configAdwords.proxy,
     };
   }
 
@@ -109,7 +112,7 @@ export class AdwordsReportLargeFile extends ReadCsvFile {
   }
 
   protected async getAdwordsReport(savePoint: object) {
-    const report = new nodeAdwords.AdwordsReport(this.configAdwords);
+    const report = (this.configAdwords['proxy']) ? new AdwordsReportExtend(this.configAdwords) : new nodeAdwords.AdwordsReport(this.configAdwords);
     const csv = await report.getReportAsync(this.configAdwords['version'], {
         query: `${this.query} DURING ${savePoint['startDate']},${savePoint['endDate']}`,
         format: 'CSV',

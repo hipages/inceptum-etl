@@ -293,6 +293,7 @@ suite('AdwordsReportLargeFile', () => {
             client_secret: 'ADWORDS_API_CLIENT_SECRET',
             refresh_token: 'ADWORDS_API_REFRESHTOKEN',
             version: 'v201705',
+            proxy: undefined,
         });
     });
 
