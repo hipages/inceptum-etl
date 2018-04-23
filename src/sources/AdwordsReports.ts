@@ -5,6 +5,7 @@ import { toObject as csvToObject } from 'csvjson';
 import { LogManager } from 'inceptum';
 import { EtlSource } from '../EtlSource';
 import { EtlBatch, EtlState } from '../EtlBatch';
+import AdwordsReportExtend from '../util/AdwordsReportExtend';
 
 promisifyAll(nodeAdwords);
 const log = LogManager.getLogger();
@@ -28,13 +29,14 @@ export class AdwordsReports extends EtlSource {
     this.accountList = configAdwords['accountsList'];
     this.totalBatches = this.accountList.length;
     this.configAdwords = {
-        developerToken: configAdwords['token'],
-        userAgent: configAdwords['userAgent'],
-        clientCustomerId: configAdwords['clientCustomerId'],
-        client_id: configAdwords['clientId'],
-        client_secret: configAdwords['clientSecret'],
-        refresh_token: configAdwords['refreshToken'],
-        version: configAdwords['version'],
+      developerToken: configAdwords['token'],
+      userAgent: configAdwords['userAgent'],
+      clientCustomerId: configAdwords['clientCustomerId'],
+      client_id: configAdwords['clientId'],
+      client_secret: configAdwords['clientSecret'],
+      refresh_token: configAdwords['refreshToken'],
+      version: configAdwords['version'],
+      proxy: configAdwords['proxy'],
     };
   }
 
@@ -134,7 +136,8 @@ export class AdwordsReports extends EtlSource {
   protected async getAdwordsReport(config: object) {
     const currentBatch = this.currentSavePoint['currentBatch'] - 1;
     config['clientCustomerId'] = this.accountList[currentBatch]['id'];
-    const report = new nodeAdwords.AdwordsReport(config);
+
+    const report = (config['proxy']) ? new AdwordsReportExtend(config) : new nodeAdwords.AdwordsReport(config);
     return await report.getReportAsync(config['version'], {
         query: `${this.query} DURING ${this.currentSavePoint['startDate']},${this.currentSavePoint['startDate']}`,
         format: 'CSV',

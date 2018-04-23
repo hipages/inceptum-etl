@@ -22,12 +22,19 @@ export class GoogleAnalyticsJobs extends EtlSource {
 
   constructor(configGA: object) {
     super();
+    // set proxy in the env var if it is configured
+    if (configGA['proxy']) {
+      process.env['HTTP_PROXY'] = configGA['proxy'];
+      log.info(`proxy has configured ${process.env.HTTP_PROXY}`);
+    }
+
     this.injectedFields = [{
       app_code: configGA['appCode'],
       source_name: configGA['sourceName'],
       source_account: configGA['sourceAccount'],
       source_time_zone: configGA['sourceTimeZone'],
       record_created_date: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
+      proxy: configGA['proxy'],
     }];
     this.myDimensions = {
       key: 'ga:transactionId',

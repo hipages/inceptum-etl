@@ -222,7 +222,7 @@ suite('AdwordsReportsHistoricalData', () => {
       const source = await context.getObjectByName('EtlSource');
       source.getAccountList().must.be.eql([
             {name: 'ADWORDS_ACOUNT_NAME_1', id: 'ADWORDS_ACOUNT_ID_1'},
-            {name: 'ADWORDS_ACOUNT_NAME_2', id: 'ADWORDS_ACOUNT_ID_2'}
+            {name: 'ADWORDS_ACOUNT_NAME_2', id: 'ADWORDS_ACOUNT_ID_2'},
         ]);
     });
     test('Test configuration: getQuery', async () => {
@@ -239,6 +239,7 @@ suite('AdwordsReportsHistoricalData', () => {
             client_secret: 'ADWORDS_API_CLIENT_SECRET',
             refresh_token: 'ADWORDS_API_REFRESHTOKEN',
             version: 'v201705',
+            proxy: undefined,
         });
     });
   });

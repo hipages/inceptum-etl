@@ -1,5 +1,4 @@
 import { promisifyAll } from 'bluebird';
-import * as nodeAdwords from 'node-adwords';
 import * as moment from 'moment';
 import * as fs from 'fs';
 import * as csvToObject from 'csvtojson';
@@ -9,7 +8,6 @@ import { EtlConfig } from '../EtlConfig';
 import { EtlBatch, EtlState } from '../EtlBatch';
 import { EtlSavepointManager } from '../EtlSavepointManager';
 
-promisifyAll(nodeAdwords);
 const log = LogManager.getLogger();
 
 export class AdwordsReportsFromCSV extends EtlSource {
