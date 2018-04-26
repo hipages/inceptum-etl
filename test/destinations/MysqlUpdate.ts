@@ -2,44 +2,12 @@ import { must } from 'must';
 import { suite, test } from 'mocha-typescript';
 import * as sinon from 'sinon';
 import * as moment from 'moment';
-import { DBClient, DBTransaction } from 'inceptum';
-import { TransactionManager } from 'inceptum/dist/transaction/TransactionManager';
+import { DBClient, DBTransaction, MySQLClient } from 'inceptum';
 import { EtlBatch } from '../../src/EtlBatch';
 import { MySqlUpdate } from '../../src/destinations/MySqlUpdate';
 
-class MysqlClient implements DBClient {
-  runInTransaction = (readonly: boolean, func: (transaction: DBTransaction) => Promise<any>): Promise<any> => {
-    return Promise.resolve();
-  }
-}
-
-class HelperMySqlUpdate extends MySqlUpdate {
-  getCurrentDateTime() {
-    return this.currentDateTime;
-  }
-}
-
-class HelperDBTransaction extends DBTransaction {
-  query(sql: string, ...bindArrs: any[]): Promise<any> {
-    return Promise.resolve({sql, bindArrs});
-  }
-  // tslint:disable-next-line:prefer-function-over-method
-  protected runQueryPrivate(sql: string, bindArrs?: any[]): Promise<any> {
-    return Promise.resolve({sql, bindArrs});
-  }
-  // tslint:disable-next-line:prefer-function-over-method
-  protected runQueryAssocPrivate(sql: string, bindObj?: object): Promise<any> {
-    return Promise.resolve({sql, bindObj});
-  }
-  // tslint:disable-next-line:prefer-function-over-method
-  doTransactionEnd(): Promise<void> {
-    return Promise.resolve();
-  }
-}
-
 @suite class MysqlUpdateTest {
-  private dbClient: DBClient;
-  private destination: HelperMySqlUpdate;
+  private destination: MySqlUpdate;
   private batch: EtlBatch;
   readonly transformedData = [
     {
@@ -55,9 +23,7 @@ class HelperDBTransaction extends DBTransaction {
   ];
 
   before() {
-    this.dbClient = new MysqlClient();
-
-    this.destination = new HelperMySqlUpdate(this.dbClient, {
+    this.destination = new MySqlUpdate(undefined, {
       tableName: 'sign_ups',
       primaryKeyFieldName: 'sign_up_id',
       modifiedByDateFieldName: 'modified_by_date',
@@ -79,7 +45,7 @@ class HelperDBTransaction extends DBTransaction {
         bind: [this.transformedData[1].sign_up_id, this.transformedData[1].source, this.transformedData[1].medium, this.destination.getCurrentDateTime(), this.transformedData[1].sign_up_id],
       },
     ];
-  };
+  }
 
   @test async store() {
     sinon.stub(moment(), 'format').returns('today');
@@ -92,26 +58,4 @@ class HelperDBTransaction extends DBTransaction {
     processRecordsStub.resetBehavior();
   }
 
-  @test async processRecords() {
-    const runInTransactionStub = sinon.stub(this.dbClient, 'runInTransaction');
-    runInTransactionStub.returns(Promise.resolve());
-
-    const transaction = TransactionManager.newTransaction(false);
-    const helperDBTransaction = new HelperDBTransaction(transaction);
-    const queryStub = sinon.stub(helperDBTransaction, 'query');
-    queryStub.returns(Promise.resolve([]));
-
-    const updateQueries = this.getUpdateQueries();
-
-    await this.destination.processRecords(updateQueries);
-
-    runInTransactionStub.calledOnce.must.be.true();
-
-    const [, func] = runInTransactionStub.lastCall.args;
-    await func(helperDBTransaction);
-
-    queryStub.calledTwice.must.be.true();
-    queryStub.firstCall.calledWithExactly(updateQueries[0].sql, ...updateQueries[0].bind).must.be.true();
-    queryStub.secondCall.calledWithExactly(updateQueries[1].sql, ...updateQueries[1].bind).must.be.true();
-  }
 }

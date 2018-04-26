@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import * as lodash from 'lodash';
 import { join as joinPath } from 'path';
 import { LogManager } from 'inceptum';
-import { DBClient, DBTransaction } from 'inceptum';
+import { MySQLClient, DBTransaction } from 'inceptum';
 import { EtlBatch, EtlState } from '../EtlBatch';
 import { EtlConfig } from '../EtlConfig';
 import { EtlDestination } from '../EtlDestination';
@@ -63,7 +63,7 @@ export interface MySQLConfig {
 }
 
 export class MySqlInsert extends EtlDestination {
-    protected mySqlClient: DBClient;
+    protected mySqlClient: MySQLClient;
     protected tableName: string;
     protected bulkDeleteMatchFields: Array<string>;
     protected deleteAllRecordsBeforeLoad: boolean;
@@ -71,7 +71,7 @@ export class MySqlInsert extends EtlDestination {
     /**
      * Upload data to MySQL database table
      */
-    constructor(mySqlClient: DBClient, tableDetails: MySQLConfig) {
+    constructor(mySqlClient: MySQLClient, tableDetails: MySQLConfig) {
         super();
         this.mySqlClient = mySqlClient;
         this.tableName = tableDetails.tableName;
@@ -79,7 +79,7 @@ export class MySqlInsert extends EtlDestination {
         this.deleteAllRecordsBeforeLoad = !tableDetails.bulkDeleteMatchFields && tableDetails.deleteAllRecordsBeforeLoad;
     }
 
-    public getMySqlClient(): DBClient {
+    public getMySqlClient(): MySQLClient {
         return this.mySqlClient;
     }
 
@@ -112,7 +112,7 @@ export class MySqlInsert extends EtlDestination {
     public async processRecords(batch: EtlBatch): Promise<boolean> {
         const fieldList = batch.getTransformedRecords().map( (record) => record.getTransformedData() );
         const deleteAllRecords = this.deleteAllRecordsBeforeLoad && (batch.getBatchNumber() === 1);
-        return await this.mySqlClient.runInTransaction(false, async (transaction: DBTransaction) => {
+        return await this.mySqlClient.runInTransaction(false, async (transaction: DBTransaction<any>) => {
             if (deleteAllRecords) {
                 log.debug(`Delete all records from table : ${this.tableName}`);
                 await transaction.query(`delete from ${this.tableName}`);
@@ -121,7 +121,7 @@ export class MySqlInsert extends EtlDestination {
         });
     }
 
-    public async processRecordInTransaction(fieldList: Array<Object>, transaction: DBTransaction): Promise<void> {
+    public async processRecordInTransaction(fieldList: Array<Object>, transaction: DBTransaction<any>): Promise<void> {
         // Delete existing values
         if (this.bulkDeleteMatchFields && this.bulkDeleteMatchFields.length > 0) {
             const deleteHelper = this.getQueryToDeleteRows(fieldList, this.bulkDeleteMatchFields);
