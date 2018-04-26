@@ -1,10 +1,10 @@
-import { DBClient } from 'inceptum';
+import { MySQLClient } from 'inceptum';
 
 export class MysqlDao {
 
-    protected mysqlClient: DBClient;
+    protected mysqlClient: MySQLClient;
 
-    constructor(mysqlClient: DBClient) {
+    constructor(mysqlClient: MySQLClient) {
         this.mysqlClient = mysqlClient;
     }
 }

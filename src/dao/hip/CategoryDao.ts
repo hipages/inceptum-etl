@@ -19,7 +19,7 @@ export class CategoryDao extends MysqlDao {
                        INNER JOIN ref_practice RP ON RP.practice_id = RPS.practice_seo_practice_id';
         const results = await this.mysqlClient.runInTransaction(
                             true,
-                            (transaction: DBTransaction) => transaction.query(query));
+                            (transaction: DBTransaction<any>) => transaction.query(query));
 
         const categories: Categories<Category> = {};
         results.forEach((row) => {

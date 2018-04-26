@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as moment from 'moment';
 import { join as joinPath } from 'path';
 import { LogManager } from 'inceptum';
-import { DBClient, DBTransaction } from 'inceptum';
+import { PostgresClient, DBTransaction } from 'inceptum';
 import { EtlBatch, EtlState } from '../EtlBatch';
 import { EtlConfig } from '../EtlConfig';
 import { EtlDestination } from '../EtlDestination';
@@ -11,7 +11,7 @@ import { S3Bucket } from './S3Bucket';
 const log = LogManager.getLogger();
 
 export class Redshift extends EtlDestination {
-    protected pgClient: DBClient;
+    protected pgClient: PostgresClient;
     protected etlName: string;
     protected iamRole: string;
     protected s3Bucket: S3Bucket;
@@ -28,7 +28,7 @@ export class Redshift extends EtlDestination {
     /**
      * Upload a S3 bucket directory into a Redshift table via copy
      */
-    constructor(pgClient: DBClient, etlName: string, bucket: string, tempDirectory: string,
+    constructor(pgClient: PostgresClient, etlName: string, bucket: string, tempDirectory: string,
         tableCopyName: string, tableName: string, bulkDeleteMatchFields: Array<string>, iamRole: '') {
         super();
         this.iamRole = iamRole; // If Redshift is not auth in S3 'arn:aws:iam::0123456789012:role/MyRedshiftRole';
@@ -65,12 +65,12 @@ export class Redshift extends EtlDestination {
     }
 
     public async processRecord(filePathInS3: string): Promise<boolean> {
-        return await this.pgClient.runInTransaction(false, async (transaction: DBTransaction) => {
+        return await this.pgClient.runInTransaction(false, async (transaction: DBTransaction<any>) => {
             return await this.processRecordInTransaction(filePathInS3, transaction);
         });
     }
 
-    public async processRecordInTransaction(filePathInS3: string, transaction: DBTransaction): Promise<boolean> {
+    public async processRecordInTransaction(filePathInS3: string, transaction: DBTransaction<any>): Promise<boolean> {
         const transactionDate = moment.utc().format('YYYY-MM-DD HH:mm:ss');
         // Run the copy
         const iamRole = (this.iamRole && this.iamRole.length > 0) ? `iam_role '${this.iamRole}'` : '';

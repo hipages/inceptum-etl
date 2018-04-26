@@ -36,6 +36,13 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@types/events/-/events-1.1.0.tgz#93b1be91f63c184450385272c47b6496fd028e02"
 
+"@types/generic-pool@^3.1.2":
+  version "3.1.2"
+  resolved "https://registry.npmjs.org/@types/generic-pool/-/generic-pool-3.1.2.tgz#0415093632b32f29d96cec427e53cac97bc5fb38"
+  dependencies:
+    "@types/events" "*"
+    "@types/node" "*"
+
 "@types/jsonwebtoken@^7.2.5":
   version "7.2.6"
   resolved "https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-7.2.6.tgz#8d018c21ca5910b5eb3ebcb385656606a215032f"
@@ -1388,6 +1395,10 @@ gc-stats@^1.0.0:
     nan "^2.6.2"
     node-pre-gyp "^0.6.36"
 
+generic-pool@^3.4.2:
+  version "3.4.2"
+  resolved "https://registry.npmjs.org/generic-pool/-/generic-pool-3.4.2.tgz#92ff7196520d670839a67308092a12aadf2f6a59"
+
 get-caller-file@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-1.0.2.tgz#f702e63127e7e231c160a80c1554acb70d5047e5"
@@ -1659,13 +1670,14 @@ imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
 
-inceptum@0.7.3:
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/inceptum/-/inceptum-0.7.3.tgz#92015f90049f387d542c44fed3446b415128cfc2"
+inceptum@^0.8.11:
+  version "0.8.11"
+  resolved "https://registry.npmjs.org/inceptum/-/inceptum-0.8.11.tgz#c80a50bb1b1c6226debb9aedd9aeb996bc3d0dac"
   dependencies:
     "@types/amqplib" "^0.5.5"
     "@types/bunyan" "1.8.0"
     "@types/elasticsearch" "^5.0.16"
+    "@types/generic-pool" "^3.1.2"
     "@types/jsonwebtoken" "^7.2.5"
     "@types/mocha" "^2.2.41"
     "@types/pg" "6.1.45"
@@ -1686,6 +1698,7 @@ inceptum@0.7.3:
     express-jwt "^3.4.0"
     express-prom-bundle "^3.3.0"
     express-yields "^1.0.0"
+    generic-pool "^3.4.2"
     gh-pages "^1.0.0"
     js-yaml "^3.9.1"
     json-schema-deref-sync "^0.3.1"
@@ -1699,6 +1712,7 @@ inceptum@0.7.3:
     node-dogstatsd "0.0.6"
     pg "^7.0.2"
     prom-client "^10.2.2"
+    prometheus-extended-gauge "^0.1.2"
     prometheus-gc-stats "^0.5.0"
     redis "2.6.5"
     reflect-metadata "^0.1.10"
@@ -3084,6 +3098,10 @@ prom-client@^10.2.2, prom-client@~10.2.2:
   resolved "https://registry.yarnpkg.com/prom-client/-/prom-client-10.2.3.tgz#a51bf21c239c954a6c5be4b1361fdd380218bb41"
   dependencies:
     tdigest "^0.1.1"
+
+prometheus-extended-gauge@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.npmjs.org/prometheus-extended-gauge/-/prometheus-extended-gauge-0.1.2.tgz#858d53b8a038dc0dacc6b50816e7c516ec054217"
 
 prometheus-gc-stats@^0.5.0:
   version "0.5.1"

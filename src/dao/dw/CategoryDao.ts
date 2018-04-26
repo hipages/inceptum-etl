@@ -19,7 +19,7 @@ export class CategoryDao extends MysqlDao {
         try {
             const results = await this.mysqlClient.runInTransaction(
                 true,
-                (transaction: DBTransaction) => transaction.query(query));
+                (transaction: DBTransaction<any>) => transaction.query(query));
 
             const categories: Categories<Category> = {};
             if ((results !== null && results.length > 0)) {

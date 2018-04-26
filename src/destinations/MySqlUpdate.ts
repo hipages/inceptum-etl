@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { DBClient, DBTransaction } from 'inceptum';
+import { MySQLClient, DBTransaction } from 'inceptum';
 import { EtlState, EtlBatch } from '../EtlBatch';
 import { EtlDestination } from '../EtlDestination';
 
@@ -16,12 +16,12 @@ export interface TableDetails {
 
 export class MySqlUpdate extends EtlDestination {
   protected currentDateTime: string;
-  protected dbClient: DBClient;
+  protected dbClient: MySQLClient;
   protected tableName: string;
   protected primaryKeyFieldName: string;
   protected modifiedByDateFieldName?: string;
 
-  public constructor(dbClient: DBClient, { tableName, primaryKeyFieldName, modifiedByDateFieldName }: TableDetails) {
+  public constructor(dbClient: MySQLClient, { tableName, primaryKeyFieldName, modifiedByDateFieldName }: TableDetails) {
     super();
     this.currentDateTime = moment().format('YYYY-MM-DD HH:mm:ss');
     this.dbClient = dbClient;
@@ -72,7 +72,7 @@ export class MySqlUpdate extends EtlDestination {
    * @returns {Promise<any>}
    */
   public async processRecords(queries: UpdateQuery[]) {
-    return await this.dbClient.runInTransaction(false, async (transaction: DBTransaction) => {
+    return await this.dbClient.runInTransaction(false, async (transaction: DBTransaction<any>) => {
       return await Promise.all(queries.map((query) => transaction.query(query.sql, ...query.bind)));
     });
   }

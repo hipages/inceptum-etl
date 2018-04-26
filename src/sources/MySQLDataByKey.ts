@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import * as _ from 'lodash';
-import { LogManager, DBClient, DBTransaction } from 'inceptum';
+import { LogManager, MySQLClient, DBTransaction } from 'inceptum';
 import { EtlSource } from '../EtlSource';
 import { EtlBatch, EtlState } from '../EtlBatch';
 import { EtlSavepointManager } from '../EtlSavepointManager';
@@ -8,7 +8,7 @@ import { EtlSavepointManager } from '../EtlSavepointManager';
 const log = LogManager.getLogger();
 
 export class MySQLDataByKey extends EtlSource {
-  protected mysqlClient: DBClient;
+  protected mysqlClient: MySQLClient;
   protected etlConfig: object;
   // etl and table name
   protected tableName: string;
@@ -18,7 +18,7 @@ export class MySQLDataByKey extends EtlSource {
   protected maxId: number;
   protected searchColumnDataType: string;
 
-  constructor(mysqlClient: DBClient, etlConfig: object) {
+  constructor(mysqlClient: MySQLClient, etlConfig: object) {
     super();
     // Mysql object to perform action of Mysql database
     this.mysqlClient = mysqlClient;
@@ -118,7 +118,7 @@ export class MySQLDataByKey extends EtlSource {
       query = `${query} AND ${this.searchColumn} between ? AND ? `;
     }
     try {
-      const results: Array<any> = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => {
+      const results: Array<any> = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction<any>) => {
         if (includeSearchColumn) {
           return transaction.query(query, this.minId, this.maxId, this.currentSavePoint['columnStartValue'], this.currentSavePoint['columnEndValue']);
         } else {
@@ -144,7 +144,7 @@ export class MySQLDataByKey extends EtlSource {
       query = `${query} where ${this.searchColumn} between ? AND ? `;
     }
     try {
-      const results: Array<any> = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => {
+      const results: Array<any> = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction<any>) => {
         if (findEndVal) {
           return transaction.query(query, this.currentSavePoint['columnStartValue']);
         } else {
@@ -239,7 +239,7 @@ export class MySQLDataByKey extends EtlSource {
     const currentBatchStart = (Number(this.currentSavePoint['currentBatch']) - 1) * Number(this.currentSavePoint['batchSize']) + this.minId;
     const currentBatchEnd = (currentBatchStart + Number(this.currentSavePoint['batchSize']) - 1) > this.maxId ? this.maxId : currentBatchStart + Number(this.currentSavePoint['batchSize']) - 1;
     try {
-      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction) => {
+      const results = await this.mysqlClient.runInTransaction(true, (transaction: DBTransaction<any>) => {
         if (includeSearchColumn) {
           return transaction.query(query, currentBatchStart, currentBatchEnd, this.currentSavePoint['columnStartValue'], this.currentSavePoint['columnEndValue']);
         } else {
