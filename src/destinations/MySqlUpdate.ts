@@ -76,4 +76,8 @@ export class MySqlUpdate extends EtlDestination {
       return await Promise.all(queries.map((query) => transaction.query(query.sql, ...query.bind)));
     });
   }
+
+  public getCurrentDateTime(): string {
+    return this.currentDateTime;
+  }
 }
