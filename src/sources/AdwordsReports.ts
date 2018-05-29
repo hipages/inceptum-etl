@@ -8,7 +8,7 @@ import { EtlBatch, EtlState } from '../EtlBatch';
 import AdwordsReportExtend from '../util/AdwordsReportExtend';
 
 promisifyAll(nodeAdwords);
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class AdwordsReports extends EtlSource {
   // Example of queries

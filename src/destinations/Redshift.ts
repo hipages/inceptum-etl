@@ -8,7 +8,7 @@ import { EtlConfig } from '../EtlConfig';
 import { EtlDestination } from '../EtlDestination';
 import { S3Bucket } from './S3Bucket';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class Redshift extends EtlDestination {
     protected pgClient: PostgresClient;

@@ -6,7 +6,7 @@ import { EtlBatch, EtlState } from '../EtlBatch';
 import { EtlConfig } from '../EtlConfig';
 import { EtlDestinationFile } from '../EtlDestinationFile';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class JsonFile extends EtlDestinationFile {
   protected baseFileName: string;

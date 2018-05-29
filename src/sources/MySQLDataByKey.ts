@@ -5,7 +5,7 @@ import { EtlSource } from '../EtlSource';
 import { EtlBatch, EtlState } from '../EtlBatch';
 import { EtlSavepointManager } from '../EtlSavepointManager';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class MySQLDataByKey extends EtlSource {
   protected mysqlClient: MySQLClient;

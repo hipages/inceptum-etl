@@ -5,7 +5,7 @@ import { LogManager } from 'inceptum';
 import { EtlConfig } from './EtlConfig';
 import { EtlDestination } from './EtlDestination';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export abstract class EtlDestinationFile extends EtlDestination {
   protected baseFileName: string;

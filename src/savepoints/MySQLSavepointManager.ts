@@ -2,7 +2,7 @@ import { MySQLClient, DBTransaction } from 'inceptum';
 import { LogManager } from 'inceptum';
 import { EtlSavepointManager } from '../EtlSavepointManager';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 /**
  * MySql implementation of EtlSavepointManager

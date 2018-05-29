@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { EtlBatch } from '../EtlBatch';
 import { EtlTransformer } from '../EtlTransformer';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class SplitAdwordsCampaign extends EtlTransformer {
   private adgroupMatchList = ['[UB]', '(UB)', '(BROAD)', '[OB]', '[B]', '(B)', '[BMM]', '(BMM)', '|BMM|', '[E]', '(E)', '[EXA]', '(EXA)', '|E|', '[P]', '(P)', '|P|'];

@@ -10,7 +10,7 @@ import { EtlBatchRecord, EtlBatch, EtlState } from '../EtlBatch';
 import { EtlTransformer } from '../EtlTransformer';
 import { S3Bucket } from '../destinations/S3Bucket';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export interface SmartFieldMappingConfig {
     etlName: string,

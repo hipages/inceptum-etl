@@ -3,7 +3,7 @@ import { EtlBatch, EtlState } from './EtlBatch';
 import { EtlConfig } from './EtlConfig';
 import { EtlSavepointManager } from './EtlSavepointManager';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 /**
  * The class that runs the etl

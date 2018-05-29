@@ -6,7 +6,7 @@ import { LogManager } from 'inceptum';
 import { GoogleAnalyticsReporting } from '../sources/GoogleAnalyticsReporting';
 import RequestGenerator from './RequestGenerator';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 // fetch promise from google SDK
 promise.promisifyAll(google);
 

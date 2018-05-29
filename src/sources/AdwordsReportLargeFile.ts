@@ -10,7 +10,7 @@ import { EtlBatch, EtlState } from '../EtlBatch';
 import { ReadCsvFile } from './ReadCsvFile';
 
 promisifyAll(nodeAdwords);
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export interface AdwordsReportLargeFileConfig {
   tempDirectory: string,

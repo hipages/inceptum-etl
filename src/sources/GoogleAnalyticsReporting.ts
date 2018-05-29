@@ -4,7 +4,7 @@ import { EtlSource } from '../EtlSource';
 import { EtlBatch, EtlState } from '../EtlBatch';
 import { GoogleAnalytics } from '../util/GoogleAnalytics';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class GoogleAnalyticsReporting extends EtlSource {
   protected MAX_RESULTS = 10000;

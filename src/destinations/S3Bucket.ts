@@ -12,7 +12,7 @@ import { EtlDestination } from '../EtlDestination';
 import { JsonFile } from './JsonFile';
 import { CsvFile } from './CsvFile';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 // tslint:disable-next-line
 const uploadToS3 = (client: any, loadParams: object): Promise<any> => new Promise((resolve, reject) => {

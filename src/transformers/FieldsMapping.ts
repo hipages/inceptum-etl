@@ -3,7 +3,7 @@ import { LogManager } from 'inceptum';
 import { EtlTransformer } from '../EtlTransformer';
 import { EtlBatchRecord, EtlBatch, EtlState } from '../EtlBatch';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class FieldsMapping extends EtlTransformer {
     private fixedFields: object;

@@ -8,7 +8,7 @@ import AdwordsReportExtend from '../util/AdwordsReportExtend';
 import { AdwordsReports } from './AdwordsReports';
 
 promisifyAll(nodeAdwords);
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class AdwordsReportsHistoricalData extends AdwordsReports {
   protected lastDay = moment().format('YYYYMMDD');
