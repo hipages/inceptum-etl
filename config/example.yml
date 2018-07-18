@@ -133,47 +133,77 @@ savepoints:
 postgres:
   dwRedshift:   # reference name for redshift database
     master:
-      user: DW_RW_USER
-      database: DW_RW_DB
-      password: DW_RW_PASS
-      port: DW_RW_PORT
-      host: DW_RW_HOST
       max: DW_RW_MAX
       min: DW_RW_MIN
-      application_name: DW_RW_APP_NAME
-      ssl: true    
+      maxWaitingClients: 10
+      testOnBorrow: false
+      acquireTimeoutMillis: 2000
+      evictionRunIntervalMillis: 30000
+      numTestsPerRun: 3
+      idleTimeoutMillis: 30000
       refreshIdle: true
-      idleTimeoutMillis: 20000
+      ssl: true
+      connectionConfig:    
+        user: DW_RW_USER
+        database: DW_RW_DB
+        password: DW_RW_PASS
+        port: DW_RW_PORT
+        host: DW_RW_HOST 
+        application_name: DW_RW_APP_NAME
     slave:
-      user: DW_RO_USER
-      database: DW_RO_DB
-      password: DW_RO_PASS
-      port: DW_RO_PORT
-      host: DW_RO_HOST
       max: DW_RO_MAX
       min: DW_RO_MIN
-      application_name: DW_RO_APP_NAME
+      maxWaitingClients: 10
+      testOnBorrow: false
+      acquireTimeoutMillis: 2000
+      evictionRunIntervalMillis: 30000
+      numTestsPerRun: 3
+      idleTimeoutMillis: 30000
       refreshIdle: true
-      idleTimeoutMillis: 20000
+      ssl: true
+      connectionConfig:      
+        user: DW_RO_USER
+        database: DW_RO_DB
+        password: DW_RO_PASS
+        port: DW_RO_PORT
+        host: DW_RO_HOST
+        application_name: DW_RO_APP_NAME
 
 mysql:
   EtlSavePoint: # reference name for savepoint  database
     master:
-      host: HIP_RW_HOST
-      port: HIP_RW_PORT
-      user: HIP_RW_USER
-      password: HIP_RW_PASS
-      database: HIP_RW_DB
-      charset: utf8
-      connectionLimit: 10
+      max: 10
+      min: 1
+      maxWaitingClients: 10
+      testOnBorrow: false
+      acquireTimeoutMillis: 2000
+      evictionRunIntervalMillis: 30000
+      numTestsPerRun: 3
+      idleTimeoutMillis: 30000
+      connectionConfig:    
+        host: HIP_RW_HOST
+        port: HIP_RW_PORT
+        user: HIP_RW_USER
+        password: HIP_RW_PASS
+        database: HIP_RW_DB
+        charset: utf8
     slave:
-      host: HIP_RO_HOST
-      port: HIP_RO_PORT
-      user: HIP_RO_USER
-      password: HIP_RO_PASS
-      database: HIP_RO_DB
-      charset: utf8
-      connectionLimit: 10
+      max: 10
+      min: 1
+      maxWaitingClients: 10
+      testOnBorrow: false
+      acquireTimeoutMillis: 2000
+      evictionRunIntervalMillis: 30000
+      numTestsPerRun: 3
+      idleTimeoutMillis: 30000
+      connectionConfig:      
+        host: HIP_RO_HOST
+        port: HIP_RO_PORT
+        user: HIP_RO_USER
+        password: HIP_RO_PASS
+        database: HIP_RO_DB
+        charset: utf8
+        connectionLimit: 10
 
 logging:
   streams:

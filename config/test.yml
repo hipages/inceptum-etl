@@ -554,65 +554,70 @@ etls:
       savepoint: ''
 
 mysql:
+
   EtlSavePoint:  
     master:
-      host: localhost
-      port: 3306
-      user: root
-      password:
-      database: testDb
-      charset: utf8
-      connectionLimit: 10
+      connectionConfig:     
+        host: localhost
+        port: 3306
+        user: root
+        password:
+        database: testDb
+        charset: utf8
     slave:
-      host: localhost
-      port: 3306
-      user: root
-      password:
-      database: testDb
-      charset: utf8
-      connectionLimit: 10
+      connectionConfig:     
+        host: localhost
+        port: 3306
+        user: root
+        password:
+        database: testDb
+        charset: utf8
   GA:    
     master:
-      host: localhost
-      port: 3306
-      user: root
-      password:
-      database: testDb
-      charset: utf8
-      connectionLimit: 10
+      connectionConfig:        
+        host: localhost
+        port: 3306
+        user: root
+        password:
+        database: testDb
+        charset: utf8
+        connectionLimit: 10
     slave:
-      host: localhost
-      port: 3306
-      user: root
-      password:
-      database: testDb
-      charset: utf8
-      connectionLimit: 10
+      connectionConfig:        
+        host: localhost
+        port: 3306
+        user: root
+        password:
+        database: testDb
+        charset: utf8
+        connectionLimit: 10
       
 postgres:
   dwRedshift:
     master:
-      user: postgres
-      database: hipages
-      password: password
-      port: 5432
-      host: localhost
       max: 5
       min: 1
       refreshIdle: true
-      idleTimeoutMillis: 20000
-      application_name: test
+      idleTimeoutMillis: 20000    
+      connectionConfig:        
+        user: postgres
+        database: hipages
+        password: password
+        port: 5432
+        host: localhost
+        application_name: test
     slave:
-      user: postgres
-      database: hipages
-      password: password
-      port: 5432
-      host: localhost
       max: 5
       min: 1
       refreshIdle: true
-      idleTimeoutMillis: 20000
-      application_name: test
+      idleTimeoutMillis: 20000    
+      connectionConfig:        
+        user: postgres
+        database: hipages
+        password: password
+        port: 5432
+        host: localhost
+        application_name: test
 
 logging:
   streams:
