@@ -42,6 +42,7 @@
     "config": "1.25.1",
     "csvjson": "^4.3.3",
     "csvtojson": "^1.1.7",
+    "googleapis": "^20.1.0",
     "inceptum": "^0.9.6",
     "lodash": "^4.17.4",
     "moment": "^2.18.1",

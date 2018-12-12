@@ -26,3 +26,4 @@ export { MySQLDataByKey } from './sources/MySQLDataByKey';
 export { StaticSavepointManager } from './savepoints/StaticSavepointManager';
 export { MySqlInsert } from './destinations/MySqlInsert';
 export { GoogleAnalyticsReporting } from './sources/GoogleAnalyticsReporting';
+export { GoogleAnalyticsJobs } from './sources/GoogleAnalyticsJobs';
