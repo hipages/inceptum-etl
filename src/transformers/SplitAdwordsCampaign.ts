@@ -158,7 +158,7 @@ export class SplitAdwordsCampaign extends EtlTransformer {
             newRecord['location_type'] = locationType;
             newRecord['adgroup_match'] = adgroupMatch ;
             newRecord['keyword_match'] = keywordHasPlus ? 'BMM' : (newRecord.hasOwnProperty('match_type') ? newRecord['match_type'] : '');
-            newRecord['postcode'] = ((postcode.length > 0) && Number.isInteger(Number.parseInt(postcode))) ? Number.parseInt(postcode) : '';
+            newRecord['postcode'] = ((postcode.length > 0) && Number.isInteger(Number.parseInt(postcode, 10))) ? Number.parseInt(postcode, 10) : '';
         }
 
         if (newRecord['report_cost']) {

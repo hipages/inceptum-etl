@@ -106,9 +106,15 @@ export class MySQLDataByKey extends EtlSource {
       currentDate: moment().toISOString(),
     };
     await this.getMaxAndMinIds();
-    const totalRecords = this.maxId - this.minId + 1;
+    const totalFound = await this.getTotalRecords();
+    const totalRecords = totalFound ? this.maxId - this.minId + 1 : 0;
     this.totalBatches = (this.currentSavePoint['batchSize'] > 0) ? Math.ceil(totalRecords / this.currentSavePoint['batchSize']) : 0;
     this.currentSavePoint['totalBatches'] = this.totalBatches;
+
+    // Debug info
+    log.debug(`Current date: ${this.currentSavePoint['currentDate']}`);
+    log.debug(`Getting table ${this.tableName}: ids from ${this.minId} to ${this.maxId}. between ${this.currentSavePoint['columnStartValue']} and ${this.currentSavePoint['columnEndValue']} `);
+    log.debug(`Total records: ${totalRecords} batches: ${this.totalBatches} found: ${totalFound}`);
   }
 
   protected async getTotalRecords(): Promise<any> {
@@ -182,7 +188,7 @@ export class MySQLDataByKey extends EtlSource {
 
   public hasNextBatch(): boolean {
     const nextSavePoint = this.getNextSavePoint();
-    return (nextSavePoint['currentBatch'] <= nextSavePoint['totalBatches']);
+    return nextSavePoint['totalBatches'] && (nextSavePoint['currentBatch'] <= nextSavePoint['totalBatches']);
   }
 
   /**
