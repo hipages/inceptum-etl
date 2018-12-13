@@ -117,6 +117,11 @@ export class MySqlInsert extends EtlDestination {
                 log.debug(`Delete all records from table : ${this.tableName}`);
                 await transaction.query(`delete from ${this.tableName}`);
             }
+            // If is an empty batch do not process
+            if (!fieldList || fieldList.length === 0) {
+                log.error(`Process empty batch`);
+                return;
+            }
             return await this.processRecordInTransaction(fieldList, transaction);
         });
     }
