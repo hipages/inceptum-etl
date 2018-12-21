@@ -111,16 +111,13 @@ export class MySqlInsert extends EtlDestination {
 
     public async processRecords(batch: EtlBatch): Promise<boolean> {
         const fieldList = batch.getTransformedRecords().map( (record) => record.getTransformedData() );
-        const deleteAllRecords = this.deleteAllRecordsBeforeLoad && (batch.getBatchNumber() === 1);
+        const deleteAllRecords = this.deleteAllRecordsBeforeLoad;
+        // Mark delete as done
+        this.deleteAllRecordsBeforeLoad = false;
         return await this.mySqlClient.runInTransaction(false, async (transaction: DBTransaction<any>) => {
             if (deleteAllRecords) {
                 log.debug(`Delete all records from table : ${this.tableName}`);
                 await transaction.query(`delete from ${this.tableName}`);
-            }
-            // If is an empty batch do not process
-            if (!fieldList || fieldList.length === 0) {
-                log.error(`Process empty batch`);
-                return;
             }
             return await this.processRecordInTransaction(fieldList, transaction);
         });

@@ -272,17 +272,13 @@ export class MySQLDataByKey extends EtlSource {
       log.info(`read report from: ${this.currentSavePoint['currentBatch']} - ${this.currentSavePoint['totalBatches']} : batch ${this.currentSavePoint['currentBatch']}`);
     }
     // There can be empty batches read the next batch in that case
-    if ((data.length === 0) && this.hasNextBatch()) {
-      return await this.getNextBatch();
-    } else {
-      const batch = new EtlBatch(
-        data,
-        this.currentSavePoint['currentBatch'],
-        this.currentSavePoint['totalBatches'],
-        `${this.currentSavePoint['currentBatch']}_${this.currentSavePoint['columnStartValue']}-${this.currentSavePoint['columnEndValue']}`,
-      );
-      batch.registerStateListener(this);
-      return batch;
-    }
+    const batch = new EtlBatch(
+      data,
+      this.currentSavePoint['currentBatch'],
+      this.currentSavePoint['totalBatches'],
+      `${this.currentSavePoint['currentBatch']}_${this.currentSavePoint['columnStartValue']}-${this.currentSavePoint['columnEndValue']}`,
+    );
+    batch.registerStateListener(this);
+    return batch;
   }
 }

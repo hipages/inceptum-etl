@@ -1,14 +1,12 @@
-import { WSAEACCES } from 'constants';
 // External dependencies
 import { must } from 'must';
 import * as sinon from 'sinon';
-import * as moment from 'moment';
 import * as utilConfig from 'config';
-import { suite, test, slow, timeout, skip } from 'mocha-typescript';
+import { suite, test } from 'mocha-typescript';
 // Internal dependencies
 import BaseApp from 'inceptum/dist/app/BaseApp';
-import { DBClient, DBTransaction, BaseSingletonDefinition } from 'inceptum';
-import { EtlBatch, EtlState } from '../../src/EtlBatch';
+import { MySQLClient, DBTransaction, BaseSingletonDefinition } from 'inceptum';
+import { EtlState } from '../../src/EtlBatch';
 import { StaticSavepointManager } from '../../src/savepoints/StaticSavepointManager';
 import { SourcePlugin } from '../../src/sources/SourcePlugin';
 import { MySQLDataByKey } from '../../src/sources/MySQLDataByKey';
@@ -113,9 +111,9 @@ const outputPartnersData = [{
 
 const maxMinAndTotals = [{total: 2, min_id: 1, max_id: 15, end_value: 15}];
 
-class TestDBClient extends DBClient {
+class TestDBClient extends MySQLClient {
     // tslint:disable-next-line:prefer-function-over-method
-    public runInTransaction(readonly: boolean, func: (transaction: DBTransaction) => Promise<any>): Promise<any> {
+    public runInTransaction(readonly: boolean, func: (transaction) => Promise<any>): Promise<any> {
         return Promise.resolve([{total: 2, min_id: 1, max_id: 15, end_value: 15}]);
     }
 }
@@ -143,7 +141,7 @@ suite('MySQLDataByKey', () => {
     test('Test initial config values', async () => {
       dbClient.runInTransaction.returns(maxMinAndTotals);
       const source = new HelperMySQLDataByKey(dbClient, gaConfig.sourceOptions);
-      source.getMysqlClient().must.be.instanceOf(DBClient);
+      source.getMysqlClient().must.be.instanceOf(MySQLClient);
       source.getTableName().must.be.equal('landing_pages_table');
       source.getSearchColumn().must.be.equal('id');
       source.getPK().must.be.equal('id');

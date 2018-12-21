@@ -43,6 +43,14 @@ class DummySource extends EtlSource {
   }
 }
 
+class DummySourceEmpty extends DummySource {
+  public async getNextBatch(): Promise<EtlBatch> {
+    const batch =  new EtlBatch([]);
+    batch.registerStateListener(this);
+    return Promise.resolve(batch);
+  }
+}
+
 class DummyTransformer extends EtlTransformer {
   setErrors = false;
   constructor(setErrors = false) {
@@ -196,6 +204,17 @@ suite('EtlRunner', () => {
       await etlRunner.executeEtl();
       const finalSavePoint = await savePointManager.getSavePoint();
       finalSavePoint.must.be.equal('savepoint1');
+    });
+    test('One empty batch full process', async () => {
+      config.setEtlSource(new DummySourceEmpty(1));
+      config.setEtlTransformer(new DummyTransformer());
+      config.setEtlDestination(new DummyDestination());
+      const savePointManager = new DummySavepointManager('savepoint1');
+      config.setEtlSavepointManager(savePointManager);
+      const etlRunner = new EtlRunner(config);
+      await etlRunner.executeEtl();
+      const finalSavePoint = await savePointManager.getSavePoint();
+      finalSavePoint.must.be.equal('New stored point');
     });
   });
 });
