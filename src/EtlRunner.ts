@@ -78,7 +78,16 @@ export class EtlRunner {
   protected async storeBatch(batch: EtlBatch): Promise<void> {
     await batch.setState(EtlState.SAVE_STARTED);
     const destination = this.config.getEtlDestination();
-    await destination.store(batch);
+    /**
+     * If the batch is not empty store it
+     * otherwise just touch it
+     */
+    const records = batch.getNumRecordsWithState(EtlState.TRANSFORMED);
+    if (records) {
+      await destination.store(batch);
+    } else {
+      await destination.touch(batch);
+    }
     if (batch.getState() !== EtlState.ERROR) {
       await batch.setState(EtlState.SAVE_ENDED);
     } else {

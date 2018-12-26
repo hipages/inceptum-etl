@@ -133,13 +133,21 @@ export class AdwordsReports extends EtlSource {
     return this.currentSavePoint['startDate'];
   }
 
+  /**
+   * get the sql period to use in the query
+   * Overwrite this to use different period
+   */
+  protected getSqlQueryPeriod(): string {
+    return `DURING ${this.currentSavePoint['startDate']},${this.currentSavePoint['startDate']}`;
+  }
+
   protected async getAdwordsReport(config: object) {
     const currentBatch = this.currentSavePoint['currentBatch'] - 1;
     config['clientCustomerId'] = this.accountList[currentBatch]['id'];
 
     const report = (config['proxy']) ? new AdwordsReportExtend(config) : new nodeAdwords.AdwordsReport(config);
     return await report.getReportAsync(config['version'], {
-        query: `${this.query} DURING ${this.currentSavePoint['startDate']},${this.currentSavePoint['startDate']}`,
+        query: `${this.query} ${this.getSqlQueryPeriod()}`,
         format: 'CSV',
         additionalHeaders: {
           skipReportHeader: true,
