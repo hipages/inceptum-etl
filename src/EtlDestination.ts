@@ -12,7 +12,7 @@ export abstract class EtlDestination {
    * Overwrite this method with if you need to do anything on an empty batch
    */
   public async touch(batch: EtlBatch): Promise<void> {
-    log.error(`Process empty batch ${batch.getBatchIdentifier}`);
+    log.error(`Process empty batch ${batch.getBatchIdentifier()}`);
     return;
   }
 }
