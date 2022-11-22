@@ -18,7 +18,9 @@
     "prepublishOnly": "npm run clean && tsc && npm test && npm run lint",
     "precommit": "yarn install && npm run lint && yarn coverage-check",
     "prepush": "node .checkpush.js",
-    "coverage-check": "NODE_ENV=test nyc --check-coverage --lines 62 mocha"
+    "coverage-check": "NODE_ENV=test nyc --check-coverage --lines 62 mocha",
+    "prepare": "yarn run snyk-protect",
+    "snyk-protect": "snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -42,15 +44,16 @@
     "config": "1.25.1",
     "csvjson": "^4.3.3",
     "csvtojson": "^1.1.7",
-    "googleapis": "^20.1.0",
-    "inceptum": "^0.9.6",
-    "lodash": "^4.17.4",
-    "moment": "^2.18.1",
+    "googleapis": "^49.0.0",
+    "inceptum": "^0.9.13",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
     "moment-timezone": "^0.5.14",
     "n-readlines": "^0.2.8",
-    "node-adwords": "201802.1.0",
+    "node-adwords": "201809.1.0",
     "s3": "^4.4.0",
-    "temp": "^0.8.3"
+    "temp": "^0.8.3",
+    "@snyk/protect": "latest"
   },
   "devDependencies": {
     "@types/node": "7.0.23",
@@ -91,5 +94,6 @@
     ],
     "sourceMap": true,
     "instrument": true
-  }
+  },
+  "snyk": true
 }

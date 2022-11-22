@@ -1,0 +1,55 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:extend:20180424':
+    - node-adwords > request > extend:
+        patched: '2022-11-22T00:40:49.136Z'
+    - googleapis > google-auth-library > request > extend:
+        patched: '2022-11-22T00:40:49.136Z'
+    - node-adwords > soap > request > extend:
+        patched: '2022-11-22T00:40:49.136Z'
+    - googleapis > google-auth-library > gtoken > request > extend:
+        patched: '2022-11-22T00:40:49.136Z'
+    - node-adwords > googleapis > google-auth-library > request > extend:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > codacy-coverage > request-promise > request > extend:
+        patched: '2022-11-22T00:40:49.136Z'
+    - node-adwords > googleapis > google-auth-library > gtoken > request > extend:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > swagger-tools > json-refs > path-loader > superagent > extend:
+        patched: '2022-11-22T00:40:49.136Z'
+  SNYK-JS-LODASH-567746:
+    - csvtojson > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - googleapis > async > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > bunyan-rotating-file-stream > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > codacy-coverage > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > json-schema-deref-sync > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - node-adwords > async > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - node-adwords > googleapis > async > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > aws-sdk > xmlbuilder > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > gh-pages > async > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > sqs-consumer > async > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > aws-sdk > xml2js > xmlbuilder > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > sqs-consumer > aws-sdk > xmlbuilder > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > swagger-tools > json-refs > graphlib > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - inceptum > sqs-consumer > aws-sdk > xml2js > xmlbuilder > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
+    - node-adwords > lodash:
+        patched: '2022-11-22T00:40:49.136Z'
